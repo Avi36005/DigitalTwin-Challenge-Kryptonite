@@ -1,0 +1,71 @@
+# Data source and normalization settings. Changes after final evaluation must be recorded in
+# docs/decisions.md together with a new experiment ID.
+dataset:
+  id: cgmacros
+  name: CGMacros
+  version: "1.0.0"
+  landing_page: https://physionet.org/content/cgmacros/1.0.0/
+  doi: https://doi.org/10.13026/3z8q-x658
+  # Primary distribution and a byte-identical PhysioNet open-data mirror (same SHA256SUMS.txt).
+  files_base_url: https://physionet.org/files/cgmacros/1.0.0/
+  mirror_base_url: https://physionet-open.s3.amazonaws.com/cgmacros/1.0.0/
+  license: CC BY-NC-SA 4.0
+  license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/
+  citation: >-
+    Gutierrez-Osuna, R., Kerr, D., Mortazavi, B., & Das, A. (2025). CGMacros: a scientific dataset
+    for personalized nutrition and diet monitoring (version 1.0.0). PhysioNet. RRID:SCR_007345.
+    https://doi.org/10.13026/3z8q-x658
+  archive: CGMacros_dateshifted365.zip
+  checksum_file: SHA256SUMS.txt
+  metadata_files:
+    - SHA256SUMS.txt
+    - LICENSE.txt
+    - DataDictionary.pdf
+    - DataDictionary_Bio.csv
+    - DataDictionary_CGMacros-00X.csv
+    - DataDictionary_Gut_Health_Test.csv
+  raw_subdir: cgmacros/1.0.0
+  processed_subdir: cgmacros/v1
+
+normalization:
+  adapter_version: cgmacros-adapter-1.0
+  # Primary device is fixed before any outcome evaluation (see reports/data_audit.md).
+  primary_device: dexcom_g6_pro
+  devices:
+    dexcom_g6_pro:
+      column: "Dexcom GL"
+      nominal_cadence_minutes: 5
+      max_continuity_gap_minutes: 7.5
+      match_tolerance_minutes: 2.5
+    libre_pro:
+      column: "Libre GL"
+      nominal_cadence_minutes: 15
+      max_continuity_gap_minutes: 22.5
+      match_tolerance_minutes: 7.5
+  glucose_valid_range_mg_dl: [40, 400]   # sensor reporting limits per data dictionary
+  activity_window_minutes: 5             # Fitbit per-minute rows summarised into trailing 5-min windows
+  min_recording_hours_for_primary: 72
+
+availability:
+  # Primary (conservative) policy. See docs/feature_availability.md.
+  policy_id: conservative-v1
+  sensor_latency_minutes: 0               # research replay approximation; the study CGMs were blinded
+  activity_latency_minutes: 0
+  meal_policy: excluded_from_primary_model  # meal timing of logging is unknown
+  meal_display_latency_minutes: 0           # replay context only: photo timestamp approximation
+  baseline_policy: available_at_recording_start
+
+time_policy:
+  policy_id: synthetic-utc-day-aligned-v1
+  synthetic_origin: "2000-01-03T00:00:00+00:00"
+  description: >-
+    Source wall-clock time of day is preserved; source dates (shifted by the dataset publishers by an
+    undisclosed 365-720 days) are replaced by synthetic study days starting 2000-01-03. The UTC offset
+    is a transport convention only; the recording timezone is not documented. No weekday, season or
+    biological clock features are derived.
+
+pseudonyms:
+  # Original participant keys are mapped with a locally generated secret salt stored in
+  # data/private/ (git-ignored).
+  prefix: "pt-"
+  length: 6
