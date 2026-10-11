@@ -1,0 +1,48 @@
+# --- Patient-level and downloaded research data (never commit) ---
+data/raw/
+data/processed/
+data/private/
+# Synthetic fixtures ARE committed; generated synthetic outputs are not.
+data/synthetic/generated/
+
+# --- Generated model artifacts (commit deliberately, see docs/artifact_manifest.md) ---
+artifacts/*
+!artifacts/README.md
+
+# --- Local runtime state ---
+var/
+*.sqlite3
+*.db
+
+# --- Personal planning notes (contain personal contact details; keep out of the public repo) ---
+context.md
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+
+# --- Node ---
+node_modules/
+apps/web/dist/
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/.vite/
+
+# --- OS / editors ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# --- Environment ---
+.env
+.env.local
+test-results/
+*.tsbuildinfo
