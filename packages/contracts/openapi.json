@@ -1,0 +1,4189 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GlucoTwin research API",
+    "description": "Student research proof of concept. Recorded-data replay and synthetic demonstration only; not for clinical use.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "summary": "Ready",
+        "operationId": "ready_api_v1_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/patients": {
+      "get": {
+        "summary": "Patients",
+        "operationId": "patients_api_v1_patients_get",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "dataset_replay",
+                    "synthetic_demo"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mode"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/patients/{patient_id}": {
+      "get": {
+        "summary": "Patient",
+        "operationId": "patient_api_v1_patients__patient_id__get",
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Patient Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions": {
+      "get": {
+        "summary": "List Sessions",
+        "operationId": "list_sessions_api_v1_replay_sessions_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplaySessionList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Session",
+        "operationId": "create_session_api_v1_replay_sessions_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplaySession"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}": {
+      "get": {
+        "summary": "Get Session",
+        "operationId": "get_session_api_v1_replay_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplaySession"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}/control": {
+      "post": {
+        "summary": "Control",
+        "operationId": "control_api_v1_replay_sessions__session_id__control_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplaySession"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}/events": {
+      "get": {
+        "summary": "Events",
+        "operationId": "events_api_v1_replay_sessions__session_id__events_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 2000,
+              "minimum": 1,
+              "default": 500,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}/profile": {
+      "get": {
+        "summary": "Session Profile",
+        "operationId": "session_profile_api_v1_replay_sessions__session_id__profile_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionProfile"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}/twin": {
+      "get": {
+        "summary": "Twin",
+        "operationId": "twin_api_v1_replay_sessions__session_id__twin_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwinState"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}/forecast": {
+      "get": {
+        "summary": "Latest Forecast",
+        "operationId": "latest_forecast_api_v1_replay_sessions__session_id__forecast_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatestForecast"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}/forecasts": {
+      "get": {
+        "summary": "Forecasts",
+        "operationId": "forecasts_api_v1_replay_sessions__session_id__forecasts_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "default": "asc",
+              "title": "Order"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}/alerts": {
+      "get": {
+        "summary": "Alerts",
+        "operationId": "alerts_api_v1_replay_sessions__session_id__alerts_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertList"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/sessions/{session_id}/alerts/{alert_id}/acknowledgement": {
+      "post": {
+        "summary": "Acknowledge",
+        "operationId": "acknowledge_api_v1_replay_sessions__session_id__alerts__alert_id__acknowledgement_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/AcknowledgementRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Alert"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/evaluations/latest": {
+      "get": {
+        "summary": "Evaluation",
+        "operationId": "evaluation_api_v1_evaluations_latest_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Acknowledgement": {
+        "properties": {
+          "acknowledged": {
+            "type": "boolean",
+            "title": "Acknowledged"
+          },
+          "acknowledged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged At"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "meaning": {
+            "type": "string",
+            "title": "Meaning",
+            "default": "Marked as reviewed in this local research session. No message was sent to anyone."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "acknowledged"
+        ],
+        "title": "Acknowledgement"
+      },
+      "AcknowledgementRequest": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AcknowledgementRequest"
+      },
+      "Alert": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "alert_id": {
+            "type": "string",
+            "title": "Alert Id"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "session_revision": {
+            "type": "integer",
+            "title": "Session Revision"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "last_supported_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Supported At"
+          },
+          "horizon_minutes": {
+            "type": "integer",
+            "title": "Horizon Minutes"
+          },
+          "rule_version": {
+            "type": "string",
+            "title": "Rule Version"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "kind": {
+            "type": "string",
+            "const": "predicted_new_high_episode",
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/AlertEvidence"
+          },
+          "supporting_forecast_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supporting Forecast Ids"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "title": "State"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/AlertOutcome"
+          },
+          "acknowledgement": {
+            "$ref": "#/components/schemas/Acknowledgement"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "alert_id",
+          "session_id",
+          "patient_id",
+          "session_revision",
+          "issued_at",
+          "last_supported_at",
+          "horizon_minutes",
+          "rule_version",
+          "model_version",
+          "kind",
+          "title",
+          "evidence",
+          "supporting_forecast_ids",
+          "state",
+          "outcome",
+          "acknowledgement"
+        ],
+        "title": "Alert"
+      },
+      "AlertEvidence": {
+        "properties": {
+          "forecast_id": {
+            "type": "string",
+            "title": "Forecast Id"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "score_kind": {
+            "type": "string",
+            "title": "Score Kind"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "latest_glucose_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Glucose Mg Dl"
+          },
+          "predicted_mg_dl": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Predicted Mg Dl"
+          },
+          "explanation_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Explanation Codes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "forecast_id",
+          "score",
+          "score_kind",
+          "threshold",
+          "latest_glucose_mg_dl",
+          "predicted_mg_dl",
+          "explanation_codes"
+        ],
+        "title": "AlertEvidence"
+      },
+      "AlertList": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "session_revision": {
+            "type": "integer",
+            "title": "Session Revision"
+          },
+          "clock_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Clock At"
+          },
+          "rule_available": {
+            "type": "boolean",
+            "title": "Rule Available"
+          },
+          "rule_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Description"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Alert"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "session_revision",
+          "clock_at",
+          "rule_available",
+          "rule_description",
+          "items"
+        ],
+        "title": "AlertList"
+      },
+      "AlertOutcome": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "onset_observed",
+              "no_onset_observed",
+              "unknown"
+            ],
+            "title": "Status"
+          },
+          "onset_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset At"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          },
+          "lead_time_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Time Minutes"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "AlertOutcome"
+      },
+      "AttributeAvailability": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "present_in_source": {
+            "type": "boolean",
+            "title": "Present In Source"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "availability_rule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability Rule"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "label",
+          "present_in_source"
+        ],
+        "title": "AttributeAvailability"
+      },
+      "CohortAccounting": {
+        "properties": {
+          "participants_in_source": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participants In Source"
+          },
+          "participants_in_cohort": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participants In Cohort"
+          },
+          "participants_included": {
+            "type": "integer",
+            "title": "Participants Included"
+          },
+          "excluded": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Excluded"
+          },
+          "origins_by_split": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Origins By Split"
+          },
+          "events_by_split": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Events By Split"
+          },
+          "covered_hours_by_split": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Covered Hours By Split"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "participants_in_source",
+          "participants_in_cohort",
+          "participants_included",
+          "excluded",
+          "origins_by_split",
+          "events_by_split",
+          "covered_hours_by_split"
+        ],
+        "title": "CohortAccounting"
+      },
+      "CohortLabel": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "provenance": {
+            "type": "string",
+            "title": "Provenance"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "provenance"
+        ],
+        "title": "CohortLabel"
+      },
+      "ComponentReadiness": {
+        "properties": {
+          "ready": {
+            "type": "boolean",
+            "title": "Ready"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ready",
+          "detail"
+        ],
+        "title": "ComponentReadiness"
+      },
+      "ControlCommand": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "play",
+              "pause",
+              "step",
+              "seek",
+              "reset"
+            ],
+            "title": "Action"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2016.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
+          "seek_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seek To"
+          },
+          "speed": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 240.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "ControlCommand"
+      },
+      "CreateSessionRequest": {
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "dataset_replay",
+              "synthetic_demo"
+            ],
+            "title": "Mode"
+          },
+          "start_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start At",
+            "description": "Initial replay clock. Defaults to the start of the timeline."
+          },
+          "speed": {
+            "type": "number",
+            "maximum": 240.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Speed",
+            "default": 10.0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "patient_id",
+          "mode"
+        ],
+        "title": "CreateSessionRequest"
+      },
+      "DataCoverage": {
+        "properties": {
+          "primary_device": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Device"
+          },
+          "native_cadence_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Native Cadence Minutes"
+          },
+          "recording_days": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recording Days"
+          },
+          "glucose_samples": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Glucose Samples"
+          },
+          "glucose_coverage_fraction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Glucose Coverage Fraction"
+          },
+          "gaps_over_threshold": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gaps Over Threshold"
+          },
+          "meals_logged": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meals Logged"
+          },
+          "activity_coverage_fraction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Coverage Fraction"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DataCoverage"
+      },
+      "DatasetRef": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "license": {
+            "type": "string",
+            "title": "License"
+          },
+          "citation_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Citation Url"
+          },
+          "synthetic": {
+            "type": "boolean",
+            "title": "Synthetic",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "license"
+        ],
+        "title": "DatasetRef"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody"
+      },
+      "ErrorEnvelope": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorEnvelope"
+      },
+      "EstimateComponents": {
+        "properties": {
+          "population_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Population Mg Dl"
+          },
+          "patient_correction_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Correction Mg Dl"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "population_mg_dl",
+          "patient_correction_mg_dl"
+        ],
+        "title": "EstimateComponents"
+      },
+      "EvaluationReport": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "not_run",
+              "unavailable",
+              "synthetic_only"
+            ],
+            "title": "Status"
+          },
+          "status_message": {
+            "type": "string",
+            "title": "Status Message"
+          },
+          "experiment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Experiment Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "dataset_replay",
+                  "synthetic_demo"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "dataset": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DatasetRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fingerprints": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Fingerprints"
+          },
+          "protocol": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Protocol"
+          },
+          "cohort": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CohortAccounting"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SelectionRecord"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "forecast_results": {
+            "items": {
+              "$ref": "#/components/schemas/ModelResultRow"
+            },
+            "type": "array",
+            "title": "Forecast Results"
+          },
+          "per_patient": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Per Patient"
+          },
+          "event_results": {
+            "items": {
+              "$ref": "#/components/schemas/EventMetricsRow"
+            },
+            "type": "array",
+            "title": "Event Results"
+          },
+          "interval_results": {
+            "items": {
+              "$ref": "#/components/schemas/IntervalMetricsRow"
+            },
+            "type": "array",
+            "title": "Interval Results"
+          },
+          "optional_experiments": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Optional Experiments"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "status_message"
+        ],
+        "title": "EvaluationReport"
+      },
+      "EvaluationSegment": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "training",
+              "validation",
+              "calibration",
+              "test",
+              "unassigned"
+            ],
+            "title": "Name"
+          },
+          "start_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start At"
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "start_at",
+          "end_at"
+        ],
+        "title": "EvaluationSegment"
+      },
+      "EventMetricsRow": {
+        "properties": {
+          "model_label": {
+            "type": "string",
+            "title": "Model Label"
+          },
+          "horizon_minutes": {
+            "type": "integer",
+            "title": "Horizon Minutes"
+          },
+          "split": {
+            "type": "string",
+            "enum": [
+              "validation",
+              "test"
+            ],
+            "title": "Split"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "true_onsets": {
+            "type": "integer",
+            "title": "True Onsets"
+          },
+          "detected_onsets": {
+            "type": "integer",
+            "title": "Detected Onsets"
+          },
+          "warning_episodes": {
+            "type": "integer",
+            "title": "Warning Episodes"
+          },
+          "false_alarm_episodes": {
+            "type": "integer",
+            "title": "False Alarm Episodes"
+          },
+          "recall": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "precision": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "f1": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "origin_pr_auc": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "false_alarms_per_patient_day": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "warnings_per_patient_day": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "lead_time_minutes_median": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "lead_time_minutes_iqr": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Lead Time Minutes Iqr"
+          },
+          "eligible_patient_days": {
+            "type": "number",
+            "title": "Eligible Patient Days"
+          },
+          "censored_origins": {
+            "type": "integer",
+            "title": "Censored Origins"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model_label",
+          "horizon_minutes",
+          "split",
+          "threshold",
+          "true_onsets",
+          "detected_onsets",
+          "warning_episodes",
+          "false_alarm_episodes",
+          "recall",
+          "precision",
+          "f1",
+          "origin_pr_auc",
+          "false_alarms_per_patient_day",
+          "warnings_per_patient_day",
+          "lead_time_minutes_median",
+          "lead_time_minutes_iqr",
+          "eligible_patient_days",
+          "censored_origins"
+        ],
+        "title": "EventMetricsRow"
+      },
+      "EventPage": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "session_revision": {
+            "type": "integer",
+            "title": "Session Revision"
+          },
+          "clock_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Clock At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationEvent"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "type": "string",
+            "title": "Next Cursor"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "session_revision",
+          "clock_at",
+          "items",
+          "next_cursor",
+          "has_more"
+        ],
+        "title": "EventPage"
+      },
+      "EventRisk": {
+        "properties": {
+          "horizon_minutes": {
+            "type": "integer",
+            "title": "Horizon Minutes"
+          },
+          "probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probability",
+            "description": "Calibrated probability; null unless measured."
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "score_kind": {
+            "type": "string",
+            "enum": [
+              "forecast_margin_mg_dl",
+              "none"
+            ],
+            "title": "Score Kind"
+          },
+          "score_description": {
+            "type": "string",
+            "title": "Score Description"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "eligible",
+              "already_high",
+              "in_episode",
+              "unknown",
+              "insufficient"
+            ],
+            "title": "State"
+          },
+          "alert_threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alert Threshold"
+          },
+          "alert_fired": {
+            "type": "boolean",
+            "title": "Alert Fired",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "horizon_minutes",
+          "score_kind",
+          "score_description",
+          "state"
+        ],
+        "title": "EventRisk"
+      },
+      "Explanation": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "observation",
+              "data_quality",
+              "model_association",
+              "personalization"
+            ],
+            "title": "Kind"
+          },
+          "evidence_event_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Event Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "text",
+          "kind"
+        ],
+        "title": "Explanation"
+      },
+      "Forecast": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "forecast_id": {
+            "type": "string",
+            "title": "Forecast Id"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "session_revision": {
+            "type": "integer",
+            "title": "Session Revision"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "dataset_replay",
+              "synthetic_demo"
+            ],
+            "title": "Mode"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "model_family": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Family"
+          },
+          "personalization": {
+            "$ref": "#/components/schemas/Personalization"
+          },
+          "observed_glucose": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ObservedGlucose"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estimates": {
+            "items": {
+              "$ref": "#/components/schemas/HorizonEstimate"
+            },
+            "type": "array",
+            "title": "Estimates"
+          },
+          "trajectory": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TrajectoryPoint"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trajectory"
+          },
+          "event_risk": {
+            "items": {
+              "$ref": "#/components/schemas/EventRisk"
+            },
+            "type": "array",
+            "title": "Event Risk"
+          },
+          "episode_state": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "pending_high",
+              "in_episode",
+              "recovering",
+              "unknown"
+            ],
+            "title": "Episode State"
+          },
+          "quality": {
+            "$ref": "#/components/schemas/ForecastQuality"
+          },
+          "explanations": {
+            "items": {
+              "$ref": "#/components/schemas/Explanation"
+            },
+            "type": "array",
+            "title": "Explanations"
+          },
+          "split_segment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "training",
+                  "validation",
+                  "calibration",
+                  "test",
+                  "unassigned"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Split Segment",
+            "description": "Evaluation segment that contains this origin. 'training' origins are in-sample for the model."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "forecast_id",
+          "session_id",
+          "patient_id",
+          "session_revision",
+          "as_of",
+          "mode",
+          "model_version",
+          "model_family",
+          "personalization",
+          "observed_glucose",
+          "estimates",
+          "event_risk",
+          "episode_state",
+          "quality",
+          "explanations"
+        ],
+        "title": "Forecast"
+      },
+      "ForecastPage": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "session_revision": {
+            "type": "integer",
+            "title": "Session Revision"
+          },
+          "clock_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Clock At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Forecast"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "title": "Order"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "session_revision",
+          "clock_at",
+          "items",
+          "next_cursor",
+          "order"
+        ],
+        "title": "ForecastPage"
+      },
+      "ForecastQuality": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded",
+              "insufficient"
+            ],
+            "title": "Status"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCode"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "reasons"
+        ],
+        "title": "ForecastQuality"
+      },
+      "FreshnessInfo": {
+        "properties": {
+          "latest_glucose_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Glucose At"
+          },
+          "latest_glucose_age_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Glucose Age Minutes"
+          },
+          "stale_threshold_minutes": {
+            "type": "number",
+            "title": "Stale Threshold Minutes"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "fresh",
+              "stale",
+              "no_data"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "latest_glucose_at",
+          "latest_glucose_age_minutes",
+          "stale_threshold_minutes",
+          "status"
+        ],
+        "title": "FreshnessInfo"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "version"
+        ],
+        "title": "Health"
+      },
+      "HistorySummary": {
+        "properties": {
+          "lookback_minutes": {
+            "type": "integer",
+            "title": "Lookback Minutes"
+          },
+          "available_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available Minutes"
+          },
+          "valid_samples_lookback": {
+            "type": "integer",
+            "title": "Valid Samples Lookback"
+          },
+          "valid_samples_60": {
+            "type": "integer",
+            "title": "Valid Samples 60"
+          },
+          "latest_glucose": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ObservedGlucose"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lookback_minutes",
+          "available_minutes",
+          "valid_samples_lookback",
+          "valid_samples_60",
+          "latest_glucose"
+        ],
+        "title": "HistorySummary"
+      },
+      "HorizonAdaptation": {
+        "properties": {
+          "horizon_minutes": {
+            "type": "integer",
+            "title": "Horizon Minutes"
+          },
+          "matured_residuals": {
+            "type": "integer",
+            "title": "Matured Residuals"
+          },
+          "min_required": {
+            "type": "integer",
+            "title": "Min Required"
+          },
+          "correction_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correction Mg Dl"
+          },
+          "last_matured_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Matured At"
+          },
+          "consumed_forecast_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Consumed Forecast Ids",
+            "description": "Most recent forecast IDs whose matured residuals feed the state."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "horizon_minutes",
+          "matured_residuals",
+          "min_required",
+          "correction_mg_dl"
+        ],
+        "title": "HorizonAdaptation"
+      },
+      "HorizonEstimate": {
+        "properties": {
+          "horizon_minutes": {
+            "type": "integer",
+            "title": "Horizon Minutes"
+          },
+          "target_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Target At"
+          },
+          "predicted_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicted Mg Dl"
+          },
+          "lower_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lower Mg Dl"
+          },
+          "upper_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upper Mg Dl"
+          },
+          "interval_level": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Level"
+          },
+          "interval_status": {
+            "type": "string",
+            "enum": [
+              "calibrated",
+              "unavailable"
+            ],
+            "title": "Interval Status",
+            "default": "unavailable"
+          },
+          "components": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EstimateComponents"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "horizon_minutes",
+          "target_at",
+          "predicted_mg_dl"
+        ],
+        "title": "HorizonEstimate"
+      },
+      "IntervalMetricsRow": {
+        "properties": {
+          "model_label": {
+            "type": "string",
+            "title": "Model Label"
+          },
+          "horizon_minutes": {
+            "type": "integer",
+            "title": "Horizon Minutes"
+          },
+          "split": {
+            "type": "string",
+            "enum": [
+              "calibration",
+              "test"
+            ],
+            "title": "Split"
+          },
+          "interval_level": {
+            "type": "number",
+            "title": "Interval Level"
+          },
+          "empirical_coverage": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "mean_width_mg_dl": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "per_patient_coverage_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Patient Coverage Min"
+          },
+          "per_patient_coverage_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Patient Coverage Max"
+          },
+          "n_origins": {
+            "type": "integer",
+            "title": "N Origins"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model_label",
+          "horizon_minutes",
+          "split",
+          "interval_level",
+          "empirical_coverage",
+          "mean_width_mg_dl",
+          "per_patient_coverage_min",
+          "per_patient_coverage_max",
+          "n_origins"
+        ],
+        "title": "IntervalMetricsRow"
+      },
+      "LatestForecast": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "session_revision": {
+            "type": "integer",
+            "title": "Session Revision"
+          },
+          "clock_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Clock At"
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "available",
+              "stale",
+              "not_ready"
+            ],
+            "title": "Availability"
+          },
+          "age_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Minutes"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCode"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "forecast": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Forecast"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "session_revision",
+          "clock_at",
+          "availability",
+          "age_minutes",
+          "reasons",
+          "forecast"
+        ],
+        "title": "LatestForecast"
+      },
+      "MetricValue": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "reason_if_null": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason If Null"
+          },
+          "ci_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ci Low"
+          },
+          "ci_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ci High"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "MetricValue"
+      },
+      "ModelResultRow": {
+        "properties": {
+          "model_family": {
+            "type": "string",
+            "title": "Model Family"
+          },
+          "model_label": {
+            "type": "string",
+            "title": "Model Label"
+          },
+          "feature_set_id": {
+            "type": "string",
+            "title": "Feature Set Id"
+          },
+          "personalization": {
+            "type": "string",
+            "enum": [
+              "off",
+              "adaptive",
+              "frozen_state"
+            ],
+            "title": "Personalization"
+          },
+          "split": {
+            "type": "string",
+            "enum": [
+              "validation",
+              "test"
+            ],
+            "title": "Split"
+          },
+          "horizon_minutes": {
+            "type": "integer",
+            "title": "Horizon Minutes"
+          },
+          "mae_mg_dl": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "rmse_mg_dl": {
+            "$ref": "#/components/schemas/MetricValue"
+          },
+          "n_patients": {
+            "type": "integer",
+            "title": "N Patients"
+          },
+          "n_origins": {
+            "type": "integer",
+            "title": "N Origins"
+          },
+          "coverage_fraction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Fraction"
+          },
+          "train_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Train Seconds"
+          },
+          "inference_ms_per_1k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inference Ms Per 1K"
+          },
+          "selected_for_serving": {
+            "type": "boolean",
+            "title": "Selected For Serving",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model_family",
+          "model_label",
+          "feature_set_id",
+          "personalization",
+          "split",
+          "horizon_minutes",
+          "mae_mg_dl",
+          "rmse_mg_dl",
+          "n_patients",
+          "n_origins",
+          "coverage_fraction"
+        ],
+        "title": "ModelResultRow"
+      },
+      "ObservationEvent": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "glucose",
+              "meal",
+              "activity"
+            ],
+            "title": "Kind"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "suspect",
+              "estimated"
+            ],
+            "title": "Quality"
+          },
+          "quality_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Quality Flags"
+          },
+          "units": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Units"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Values"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event_id",
+          "patient_id",
+          "kind",
+          "observed_at",
+          "available_at",
+          "source",
+          "quality",
+          "units",
+          "values"
+        ],
+        "title": "ObservationEvent"
+      },
+      "ObservedGlucose": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "value_mg_dl": {
+            "type": "number",
+            "title": "Value Mg Dl"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event_id",
+          "value_mg_dl",
+          "observed_at",
+          "available_at"
+        ],
+        "title": "ObservedGlucose"
+      },
+      "PatientDetail": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "display_alias": {
+            "type": "string",
+            "title": "Display Alias"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "dataset_replay",
+              "synthetic_demo"
+            ],
+            "title": "Mode"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetRef"
+          },
+          "cohort": {
+            "$ref": "#/components/schemas/CohortLabel"
+          },
+          "eligible_for_primary_analysis": {
+            "type": "boolean",
+            "title": "Eligible For Primary Analysis"
+          },
+          "exclusion_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclusion Reason"
+          },
+          "attributes": {
+            "items": {
+              "$ref": "#/components/schemas/AttributeAvailability"
+            },
+            "type": "array",
+            "title": "Attributes"
+          },
+          "missing_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Fields"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/DataCoverage"
+          },
+          "active_session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SessionBrief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "time_policy": {
+            "$ref": "#/components/schemas/TimePolicy"
+          },
+          "availability_policy_id": {
+            "type": "string",
+            "title": "Availability Policy Id"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "evaluation_segments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/EvaluationSegment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Segments",
+            "description": "Chronological split segments for participants in the measured evaluation. Forecasts issued in the training segment are in-sample for the population model."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "patient_id",
+          "display_alias",
+          "mode",
+          "dataset",
+          "cohort",
+          "eligible_for_primary_analysis",
+          "attributes",
+          "missing_fields",
+          "coverage",
+          "time_policy",
+          "availability_policy_id"
+        ],
+        "title": "PatientDetail"
+      },
+      "PatientPage": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PatientSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PatientPage"
+      },
+      "PatientSummary": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "display_alias": {
+            "type": "string",
+            "title": "Display Alias"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "dataset_replay",
+              "synthetic_demo"
+            ],
+            "title": "Mode"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetRef"
+          },
+          "cohort": {
+            "$ref": "#/components/schemas/CohortLabel"
+          },
+          "eligible_for_primary_analysis": {
+            "type": "boolean",
+            "title": "Eligible For Primary Analysis"
+          },
+          "exclusion_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclusion Reason"
+          },
+          "attributes": {
+            "items": {
+              "$ref": "#/components/schemas/AttributeAvailability"
+            },
+            "type": "array",
+            "title": "Attributes"
+          },
+          "missing_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Fields"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/DataCoverage"
+          },
+          "active_session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SessionBrief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "patient_id",
+          "display_alias",
+          "mode",
+          "dataset",
+          "cohort",
+          "eligible_for_primary_analysis",
+          "attributes",
+          "missing_fields",
+          "coverage"
+        ],
+        "title": "PatientSummary",
+        "description": "Catalogue entry. Contains identifiers and field-availability metadata, never clinical values."
+      },
+      "Personalization": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "warming_up",
+              "active",
+              "reset_after_gap"
+            ],
+            "title": "Status"
+          },
+          "policy_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Id"
+          },
+          "state_version": {
+            "type": "integer",
+            "title": "State Version"
+          },
+          "horizons": {
+            "items": {
+              "$ref": "#/components/schemas/HorizonAdaptation"
+            },
+            "type": "array",
+            "title": "Horizons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "enabled",
+          "status",
+          "state_version",
+          "horizons"
+        ],
+        "title": "Personalization"
+      },
+      "ProfileValue": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "available_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available At"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "not_yet_available",
+              "missing_in_source",
+              "excluded_suspect"
+            ],
+            "title": "Status"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "label",
+          "value",
+          "status"
+        ],
+        "title": "ProfileValue"
+      },
+      "Readiness": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "ready": {
+            "type": "boolean",
+            "title": "Ready"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/ComponentReadiness"
+          },
+          "synthetic": {
+            "$ref": "#/components/schemas/ComponentReadiness"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ComponentReadiness"
+          },
+          "evaluation": {
+            "$ref": "#/components/schemas/ComponentReadiness"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ready",
+          "dataset",
+          "synthetic",
+          "model",
+          "evaluation"
+        ],
+        "title": "Readiness"
+      },
+      "ReasonCode": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ReasonCode",
+        "description": "Machine-readable code plus a plain-language explanation."
+      },
+      "ReplaySession": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "patient_alias": {
+            "type": "string",
+            "title": "Patient Alias"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Wall-clock creation time of the session (not replay time)."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "dataset_replay",
+              "synthetic_demo"
+            ],
+            "title": "Mode"
+          },
+          "clock_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Clock At"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "playing",
+              "paused",
+              "completed",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed",
+            "description": "Replay minutes advanced per wall-clock second while playing."
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "timeline": {
+            "$ref": "#/components/schemas/TimelineBounds"
+          },
+          "time_policy": {
+            "$ref": "#/components/schemas/TimePolicy"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/FreshnessInfo"
+          },
+          "released_event_count": {
+            "type": "integer",
+            "title": "Released Event Count"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReasonCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "patient_id",
+          "patient_alias",
+          "created_at",
+          "mode",
+          "clock_at",
+          "status",
+          "speed",
+          "revision",
+          "timeline",
+          "time_policy",
+          "freshness",
+          "released_event_count"
+        ],
+        "title": "ReplaySession"
+      },
+      "ReplaySessionList": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReplaySession"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ReplaySessionList"
+      },
+      "SelectionRecord": {
+        "properties": {
+          "rule": {
+            "type": "string",
+            "title": "Rule"
+          },
+          "tie_break": {
+            "type": "string",
+            "title": "Tie Break"
+          },
+          "candidates": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Candidates"
+          },
+          "selected_model_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Model Label"
+          },
+          "selected_model_family": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Model Family"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rule",
+          "tie_break",
+          "candidates",
+          "selected_model_label",
+          "selected_model_family",
+          "rationale"
+        ],
+        "title": "SelectionRecord"
+      },
+      "SessionBrief": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "playing",
+              "paused",
+              "completed",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "clock_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Clock At"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "status",
+          "clock_at",
+          "revision"
+        ],
+        "title": "SessionBrief"
+      },
+      "SessionProfile": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "session_revision": {
+            "type": "integer",
+            "title": "Session Revision"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "cohort": {
+            "$ref": "#/components/schemas/CohortLabel"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileValue"
+            },
+            "type": "array",
+            "title": "Values"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "patient_id",
+          "session_revision",
+          "as_of",
+          "cohort",
+          "values"
+        ],
+        "title": "SessionProfile",
+        "description": "Baseline values as known at the session clock. Future values are withheld."
+      },
+      "TimePolicy": {
+        "properties": {
+          "policy_id": {
+            "type": "string",
+            "title": "Policy Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "source_timezone_known": {
+            "type": "boolean",
+            "title": "Source Timezone Known"
+          },
+          "calendar_values_synthetic": {
+            "type": "boolean",
+            "title": "Calendar Values Synthetic"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "policy_id",
+          "description",
+          "source_timezone_known",
+          "calendar_values_synthetic"
+        ],
+        "title": "TimePolicy"
+      },
+      "TimelineBounds": {
+        "properties": {
+          "start_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start At"
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End At"
+          },
+          "step_minutes": {
+            "type": "integer",
+            "title": "Step Minutes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start_at",
+          "end_at",
+          "step_minutes"
+        ],
+        "title": "TimelineBounds"
+      },
+      "TrajectoryPoint": {
+        "properties": {
+          "target_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Target At"
+          },
+          "predicted_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicted Mg Dl"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target_at",
+          "predicted_mg_dl"
+        ],
+        "title": "TrajectoryPoint"
+      },
+      "TwinState": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "session_revision": {
+            "type": "integer",
+            "title": "Session Revision"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "state_version": {
+            "type": "integer",
+            "title": "State Version"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "model_family": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Family"
+          },
+          "personalization": {
+            "$ref": "#/components/schemas/Personalization"
+          },
+          "history": {
+            "$ref": "#/components/schemas/HistorySummary"
+          },
+          "episode_state": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "pending_high",
+              "in_episode",
+              "recovering",
+              "unknown"
+            ],
+            "title": "Episode State"
+          },
+          "supporting_event_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supporting Event Ids"
+          },
+          "consumed_event_count": {
+            "type": "integer",
+            "title": "Consumed Event Count"
+          },
+          "issued_forecast_count": {
+            "type": "integer",
+            "title": "Issued Forecast Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "patient_id",
+          "session_revision",
+          "as_of",
+          "state_version",
+          "model_version",
+          "model_family",
+          "personalization",
+          "history",
+          "episode_state",
+          "supporting_event_ids",
+          "consumed_event_count",
+          "issued_forecast_count"
+        ],
+        "title": "TwinState"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
