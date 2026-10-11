@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "error": {
+    "code": "validation_error",
+    "message": "The request was not valid.",
+    "request_id": "3a2dde42d587",
+    "details": [
+      {
+        "loc": [
+          "body"
+        ],
+        "msg": "Value error, seek requires seek_to"
+      }
+    ]
+  }
+}
