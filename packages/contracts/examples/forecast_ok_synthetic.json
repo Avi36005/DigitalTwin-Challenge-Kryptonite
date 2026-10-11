@@ -1,0 +1,173 @@
+{
+  "schema_version": "1.0",
+  "session_id": "d30221215231",
+  "session_revision": 1,
+  "clock_at": "2000-01-03T03:00:00Z",
+  "availability": "available",
+  "age_minutes": 2.9,
+  "reasons": [],
+  "forecast": {
+    "schema_version": "1.0",
+    "forecast_id": "bc058431-43ec-56b1-9c3a-71199e17f8b2",
+    "session_id": "d30221215231",
+    "patient_id": "SYN-A",
+    "session_revision": 1,
+    "as_of": "2000-01-03T02:57:08.788007Z",
+    "mode": "synthetic_demo",
+    "model_version": "synthetic-demo.lightgbm.dyn-v1.v1",
+    "model_family": "lightgbm",
+    "personalization": {
+      "enabled": true,
+      "status": "active",
+      "policy_id": "shrunk-bias-v1",
+      "state_version": 28,
+      "horizons": [
+        {
+          "horizon_minutes": 30,
+          "matured_residuals": 17,
+          "min_required": 6,
+          "correction_mg_dl": 1.209176388091801,
+          "last_matured_at": "2000-01-03T02:57:08.788007Z",
+          "consumed_forecast_ids": [
+            "6d57c2cb-f37c-51b4-8301-523a354c50e7",
+            "9348d803-9f5a-50e6-8fc1-75421636a918",
+            "8def3749-7eb5-5902-b46f-d21d8cc1a74a",
+            "8f4e81c9-6c7a-5adc-a52c-99e288933bcc",
+            "be94b3b3-b3ab-5e9e-ac7d-18ed5675eb6c",
+            "16a82e20-8578-53be-88b3-fd8daa1fefcc",
+            "1582d688-ccef-5e6d-be78-535064c73023",
+            "2a592708-7e59-5afc-a4be-6c90a9ef3ec7",
+            "685462d4-efee-590c-a6b3-116d1994a651",
+            "fa09cc62-a28d-5323-9930-799a40d697d7",
+            "ac10dd91-7581-5c29-b0aa-21cff5f8f4c3",
+            "e153bc5d-d537-52a2-ab79-80c31cccfc4e"
+          ]
+        },
+        {
+          "horizon_minutes": 60,
+          "matured_residuals": 11,
+          "min_required": 6,
+          "correction_mg_dl": 2.2278999995911226,
+          "last_matured_at": "2000-01-03T02:57:08.788007Z",
+          "consumed_forecast_ids": [
+            "2dfae63e-e6a6-501e-bdcb-dc95ec60f1a5",
+            "df3f8c5c-abd5-5e3a-a98d-cba941795cd5",
+            "1483b958-dcea-53d7-9db9-aedbc82ba6c8",
+            "6f49b3bb-0187-559e-b5b0-0a630af2b5b2",
+            "35503393-8dd3-53fa-a2d6-5732ed611dc0",
+            "6d57c2cb-f37c-51b4-8301-523a354c50e7",
+            "9348d803-9f5a-50e6-8fc1-75421636a918",
+            "8def3749-7eb5-5902-b46f-d21d8cc1a74a",
+            "8f4e81c9-6c7a-5adc-a52c-99e288933bcc",
+            "be94b3b3-b3ab-5e9e-ac7d-18ed5675eb6c",
+            "16a82e20-8578-53be-88b3-fd8daa1fefcc"
+          ]
+        }
+      ]
+    },
+    "observed_glucose": {
+      "event_id": "SYN-A-g-00035",
+      "value_mg_dl": 134.0,
+      "observed_at": "2000-01-03T02:57:08.788007Z",
+      "available_at": "2000-01-03T02:57:08.788007Z"
+    },
+    "estimates": [
+      {
+        "horizon_minutes": 30,
+        "target_at": "2000-01-03T03:27:08.788007Z",
+        "predicted_mg_dl": 132.9,
+        "lower_mg_dl": 117.4,
+        "upper_mg_dl": 148.3,
+        "interval_level": 0.8,
+        "interval_status": "calibrated",
+        "components": {
+          "population_mg_dl": 131.7,
+          "patient_correction_mg_dl": 1.2
+        }
+      },
+      {
+        "horizon_minutes": 60,
+        "target_at": "2000-01-03T03:57:08.788007Z",
+        "predicted_mg_dl": 135.0,
+        "lower_mg_dl": 111.7,
+        "upper_mg_dl": 158.3,
+        "interval_level": 0.8,
+        "interval_status": "calibrated",
+        "components": {
+          "population_mg_dl": 132.8,
+          "patient_correction_mg_dl": 2.2
+        }
+      }
+    ],
+    "trajectory": null,
+    "event_risk": [
+      {
+        "horizon_minutes": 30,
+        "probability": null,
+        "score": -47.1,
+        "score_kind": "forecast_margin_mg_dl",
+        "score_description": "Highest forecast within 30 min minus 180 mg/dL. Uncalibrated research score in mg/dL \u2014 not a probability.",
+        "state": "eligible",
+        "alert_threshold": null,
+        "alert_fired": false
+      },
+      {
+        "horizon_minutes": 60,
+        "probability": null,
+        "score": -45.0,
+        "score_kind": "forecast_margin_mg_dl",
+        "score_description": "Highest forecast within 60 min minus 180 mg/dL. Uncalibrated research score in mg/dL \u2014 not a probability.",
+        "state": "eligible",
+        "alert_threshold": 0.0,
+        "alert_fired": false
+      }
+    ],
+    "episode_state": "normal",
+    "quality": {
+      "status": "ok",
+      "reasons": []
+    },
+    "explanations": [
+      {
+        "code": "latest_reading",
+        "text": "Latest reading 134 mg/dL.",
+        "kind": "observation",
+        "evidence_event_ids": [
+          "SYN-A-g-00035"
+        ]
+      },
+      {
+        "code": "trend_30",
+        "text": "Glucose rose 3 mg/dL over the previous 30 minutes.",
+        "kind": "observation",
+        "evidence_event_ids": [
+          "SYN-A-g-00024",
+          "SYN-A-g-00025",
+          "SYN-A-g-00026",
+          "SYN-A-g-00027",
+          "SYN-A-g-00028",
+          "SYN-A-g-00029",
+          "SYN-A-g-00030",
+          "SYN-A-g-00031",
+          "SYN-A-g-00032",
+          "SYN-A-g-00033",
+          "SYN-A-g-00034",
+          "SYN-A-g-00035"
+        ]
+      },
+      {
+        "code": "patient_correction",
+        "text": "Patient adaptation adjusts the 60-minute population forecast by +2.2 mg/dL, learned from 11 earlier forecast errors for this person.",
+        "kind": "personalization",
+        "evidence_event_ids": []
+      },
+      {
+        "code": "tree_contributions",
+        "text": "Largest 60-minute population-model associations (tree contributions, not causes): activity energy (60 min) -4 mg/dL; average glucose (60 min) +3 mg/dL; average activity (METs, 30 min) -2 mg/dL. The patient correction is reported separately.",
+        "kind": "model_association",
+        "evidence_event_ids": []
+      }
+    ],
+    "split_segment": null
+  }
+}
