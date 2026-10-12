@@ -19,7 +19,7 @@ from glucotwin.features import FEATURE_SETS
 from glucotwin.models.adaptation import AdaptationPolicy, conformal_quantile
 from glucotwin.models.population import LightGBMModel, PopulationBundle
 
-VERSION = "synthetic-demo.lightgbm.dyn-v1.v1"
+VERSION = "synthetic-demo.lightgbm.dyn-v2.v1"  # dyn-v2: corrected activity windows (v1 artifact kept)
 PARAMS = {"learning_rate": 0.05, "num_leaves": 15, "max_depth": 5, "min_child_samples": 100, "lambda_l2": 5.0,
           "feature_fraction": 0.9, "bagging_fraction": 0.9}
 
@@ -31,7 +31,7 @@ def train() -> dict:
     build_origin_table(store, st, out, include=lambda m: m["patient_id"].startswith("SYN-T"))
     table = pd.read_parquet(out / "origins.parquet")
     issued = table["quality"] != "insufficient"
-    fs = "dyn-v1"
+    fs = "dyn-v2"
     cols = FEATURE_SETS[fs].columns()
     models, q = {}, {}
     for h in st.horizons:
