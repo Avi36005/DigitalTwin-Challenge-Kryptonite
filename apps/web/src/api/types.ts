@@ -1,0 +1,45 @@
+// Convenience aliases over the generated contract (packages/contracts/src/schema.d.ts).
+// Never hand-edit response shapes here: regenerate with `npm run contracts`.
+import type { components } from "@contracts/src/schema";
+
+type S = components["schemas"];
+export type PatientSummary = S["PatientSummary"];
+export type PatientDetail = S["PatientDetail"];
+export type PatientPage = S["PatientPage"];
+export type ReplaySession = S["ReplaySession"];
+export type ReplaySessionList = S["ReplaySessionList"];
+export type ReplayMode = S["ReplaySession"]["mode"];
+export type SessionStatus = S["ReplaySession"]["status"];
+export type ControlCommand = S["ControlCommand"];
+export type ObservationEvent = S["ObservationEvent"];
+export type EventPage = S["EventPage"];
+export type SessionProfile = S["SessionProfile"];
+export type ProfileValue = S["ProfileValue"];
+export type TwinState = S["TwinState"];
+export type Forecast = S["Forecast"];
+export type LatestForecast = S["LatestForecast"];
+export type ForecastPage = S["ForecastPage"];
+export type HorizonEstimate = S["HorizonEstimate"];
+export type EventRisk = S["EventRisk"];
+export type Explanation = S["Explanation"];
+export type Alert = S["Alert"];
+export type AlertList = S["AlertList"];
+export type EvaluationReport = S["EvaluationReport"];
+export type ModelResultRow = S["ModelResultRow"];
+export type EventMetricsRow = S["EventMetricsRow"];
+export type IntervalMetricsRow = S["IntervalMetricsRow"];
+export type Readiness = S["Readiness"];
+export type ErrorEnvelope = S["ErrorEnvelope"];
+export type EvaluationSegment = S["EvaluationSegment"];
+export type EvaluationList = S["EvaluationList"];
+export type EvaluationSummary = S["EvaluationSummary"];
+export type ServingList = S["ServingList"];
+export type ServingSummary = S["ServingSummary"];
+export type ResearchReport = S["ResearchReport"];
+export type ResearchTrack = S["ResearchTrack"];
+export type ResearchPipeline = S["ResearchPipeline"];
+export type ResearchComparison = S["ResearchComparison"];
+export type ResearchHorizonResult = S["ResearchHorizonResult"];
+export type ResearchExternal = S["ResearchExternal"];
+export type DatasetInventory = S["DatasetInventory"];
+export type DatasetEntry = S["DatasetEntry"];
