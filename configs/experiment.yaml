@@ -1,7 +1,21 @@
-# GlucoTwin primary experiment protocol.
-# Declared on 2026-10-11 BEFORE any model was fitted or any outcome metric was computed.
-# Any later change requires a new experiment_id and an entry in docs/decisions.md.
-experiment_id: gt-primary-2026-10-11-v1
+# GlucoTwin primary experiment protocol — CURRENT version (corrected re-run).
+#
+# This is the v1 protocol (configs/experiments/gt-primary-2026-10-11-v1.yaml, declared before any model was fitted)
+# re-run after code corrections, declared on 2026-10-11 AFTER v1's single test evaluation (docs/decisions.md D-025):
+#   * feature sets dyn-v2 / dyn-prof-v2 / dyn-prof-meal-v2: activity windows count only the overlapping part of each
+#     5-minute summary (v1 counted a summary ending exactly at t - 60, so a 60-minute window could hold 65 minutes);
+#   * warning outcomes in replay use the same one-to-one matcher as this evaluation (offline matching is unchanged);
+#   * reported in addition, never instead: qualified forecast lead, and both warning rates on both time bases.
+# NOTHING else changed: cohort, splits, horizons, search spaces, seeds, selection rule, tie break, adaptation grid and
+# adoption rule, interval method, alert score, threshold grid and threshold rule are copied from v1 verbatim, and no
+# choice below was tuned on v1 test results. The test segment is the one already inspected in v1, so results of this
+# experiment are corrected retrospective results, not untouched test evidence.
+experiment_id: gt-primary-2026-10-11-v2
+corrects: gt-primary-2026-10-11-v1
+correction_note: >-
+  Corrected retrospective re-run of gt-primary-2026-10-11-v1 under the same declared protocol after fixing the
+  activity-window feature defect and the online warning double-credit defect. The final-test segment was already
+  inspected in v1.
 declared_on: "2026-10-11"
 random_seed: 20261011
 
@@ -20,9 +34,10 @@ features:
   min_history_minutes: 60
   stale_threshold_minutes: 15
   time_of_day_features: false       # timezone undocumented; synthetic clock is not biological time
-  candidate_feature_sets: [dyn-v1, dyn-prof-v1]   # eligible for serving selection
+  candidate_feature_sets: [dyn-v2, dyn-prof-v2]   # eligible for serving selection (corrected activity windows)
+  superset_feature_set: dyn-prof-meal-v2           # columns stored in the origin table
   sensitivity_feature_sets:
-    dyn-prof-meal-v1: >-
+    dyn-prof-meal-v2: >-
       OPTIMISTIC meal-logging sensitivity: assumes meal macronutrients were available at the photo
       timestamp. Never eligible for serving selection.
   patient_id_as_feature: false
@@ -122,7 +137,8 @@ alerts:
   matching: >-
     A warning episode matches the earliest unmatched new onset o with episode_start < o <=
     episode_last_firing + H. Each onset matches at most one episode. Unmatched episodes whose follow-up
-    is uncensored are false alarms. Lead time = o - episode_start.
+    is uncensored are false alarms. Episode-start-to-onset = o - episode_start (the v1 "lead time").
+    Also reported: qualified forecast lead = o - f for the earliest firing f of the episode with f < o <= f + H.
 
 evaluation:
   bootstrap: participant-cluster
