@@ -1,0 +1,140 @@
+# Real-data source registry (Prompt pack v4, 01). Publisher-reported scale describes the external resource only; local
+# acquired / parsed / eligible counts are written by `glucotwin data manifest` from what actually exists on disk.
+# Verified against the publisher pages on 2026-10-12. Recheck version and terms before any new acquisition.
+#
+# access_status values: planned | access_required | available_locally | imported | failed_validation |
+#                       eligible_for_experiment. A URL or a downloaded archive never counts as an import.
+manifest_version: source-manifest-1
+sources:
+  cgmacros:
+    name: CGMacros
+    release: "1.0.0"
+    role: development cohort (already inspected in experiments gt-primary-2026-10-11-v1/v2)
+    landing_page: https://physionet.org/content/cgmacros/1.0.0/
+    doi: https://doi.org/10.13026/3z8q-x658
+    citation: >-
+      Gutierrez-Osuna, R., Kerr, D., Mortazavi, B., & Das, A. (2025). CGMacros: a scientific dataset for personalized
+      nutrition and diet monitoring (version 1.0.0). PhysioNet. https://doi.org/10.13026/3z8q-x658
+    license: CC BY-NC-SA 4.0
+    license_short: CC BY-NC-SA 4.0
+    license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/
+    permitted_local_use: Non-commercial research; attribution and share-alike apply to derived data.
+    redistribution: >-
+      Raw and participant-level derived files are not redistributed by this repository (git-ignored). Aggregate results
+      may be shown with attribution.
+    population: Adults with no diabetes, pre-diabetes and Type 2 diabetes (cohort by documented HbA1c criterion)
+    country_site: United States (Texas); site details per the data descriptor
+    devices:
+      - {device_id: dexcom_g6_pro, native_cadence_minutes: 5, unit: mg/dL}
+      - {device_id: libre_pro, native_cadence_minutes: 15, unit: mg/dL}
+    publisher_participants: 45
+    requested_modalities: [cgm_dexcom, cgm_libre, fitbit_activity, meal_log, baseline_bio]
+    expected_bytes: null             # not published as a total; actual bytes are measured from the verified local files
+    raw_subdir: cgmacros/1.0.0
+    processed_subdir: cgmacros/v1
+    adapter: cgmacros-adapter-1.0
+    access: open (PhysioNet open data)
+  shanghai_t2dm:
+    name: ShanghaiT2DM
+    release: figshare 21600933 v5 (2023-10-30)
+    role: reserved external assessment cohort (portable 15-minute CGM-only track)
+    landing_page: https://doi.org/10.6084/m9.figshare.c.6310860
+    doi: https://doi.org/10.6084/m9.figshare.21600933.v5
+    publication: https://www.nature.com/articles/s41597-023-01940-7
+    citation: >-
+      Chinese diabetes datasets for data-driven machine learning. Scientific Data 10, 35 (2023).
+      https://doi.org/10.1038/s41597-023-01940-7 ; data: Zhao, Qinpei; Zhu, Jinhao; Wang, Congrong; Rao, Weixiong
+      (2022). diabetes_datasets.zip. figshare. https://doi.org/10.6084/m9.figshare.21600933.v5
+    license: CC BY 4.0
+    license_short: CC BY 4.0
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    permitted_local_use: Any use with attribution (CC BY 4.0).
+    redistribution: >-
+      Permitted with attribution, but this repository still keeps raw and participant-level derived files out of git;
+      only aggregate evidence is committed.
+    population: Adults with diagnosed Type 2 diabetes (WHO 1999 criteria), Shanghai, China; inpatient and outpatient
+      registry (DiaDRIL), 3-14 day recordings
+    country_site: China (Shanghai Fourth People's Hospital; Shanghai East Hospital)
+    devices:
+      - {device_id: freestyle_libre_h, native_cadence_minutes: 15, unit: mg/dL (source column; values are mmol/L x 18)}
+    publisher_participants: 100
+    publisher_recordings: 109
+    min_observed_hours: 72            # declared eligibility: gap-respecting observed native CGM hours (all recordings)
+    requested_modalities: [cgm]
+    not_used_modalities: >-
+      Capillary glucose, ketones, dietary intake, insulin and oral-agent records are parsed for the audit only and are
+      never model inputs in this experiment (timing/semantics differ from CGMacros). Summary-sheet labs were measured up
+      to 6 months before or after CGM without dates, so they are not causally available at any forecast origin.
+    download_url: https://ndownloader.figshare.com/files/42966622
+    archive: diabetes_datasets.zip
+    expected_bytes: 3738354
+    expected_md5: 4bfb61cfa506b48155fd9e841ee48e21   # figshare computed_md5 (API, 2026-10-12)
+    raw_subdir: shanghai/figshare-21600933.v5
+    processed_subdir: shanghai/v1
+    adapter: shanghai-adapter-1.0
+    access: open (figshare)
+  ai_readi_v3:
+    name: AI-READI (Flagship Dataset of Type 2 Diabetes from the AI-READI Project)
+    release: "3.0.0"
+    role: preferred large-data development expansion (not acquired)
+    landing_page: https://fairhub.io/datasets/3
+    access_page: https://fairhub.io/datasets/3/access
+    documentation: https://docs.aireadi.org/docs/3/dataset/wearable-glucose-monitor/
+    license: AI-READI custom Data License Agreement (DLA); restricted data require a DTUA and DAC approval
+    license_short: AI-READI DLA (custom)
+    license_url: https://docs.aireadi.org/docs/3/preliminary/license
+    permitted_local_use: >-
+      Type 2 diabetes related research and AI/ML model training under the accepted DLA. Do not attempt to identify
+      participants. The documentation restricts uploading participant data to third-party LLM providers without the
+      required institutional agreement: process locally only and never place records in prompts, tool output,
+      screenshots or external services.
+    redistribution: Not permitted; participant-level files must stay local and git-ignored.
+    population: 2,280 participants across disease stages (no diabetes, pre-diabetes, Type 2 diabetes with oral or
+      insulin treatment); not all have usable CGM
+    country_site: United States (three data-collection sites)
+    devices:
+      - {device_id: dexcom_g6, native_cadence_minutes: 5, unit: mg/dL}
+    publisher_participants: 2280
+    publisher_bytes: 3820000000000   # 3.82 TB, whole multimodal release (documentation snapshot)
+    publisher_files: 356343
+    requested_modalities: [wearable_blood_glucose/continuous_glucose_monitoring/dexcom_g6, participants.tsv,
+                           clinical_data (permitted baseline fields), wearable_activity_monitor summaries]
+    excluded_modalities: [retinal imaging (photography, OCT, OCTA, FLIO), ECG waveforms, environmental sensor raw files]
+    expected_bytes: null             # derive from the real FAIRhub manifest after access; never estimated here
+    raw_subdir: ai_readi/3.0.0
+    processed_subdir: ai_readi/v1
+    adapter: aireadi-cgm-adapter-1.0
+    access: controlled (FAIRhub request workflow)
+    user_steps:
+      - Create or provide an Azure Storage container to receive the data (required by the FAIRhub workflow).
+      - Log in to FAIRhub through CILogon with institutional credentials (or contact the AI-READI Data Access Committee).
+      - Confirm the research is related to Type 2 diabetes.
+      - Answer the training questions on research methods and ethics.
+      - Describe the research purpose (published with your name on the AI-READI website).
+      - Review and accept the AI-READI Dataset License (DLA, "I ACCEPT").
+      - Select only the CGM, participant table, permitted clinical fields and wearable summaries; provide storage details.
+      - Wait for the request to be processed, then download into data/raw/ai_readi/3.0.0 and run `glucotwin data manifest`.
+  glucose_ml:
+    name: Glucose-ML collection
+    release: GitHub main @ decf266 (2026-10-02)
+    role: discovery and harmonization resource (no data imported)
+    landing_page: https://github.com/Augmented-Health-Lab/Glucose-ML-Project
+    citation: >-
+      Prioleau, T., Lu, B. and Cui, Y. (2025). Glucose-ML: A collection of longitudinal diabetes datasets for development
+      of robust AI solutions. arXiv:2507.14077
+    license: MIT (code only). Each component dataset keeps its own license and access terms.
+    license_short: MIT code; per-source data terms
+    license_url: https://github.com/Augmented-Health-Lab/Glucose-ML-Project/blob/main/LICENSE
+    permitted_local_use: Code reuse under MIT; data use follows each source's own terms.
+    redistribution: Per component source.
+    population: Catalog-wide (authors) 44.9 M glucose samples, 4,300+ people, 20+ datasets, 6 countries; T1D 38 %,
+      T2D 25 %, pre-diabetes 13 %, no diabetes 24 %
+    publisher_participants: 4428
+    overlaps_with: [cgmacros, shanghai_t2dm, ai_readi_v3]
+    overlap_note: >-
+      The collection harmonizes CGMacros, ShanghaiT1DM/T2DM and AI-READI among others. Importing a harmonized copy next
+      to its original would count the same people twice; `glucotwin.data.canonical.recording_signature` detects such
+      overlap before any import is accepted.
+    requested_modalities: []
+    expected_bytes: null
+    access: mixed (14 open-access components, others controlled)
