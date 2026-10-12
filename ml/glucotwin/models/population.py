@@ -213,6 +213,11 @@ class CatBoostModel(DeltaModel):
 
     def save(self, directory: Path, stem: str) -> list[str]:
         p = directory / f"{stem}.cbm"
+        # CatBoost embeds a random model GUID and the training finish time; fixed values make an identical re-run
+        # produce a byte-identical file (and checksum). Trees and predictions are unaffected.
+        md = self.model.get_metadata()
+        md["model_guid"] = "glucotwin-deterministic"
+        md["train_finish_time"] = ""
         self.model.save_model(str(p), format="cbm")
         return [p.name]
 
@@ -267,6 +272,8 @@ class PopulationBundle:
             "artifact_format": "glucotwin-population-1",
             "family": self.family, "feature_set_id": self.feature_set_id, "label": self.label,
             "horizons": self.horizons, "columns": self.columns, "target": "delta_from_latest",
+            "transform_fingerprint": FEATURE_SETS[self.feature_set_id].transform_fingerprint(),
+            "activity_policy": FEATURE_SETS[self.feature_set_id].activity_policy,
             "params": {str(h): p for h, p in self.params.items()}, "files": files,
             **(extra or {}),
         }
@@ -283,8 +290,20 @@ class PopulationBundle:
             raise ArtifactError(f"Unsupported artifact format {m.get('artifact_format')!r}")
         if m["feature_set_id"] not in FEATURE_SETS:
             raise ArtifactError(f"Unknown feature set {m['feature_set_id']!r}")
-        if FEATURE_SETS[m["feature_set_id"]].columns() != m["columns"]:
+        spec = FEATURE_SETS[m["feature_set_id"]]
+        if spec.columns() != m["columns"]:
             raise ArtifactError("Artifact feature order differs from this code version's feature set")
+        # Same column names do not mean the same features: the transformation itself must match.
+        fp = m.get("transform_fingerprint")
+        if fp is None:
+            # artifacts written before fingerprints existed (experiment gt-primary-2026-10-11-v1) were trained with the
+            # legacy activity convention; they may only be paired with a feature set that still computes it
+            if spec.use_activity and spec.activity_policy != "end-in-window-v1":
+                raise ArtifactError(f"Artifact predates transformation fingerprints but feature set "
+                                    f"{m['feature_set_id']!r} uses {spec.activity_policy!r}; refusing to mix semantics")
+        elif fp != spec.transform_fingerprint():
+            raise ArtifactError(f"Artifact feature transformation {fp} differs from this code's "
+                                f"{spec.transform_fingerprint()} for {m['feature_set_id']!r}; retrain or use matching code")
         for name, digest in m["files"].items():
             if file_sha256(directory / name) != digest:
                 raise ArtifactError(f"Checksum mismatch for {name}; refusing to load an altered artifact")
