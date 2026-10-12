@@ -25,7 +25,9 @@ from glucotwin.schemas import (
     AlertList,
     ControlCommand,
     CreateSessionRequest,
+    DatasetInventory,
     ErrorEnvelope,
+    EvaluationList,
     EvaluationReport,
     EventPage,
     ForecastPage,
@@ -36,12 +38,15 @@ from glucotwin.schemas import (
     Readiness,
     ReplaySession,
     ReplaySessionList,
+    ResearchReport,
+    ServingList,
     SessionProfile,
     TwinState,
 )
 from glucotwin.serving import load_serving
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import evidence
 from .catalog import Catalog
 from .replay import STALE_MINUTES, ApiError, Session, SessionManager
 from .storage import LocalStore
@@ -163,8 +168,33 @@ def create_app() -> FastAPI:
 
     @api.get("/patients", response_model=PatientPage)
     def patients(mode: Literal["dataset_replay", "synthetic_demo"] | None = None,
+                 cohort: str | None = Query(None, max_length=60), eligible: bool | None = None,
+                 q: str | None = Query(None, max_length=80),
+                 sort: Literal["alias", "recording_days", "coverage", "meals"] = "alias",
+                 order: Literal["asc", "desc"] = "asc",
                  limit: int = Query(100, ge=1, le=200), cursor: str | None = None):
-        ids = [p for p in state.catalog.ids() if mode is None or state.catalog.mode(p) == mode]
+        """Server-side filtering and stable sorting; ``total`` counts every match, not just this page."""
+        all_ids = state.catalog.ids()
+        ids = [p for p in all_ids if mode is None or state.catalog.mode(p) == mode]
+        if cohort:
+            ids = [p for p in ids if state.catalog.meta(p)["cohort"]["label"] == cohort]
+        if eligible is not None:
+            ids = [p for p in ids if bool(state.catalog.meta(p).get("eligible_for_primary_analysis")) == eligible]
+        if q:
+            needle = q.strip().lower()
+            ids = [p for p in ids if needle in f"{state.catalog.meta(p)['display_alias']} {p} "
+                                               f"{state.catalog.meta(p)['cohort']['label']}".lower()]
+        cov = {"recording_days": "recording_days", "coverage": "glucose_coverage_fraction", "meals": "meals_logged"}
+
+        def key(p: str):
+            m = state.catalog.meta(p)
+            if sort == "alias":
+                return (0, m["display_alias"], p)
+            v = m["coverage"].get(cov[sort])
+            return (1, 0.0, p) if v is None else (0, float(v), p)  # missing values sort last in both directions
+
+        present = sorted([p for p in ids if key(p)[0] == 0], key=key, reverse=order == "desc")
+        ids = present + sorted([p for p in ids if key(p)[0] == 1])
         start = 0
         if cursor:
             try:
@@ -173,7 +203,8 @@ def create_app() -> FastAPI:
                 raise ApiError(422, "invalid_cursor", "Cursor is not valid.") from exc
         page = ids[start:start + limit]
         nxt = base64.urlsafe_b64encode(str(start + limit).encode()).decode() if start + limit < len(ids) else None
-        return {"items": [summary(p) for p in page], "next_cursor": nxt, "total": len(ids)}
+        return {"items": [summary(p) for p in page], "next_cursor": nxt, "total": len(ids),
+                "total_unfiltered": len(all_ids)}
 
     @api.get("/patients/{patient_id}", response_model=PatientDetail, responses=ERRORS)
     def patient(patient_id: str):
@@ -340,13 +371,14 @@ def create_app() -> FastAPI:
 
     def alert_view(s: Session, a) -> dict[str, Any]:
         ack = state.store.acknowledgement(a.alert_id)
-        H = (state.serving.get(s.mode).alert.get("horizon_minutes") if state.serving.get(s.mode) else 60)
+        srv = s.engine.serving  # the model and warning policy this session was created with (never re-labelled)
+        H = srv.alert.get("horizon_minutes") if srv else 60
         return {
             "schema_version": "1.0", "alert_id": a.alert_id, "session_id": s.id, "patient_id": s.patient_id,
             "session_revision": s.revision, "issued_at": from_minutes(a.issued_at),
             "last_supported_at": from_minutes(a.last_supported_at), "horizon_minutes": H,
-            "rule_version": state.serving[s.mode].alert.get("rule_version"),
-            "model_version": state.serving[s.mode].model_version, "kind": "predicted_new_high_episode",
+            "rule_version": srv.alert.get("rule_version"),
+            "model_version": srv.model_version, "kind": "predicted_new_high_episode",
             "title": f"Research warning: forecast suggests a new sustained high (>180 mg/dL) within {H} minutes",
             "evidence": a.evidence, "supporting_forecast_ids": a.forecast_ids, "state": a.state,
             "outcome": a.outcome,
@@ -358,7 +390,7 @@ def create_app() -> FastAPI:
     def alerts(session_id: str):
         s = synced(session_id)
         with s.lock:
-            serving = state.serving.get(s.mode)
+            serving = s.engine.serving
             items = [alert_view(s, a) for a in s.engine.alerts] if serving else []
             desc = None
             if serving:
@@ -384,9 +416,37 @@ def create_app() -> FastAPI:
 
     # ------------------------------------------------------------------ evaluation
 
+    @api.get("/evaluations", response_model=EvaluationList)
+    def evaluations():
+        return evidence.list_experiments()
+
     @api.get("/evaluations/latest", response_model=EvaluationReport)
     def evaluation():
         return build_report()
+
+    @api.get("/evaluations/{experiment_id}", response_model=EvaluationReport, responses=ERRORS)
+    def evaluation_by_id(experiment_id: str):
+        if experiment_id in evidence.RESEARCH_EXPERIMENTS:
+            raise ApiError(404, "use_research_endpoint", "This is a nested research experiment; use /research/{id}.")
+        rep = build_report(experiment_id)
+        if rep["status"] == "not_run":
+            raise ApiError(404, "experiment_not_found", f"No saved metrics for experiment {experiment_id!r}.")
+        return rep
+
+    @api.get("/research/{experiment_id}", response_model=ResearchReport, responses=ERRORS)
+    def research(experiment_id: str):
+        rep = evidence.research_report(experiment_id)
+        if rep is None:
+            raise ApiError(404, "experiment_not_found", f"Unknown research experiment {experiment_id!r}.")
+        return rep
+
+    @api.get("/serving", response_model=ServingList)
+    def serving_models():
+        return evidence.serving_summaries(state.serving, state.serving_errors)
+
+    @api.get("/datasets", response_model=DatasetInventory)
+    def datasets():
+        return evidence.dataset_inventory()
 
     app.include_router(api)
     return app
