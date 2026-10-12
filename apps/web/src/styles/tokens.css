@@ -1,0 +1,99 @@
+/* GlucoTwin design tokens — the only place raw colour, type and spacing values are defined.
+   Flat editorial workspace: white surfaces everywhere, near-black text, one precise blue for selection and action,
+   hairline dividers instead of boxes. Shadows only on overlays. Status colours are reserved and always worded. */
+:root {
+  /* surfaces */
+  --gt-bg: #ffffff;
+  --gt-hover: #f8fafc;           /* transient row/nav hover only, never a resting surface */
+  --gt-hover-strong: #f1f5f9;    /* transient hover on borderless buttons and the active search option */
+  --gt-skeleton: #f1f5f9;
+
+  /* text (contrast on #fff: 17.7:1, 7.6:1, 4.8:1) */
+  --gt-text: #111827;
+  --gt-text-2: #475569;
+  --gt-text-3: #64748b;
+
+  /* blue — selection, links, primary action, model forecasts */
+  --gt-accent: #2563eb;          /* 5.2:1 on white; white text on it 5.2:1 */
+  --gt-accent-hover: #1d4ed8;
+  --gt-accent-press: #1e40af;
+  --gt-accent-text: #1d4ed8;     /* blue used as text: 6.7:1 */
+
+  /* lines */
+  --gt-divider: #e5e7eb;
+  --gt-border: #d1d5db;          /* button outlines (their label identifies them) */
+  --gt-control: #8b95a5;         /* input/select boundaries: 3.0:1 non-text contrast */
+  --gt-grid: #eef0f3;
+
+  /* status — words first, colour second */
+  --gt-attention: #92400e;       /* text, 7.6:1 */
+  --gt-attention-mark: #d97706;
+  --gt-danger: #991b1b;          /* text, 8.3:1 */
+  --gt-danger-mark: #dc2626;
+  --gt-meal: #a16207;
+
+  --gt-focus: #2563eb;
+
+  /* type — Inter everywhere (bundled, optical sizing); 400 / 500 / 600 only */
+  --gt-font: "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --gt-font-features: "cv05", "cv08", "ss01"; /* l with tail, serifed I, open digits: tells Il1 apart in IDs and values */
+  --gt-fs-title: 28px;
+  --gt-fs-section: 17px;
+  --gt-fs-body: 14.5px;
+  --gt-fs-small: 13px;
+  --gt-fs-meta: 12.5px;
+  --gt-fs-value: 38px;
+
+  /* spacing (4px base): 4 8 12 16 24 32 48 */
+  --gt-1: 4px;
+  --gt-2: 8px;
+  --gt-3: 12px;
+  --gt-4: 16px;
+  --gt-6: 24px;
+  --gt-8: 32px;
+  --gt-12: 48px;
+  --gt-page-x: 32px;
+
+  --gt-radius: 6px;              /* controls */
+  --gt-radius-lg: 12px;          /* dialogs, popovers, the landing preview */
+
+  --gt-shadow-pop: 0 12px 32px rgba(17, 24, 39, 0.12), 0 2px 6px rgba(17, 24, 39, 0.06);
+
+  --gt-sidebar-w: 240px;
+  --gt-sidebar-rail: 64px;
+  --gt-topbar-h: 56px;
+  --gt-main-max: 1400px;
+  --gt-inspector-w: 300px;
+
+  --gt-ease: cubic-bezier(0.2, 0, 0, 1);
+  --gt-dur: 140ms;
+}
+
+[data-density="compact"] {
+  --gt-fs-body: 13.5px;
+  --gt-fs-value: 32px;
+  --gt-fs-title: 25px;
+}
+
+@media (max-width: 1280px) {
+  :root {
+    --gt-page-x: 24px;
+    --gt-inspector-w: 280px;
+  }
+}
+@media (max-width: 760px) {
+  :root {
+    --gt-page-x: 16px;
+    --gt-fs-title: 24px;
+    --gt-fs-value: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --gt-dur: 0ms;
+  }
+}
+[data-motion="reduce"] {
+  --gt-dur: 0ms;
+}
