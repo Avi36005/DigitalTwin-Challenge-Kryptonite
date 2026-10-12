@@ -1,0 +1,373 @@
+import { expect, test, type Page } from "@playwright/test";
+import { API } from "./env";
+
+const SHOTS = "../../reports/ui";
+
+async function startReplay(page: Page, mode: "synthetic_demo" | "dataset_replay", patient: string, testPeriod = false) {
+  const previous = new URL(page.url()).searchParams.get("session");
+  await page.getByRole("button", { name: "New replay" }).first().click();
+  const dialog = page.getByRole("dialog", { name: "New replay" });
+  await dialog.getByRole("radio", { name: mode === "synthetic_demo" ? /Synthetic demonstration/ : /Recorded-data replay/ }).check();
+  await dialog.getByLabel("Participant", { exact: true }).selectOption(patient);
+  if (testPeriod) await dialog.getByRole("radio", { name: /Held-out test period/ }).check();
+  await dialog.getByRole("button", { name: "Start replay" }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("session")).not.toBe(previous);
+  await expect(page).toHaveURL(/session=/);
+  return new URL(page.url()).searchParams.get("session")!;
+}
+
+async function session(page: Page, sid: string) {
+  return (await page.request.get(`${API}/replay/sessions/${sid}`)).json();
+}
+
+test("clinician replay journey on a synthetic participant", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/app");
+  const sid = await startReplay(page, "synthetic_demo", "SYN-B");
+  await expect(page.getByText("Synthetic demonstration").first()).toBeVisible();
+
+  // step forward through observations
+  for (let i = 0; i < 12; i++) await page.getByRole("button", { name: "Step 1 h forward" }).click();
+  await expect.poll(async () => (await session(page, sid)).clock_at).toContain("2000-01-03T12");
+  await expect(page.getByRole("region", { name: "30-minute forecast" }).getByText("mg/dL", { exact: true })).toBeVisible();
+
+  // play then pause: the backend clock advances
+  const before = (await session(page, sid)).clock_at;
+  await page.getByRole("button", { name: "Play replay" }).click();
+  await page.waitForTimeout(2500);
+  await page.getByRole("button", { name: "Pause replay" }).click();
+  await expect.poll(async () => (await session(page, sid)).status).toBe("paused");
+  expect((await session(page, sid)).clock_at > before).toBeTruthy();
+
+  // single step
+  const c1 = (await session(page, sid)).clock_at;
+  await page.getByRole("button", { name: "Step 5 min forward" }).click();
+  await expect.poll(async () => (await session(page, sid)).clock_at).not.toBe(c1);
+
+  // acknowledge a research warning (local only)
+  const ack = page.getByRole("button", { name: "Mark as reviewed" }).first();
+  if (await ack.isVisible()) {
+    await ack.click();
+    await expect(page.getByText(/no message was sent/i).first()).toBeVisible();
+  }
+  await page.screenshot({ path: `${SHOTS}/01-twin-workspace-synthetic.png` });
+
+  // seek backward with the keyboard: new revision, no future state
+  const rev = (await session(page, sid)).revision;
+  const slider = page.getByLabel("Seek replay time");
+  await slider.focus();
+  await page.keyboard.press("Home");
+  await expect(page.getByText(/Seek to Day 1/)).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect.poll(async () => (await session(page, sid)).revision).toBe(rev + 1);
+  const s2 = await session(page, sid);
+  const fc = await (await page.request.get(`${API}/replay/sessions/${sid}/forecasts?order=desc&limit=500`)).json();
+  for (const f of fc.items) expect(f.as_of <= s2.clock_at).toBeTruthy();
+  const al = await (await page.request.get(`${API}/replay/sessions/${sid}/alerts`)).json();
+  for (const a of al.items) expect(a.issued_at <= s2.clock_at).toBeTruthy();
+  await expect(page.getByText("Day 1 · 00:00").first()).toBeVisible();
+
+  // reset
+  await page.getByRole("button", { name: "Reset to start of recording" }).click();
+  await expect.poll(async () => (await session(page, sid)).status).toBe("ready");
+
+  // switch participants from the participant list
+  await page.getByRole("link", { name: "Participants", exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/participants$/);
+  await page.getByRole("button", { name: /twin for Synthetic Participant A$/ }).click();
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Synthetic Participant A");
+  const sidA = new URL(page.url()).searchParams.get("session")!;
+  expect(sidA).not.toBe(sid);
+
+  // reopen the earlier session from the sidebar's recent replays
+  await page.getByRole("link", { name: /Synthetic Participant B/ }).first().click();
+  await expect(page).toHaveURL(new RegExp(`session=${sid}`));
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Synthetic Participant B");
+
+  // sidebar collapse and expand
+  await page.getByRole("button", { name: "Collapse sidebar" }).click();
+  await expect(page.locator(".shell")).toHaveAttribute("data-collapsed", "true");
+  await page.getByRole("button", { name: "Expand sidebar" }).click();
+  await expect(page.locator(".shell")).toHaveAttribute("data-collapsed", "false");
+
+  // command search (keyboard)
+  await page.locator("body").press(process.platform === "darwin" ? "Meta+k" : "Control+k");
+  const search = page.getByRole("combobox", { name: /Search participants/ });
+  await expect(search).toBeFocused();
+  await search.fill("Participant C");
+  await expect(page.getByRole("listbox", { name: "Results" }).getByRole("option", { name: /Synthetic Participant C/ })).toBeVisible();
+  await search.fill("zzz-no-match");
+  await expect(page.getByText(/No matches/)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(search).toBeHidden();
+
+  expect(errors).toEqual([]);
+});
+
+test("missing-data, stale and abstention states are explicit", async ({ page }) => {
+  await page.goto("/app");
+  await startReplay(page, "synthetic_demo", "SYN-E");
+  await page.getByRole("button", { name: "Step 5 min forward" }).click();
+  await expect(page.getByRole("region", { name: "60-minute forecast" }).getByText("Not available")).toBeVisible();
+  await expect(page.getByText("Insufficient information")).toBeVisible();
+  // sensor-gap participant: seek into a long gap to see stale data
+  await startReplay(page, "synthetic_demo", "SYN-D");
+  const slider = page.getByLabel("Seek replay time");
+  const sid = new URL(page.url()).searchParams.get("session")!;
+  await page.request.post(`${API}/replay/sessions/${sid}/control`, { data: { action: "seek", seek_to: "2000-01-04T09:30:00Z" } });
+  await page.reload();
+  await expect(slider).toBeVisible();
+  await expect(page.getByText(/Stale/).first()).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/02-missing-and-stale-data.png` });
+});
+
+test("recorded-data replay in the held-out test period shows prediction ranges with their target coverage", async ({ page, request }) => {
+  const pts = await (await request.get(`${API}/patients?mode=dataset_replay`)).json();
+  test.skip(!pts.items?.length, "CGMacros not imported on this machine");
+  const p = pts.items.find((x: { eligible_for_primary_analysis: boolean }) => x.eligible_for_primary_analysis);
+  await page.goto("/app");
+  await startReplay(page, "dataset_replay", p.patient_id, true);
+  await page.getByRole("button", { name: "Step 1 h forward" }).click();
+  await expect(page.getByText("Prediction range · target coverage 80%")).toBeVisible();
+  await page.getByRole("button", { name: "Details", exact: true }).click();
+  await expect(page.getByText(/Measured coverage on the held-out test period/)).toBeVisible();
+  await expect(page.getByText("Recorded-data replay").first()).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/03-forecast-with-interval-recorded.png` });
+  await page.getByRole("button", { name: "View forecast details" }).click();
+  await expect(page.getByRole("dialog", { name: "Forecast details" })).toContainText("Held-out test period");
+  await page.waitForTimeout(400); // let the drawer finish its short slide-in
+  await page.screenshot({ path: `${SHOTS}/04-forecast-evidence-dialog.png` });
+  await page.keyboard.press("Escape");
+});
+
+test("model evidence and data quality pages render recorded results", async ({ page }) => {
+  await page.goto("/app/evidence");
+  await expect(page.getByRole("heading", { name: "Model evidence" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Comparison" }).or(page.getByText(/Evaluation not run|Evaluation unavailable/))).toBeVisible();
+  const completed = await page.getByRole("heading", { name: "Comparison" }).isVisible();
+  if (completed) {
+    await expect(page.getByText("Serving pipeline").first()).toBeVisible();
+    await expect(page.getByText(/is the selected replay model\. Its final-test mean absolute error was/)).toBeVisible();
+    await expect(page.getByText(/accuracy percentage/)).toBeVisible(); // MAE is explained, never called accuracy
+    await page.getByRole("button", { name: "Show all configurations" }).click();
+    await expect(page.getByRole("columnheader", { name: "Forecast availability" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /^Coverage$/ })).toHaveCount(0);
+    await page.getByRole("button", { name: /Sort by MAE 60 min/ }).click();
+    await expect(page.getByRole("columnheader", { name: /MAE 60 min/ })).toHaveAttribute("aria-sort", "ascending");
+    await page.getByRole("tab", { name: "Validation (selection)" }).click();
+    await expect(page.getByRole("tab", { name: "Validation (selection)" })).toHaveAttribute("aria-selected", "true");
+  } else {
+    await expect(page.getByText(/Evaluation not run|unavailable/)).toBeVisible();
+  }
+  await page.screenshot({ path: `${SHOTS}/05-model-evidence.png` });
+  await page.goto("/app/data-quality");
+  await expect(page.getByRole("heading", { name: "Per-participant coverage" })).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/06-data-quality.png` });
+  await page.goto("/app/participants");
+  await page.getByLabel("Search participants").fill("nobody-matches-this");
+  await expect(page.getByText("No participants match these filters")).toBeVisible();
+  await page.getByRole("button", { name: "Clear filters" }).first().click();
+  await expect(page.getByText(/\d+ of \d+ match/)).toBeVisible();
+});
+
+test("research evidence is separate from the serving model, and data scale is audited", async ({ page }) => {
+  await page.goto("/app/evidence");
+  await expect(page.getByText(/Serving model:/)).toBeVisible();
+  const select = page.getByLabel("Evidence");
+  const hasResearch = (await select.locator("option", { hasText: "Nested participant benchmark" }).count()) > 0;
+  test.skip(!hasResearch, "no research experiment on this machine");
+  await select.selectOption({ label: "Nested participant benchmark + external cohort" });
+  await expect(page).toHaveURL(/experiment=gt-nested-2026-10-12-v1/);
+  await expect(page.getByText(/a different experiment .* did not change the serving model/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Results on held-out people" })).toBeVisible();
+  await expect(page.getByText(/New-participant research evidence/)).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "Forecast availability" })).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/07-research-evidence.png`, fullPage: false });
+  await page.getByText("Research warnings").click();
+  await expect(page.getByRole("columnheader", { name: /False alarms per observed forecastable day/ })).toBeVisible();
+  await page.getByRole("tab", { name: "15-minute · portable" }).click();
+  await expect(page.getByRole("tab", { name: "15-minute · portable" })).toHaveAttribute("aria-selected", "true");
+  await page.getByText("External cohort (ShanghaiT2DM)").click();
+  await page.screenshot({ path: `${SHOTS}/08-research-portable-external.png`, fullPage: false });
+  await page.goto("/app/data-quality");
+  await expect(page.getByRole("heading", { name: "Data sources and scale" })).toBeVisible();
+  const inv = page.getByRole("region", { name: "Dataset inventory" });
+  await expect(inv.getByText("ShanghaiT2DM")).toBeVisible();
+  await expect(inv.getByText("Access required")).toBeVisible();
+  await expect(page.getByText(/never GlucoTwin\s+counts/)).toBeVisible();
+  await inv.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${SHOTS}/09-data-sources.png`, fullPage: false });
+});
+
+test.describe("mobile research evidence", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+  test("tables scroll inside their region instead of clipping the page", async ({ page }) => {
+    const rep = await (await page.request.get(`${API}/research/gt-nested-2026-10-12-v1`)).json();
+    test.skip(rep.status !== "completed", "no research report on this machine");
+    await page.goto("/app/evidence?experiment=gt-nested-2026-10-12-v1");
+    await expect(page.getByRole("heading", { name: "Results on held-out people" })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `${SHOTS}/10-research-evidence-mobile.png`, fullPage: false });
+  });
+});
+
+test("API failure is reported and never replaced with example data", async ({ page }) => {
+  await page.route("**/api/v1/**", (route) => route.abort());
+  await page.goto("/app");
+  await expect(page.getByRole("alert")).toContainText("not reachable");
+  // the landing page still works without the API
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1, name: /See the next chapter of a glucose/ })).toBeVisible();
+  await expect(page.getByRole("figure").getByRole("img")).toBeVisible();
+});
+
+test.describe("recording resolution (1920×1080) — demo sequence on recorded data", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
+  async function byAlias(page: Page, alias: string) {
+    const pts = await (await page.request.get(`${API}/patients?mode=dataset_replay&limit=200`)).json();
+    return (pts.items ?? []).find((x: { display_alias: string }) => x.display_alias === alias);
+  }
+
+  async function seek(page: Page, sid: string, iso: string) {
+    await page.request.post(`${API}/replay/sessions/${sid}/control`, { data: { action: "seek", seek_to: iso } });
+    await page.reload();
+    await expect(page.getByRole("group", { name: "Replay controls" })).toBeVisible();
+    await expect(page.getByText(/Loading released observations/).first()).toBeHidden();
+  }
+
+  test("Participant 01: a warning is pending until its outcome is knowable", async ({ page }) => {
+    const p = await byAlias(page, "Participant 01");
+    test.skip(!p, "CGMacros not imported on this machine");
+    await page.goto("/app");
+    const sid = await startReplay(page, "dataset_replay", p.patient_id, true);
+    await seek(page, sid, "2000-01-11T09:24:00Z");
+    await expect(page.getByRole("region", { name: "Current glucose" })).toContainText("158"); // reports/demo_sequence.md
+    await expect(page.getByText("Outcome pending").first()).toBeVisible();
+    // chart and control text stay legible at recording resolution
+    const chart = page.getByRole("figure", { name: /Observed glucose/ });
+    await expect(chart).toBeVisible();
+    const sizes = await chart.evaluate((fig) => Array.from(fig.querySelectorAll("svg text"))
+      .filter((t) => /^\d{2,3}(:\d{2})?$/.test((t.textContent ?? "").trim()))
+      .map((t) => parseFloat(getComputedStyle(t).fontSize)));
+    expect(sizes.length).toBeGreaterThan(4); // axis tick labels (times and mg/dL values)
+    expect(Math.min(...sizes)).toBeGreaterThanOrEqual(12);
+    await page.screenshot({ path: `${SHOTS}/08-recording-1920-warning-pending.png` });
+    await seek(page, sid, "2000-01-11T11:24:00Z");
+    await expect(page.getByText("No onset (false alarm)").first()).toBeVisible();
+  });
+
+  test("Participant 12: a real sensor gap makes the forecast stale, then the twin abstains", async ({ page }) => {
+    const p = await byAlias(page, "Participant 12");
+    test.skip(!p, "CGMacros not imported on this machine");
+    await page.goto("/app");
+    const sid = await startReplay(page, "dataset_replay", p.patient_id, true);
+    await seek(page, sid, "2000-01-11T10:50:00Z");
+    const current = page.getByRole("region", { name: "Current glucose" });
+    await expect(current).toContainText("391"); // last reading 10:29 (reports/demo_sequence.md)
+    await expect(current.getByText(/Stale/)).toBeVisible();
+    await page.screenshot({ path: `${SHOTS}/09-recording-1920-recorded-gap-stale.png` });
+    await seek(page, sid, "2000-01-11T11:45:00Z");
+    await expect(page.getByRole("region", { name: "60-minute forecast" }).getByText("Not available")).toBeVisible();
+    await expect(page.getByText("Insufficient information")).toBeVisible();
+    await expect(page.getByText(/readings? in the last hour; more recent history is required/)).toBeVisible();
+    await expect(page.getByRole("region", { name: "Current glucose" })).toContainText("195"); // the reading stays visible
+    await page.screenshot({ path: `${SHOTS}/13-insufficient-history-recorded.png` });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(overflow).toBe(false);
+  });
+});
+
+test.describe("mobile", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+  test("navigation drawer traps focus, closes on Escape and restores focus", async ({ page }) => {
+    await page.goto("/app");
+    const trigger = page.getByRole("button", { name: "Open navigation" });
+    await trigger.click();
+    const drawer = page.getByRole("dialog", { name: "Navigation" });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Model evidence" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(drawer).toBeHidden();
+    await expect(trigger).toBeFocused();
+    // navigating from the drawer closes it
+    await trigger.click();
+    await drawer.getByRole("link", { name: "Participants", exact: true }).click();
+    await expect(drawer).toBeHidden();
+    await expect(page.getByRole("heading", { level: 1, name: "Participants" })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(overflow).toBe(false);
+    const sessions = await (await page.request.get(`${API}/replay/sessions`)).json();
+    if (sessions.items.length) {
+      await page.goto(`/app?session=${sessions.items[0].id}`);
+      await expect(page.getByRole("group", { name: "Replay controls" })).toBeVisible();
+      await page.screenshot({ path: `${SHOTS}/07-mobile-workspace.png` });
+    }
+  });
+
+  test("landing page on a phone: brand and Open workspace stay visible, menu works", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("link", { name: "Open workspace" }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(page.getByRole("link", { name: "How it works" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "Open menu" })).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+    await page.screenshot({ path: `${SHOTS}/11-landing-phone.png`, fullPage: true });
+  });
+});
+
+test.describe("landing page and route compatibility", () => {
+  test("landing actions lead into the workspace and evidence", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/See the next chapter of a glucose\s+trace\./);
+    await expect(page.getByRole("navigation", { name: "Workspace" })).toHaveCount(0); // no hidden sidebar in the landing DOM
+    await expect(page.getByText("Research prototype; not for clinical decisions.")).toBeVisible();
+    await page.screenshot({ path: `${SHOTS}/10-landing-desktop.png` });
+    await page.getByRole("link", { name: "View model evidence" }).click();
+    await expect(page).toHaveURL(/\/app\/evidence$/);
+    await page.goBack();
+    await expect(page).toHaveURL(/:\d+\/$/);
+    await page.getByRole("link", { name: "Open workspace" }).first().click();
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
+    await page.screenshot({ path: `${SHOTS}/12-overview.png` });
+  });
+
+  test("an old /?session= link resumes the same session without resetting its clock", async ({ page, request }) => {
+    const created = await (await request.post(`${API}/replay/sessions`, { data: { patient_id: "SYN-C", mode: "synthetic_demo" } })).json();
+    await request.post(`${API}/replay/sessions/${created.id}/control`, { data: { action: "seek", seek_to: "2000-01-03T09:30:00Z" } });
+    const before = await (await request.get(`${API}/replay/sessions/${created.id}`)).json();
+    await page.goto("/app");
+    await page.goto(`/?session=${created.id}`);
+    await expect(page).toHaveURL(new RegExp(`/app\\?session=${created.id}$`));
+    await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Synthetic Participant C");
+    const after = await (await request.get(`${API}/replay/sessions/${created.id}`)).json();
+    expect(after.revision).toBe(before.revision);
+    expect(after.clock_at).toBe(before.clock_at);
+    await page.goBack(); // replace navigation: Back returns to the previous page, not into a redirect loop
+    await expect(page).toHaveURL(/\/app$/);
+  });
+
+  test("old page URLs redirect with their query; an unknown session shows an error, not another participant", async ({ page }) => {
+    await page.goto("/participants?focus=SYN-A");
+    await expect(page).toHaveURL(/\/app\/participants\?focus=SYN-A$/);
+    await page.goto("/sessions");
+    await expect(page).toHaveURL(/\/app\/sessions$/);
+    await page.goto("/app?session=does-not-exist");
+    await expect(page.getByText("Replay session not found")).toBeVisible();
+  });
+
+  test("a new page starts at its heading", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 420 }); // short window: the page scrolls even without CGMacros
+    await page.goto("/app/data-quality");
+    await expect(page.getByRole("heading", { name: "Per-participant coverage" })).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+    await page.getByRole("link", { name: "Model evidence" }).first().click();
+    await expect(page.getByRole("heading", { level: 1, name: "Model evidence" })).toBeInViewport();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+});
