@@ -16,13 +16,29 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from glucotwin.config import fingerprint, load_config
+from glucotwin.config import fingerprint, load_config, load_experiment_config
 from glucotwin.data.store import Store, from_minutes
 from glucotwin.events import EventDefinition, label_new_onsets
 from glucotwin.features import FEATURE_SETS, FeatureSpec, build_features, match_targets, prepare
 from glucotwin.splits import SplitConfig, assign_segments, boundaries_for
 
-SUPERSET = "dyn-prof-meal-v1"
+SUPERSET_V1 = "dyn-prof-meal-v1"  # superset used by experiment gt-primary-2026-10-11-v1 (declared before "superset" existed)
+
+
+def current_split_manifest(store_dir: Path) -> Path:
+    """Split manifest of the current protocol (configs/experiment.yaml), falling back to the first experiment's."""
+    path = experiment_dir(store_dir, load_experiment_config()["experiment_id"]) / "split_manifest.json"
+    return path if path.exists() else store_dir / "experiment" / "split_manifest.json"
+
+
+def experiment_dir(store_dir: Path, experiment_id: str) -> Path:
+    """Origin table + split manifest of one experiment. The first experiment wrote them directly into
+    ``<store>/experiment``; later experiments use ``<store>/experiment/<id>`` so earlier tables are never overwritten."""
+    flat = store_dir / "experiment"
+    man = flat / "split_manifest.json"
+    if man.exists() and json.loads(man.read_text()).get("experiment_id") == experiment_id:
+        return flat
+    return flat / experiment_id
 
 
 @dataclass
@@ -39,8 +55,8 @@ class ExperimentSettings:
         return fingerprint(self.raw)
 
 
-def load_settings(device: str | None = None) -> ExperimentSettings:
-    exp = load_config("experiment")
+def load_settings(device: str | None = None, experiment_id: str | None = None) -> ExperimentSettings:
+    exp = load_experiment_config(experiment_id)
     data_cfg = load_config("data")
     device = device or exp["cohort"]["primary_device"]
     dcfg = data_cfg["normalization"]["devices"][device]
@@ -53,14 +69,16 @@ def load_settings(device: str | None = None) -> ExperimentSettings:
     sp = exp["splits"]
     split = SplitConfig(sp["train_fraction"], sp["selection_fraction"], sp["calibration_fraction"],
                         sp["max_label_support_minutes"], sp["continuity_allowance_minutes"])
-    base = FEATURE_SETS[SUPERSET]
     f = exp["features"]
+    superset = f.get("superset_feature_set", SUPERSET_V1)
+    base = FEATURE_SETS[superset]
     spec = FeatureSpec(
-        SUPERSET, use_activity=base.use_activity, use_profile=base.use_profile, use_meals=base.use_meals,
+        superset, use_activity=base.use_activity, use_profile=base.use_profile, use_meals=base.use_meals,
         lookback_minutes=float(f["lookback_minutes"]), min_history_minutes=float(f["min_history_minutes"]),
         cadence_minutes=float(dcfg["nominal_cadence_minutes"]),
         match_tolerance_minutes=float(dcfg["match_tolerance_minutes"]),
         stale_threshold_minutes=float(f["stale_threshold_minutes"]),
+        activity_policy=base.activity_policy,
     )
     return ExperimentSettings(list(exp["horizons_minutes"]), event, split, spec,
                               float(exp["target"]["match_tolerance_minutes"]), {"experiment": exp, "data": data_cfg})
@@ -129,6 +147,8 @@ def build_origin_table(store: Store, st: ExperimentSettings, out_dir: Path, incl
     manifest = {
         "experiment_id": st.raw["experiment"]["experiment_id"],
         "config_hash": st.config_hash,
+        "feature_transform": {"superset_feature_set": st.spec.feature_set_id, "activity_policy": st.spec.activity_policy,
+                              "transform_fingerprint": st.spec.transform_fingerprint()},
         "data_fingerprint": data_fp,
         "selected_device": st.raw["experiment"]["cohort"]["primary_device"],
         "split_scheme": st.raw["experiment"]["splits"]["scheme"],
