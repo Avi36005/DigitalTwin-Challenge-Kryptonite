@@ -26,10 +26,10 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from glucotwin.config import fingerprint, load_config, paths
+from glucotwin.config import fingerprint, load_experiment_config, paths
 from glucotwin.data.pipeline import dataset_store_dir
 from glucotwin.data.store import Store
-from glucotwin.dataset import load_settings
+from glucotwin.dataset import experiment_dir, load_settings
 from glucotwin.evaluation import alerts as alert_eval
 from glucotwin.features import FEATURE_SETS, prepare
 from glucotwin.models.adaptation import AdaptationPolicy, AdaptationState, conformal_quantile
@@ -67,11 +67,11 @@ class Ctx:
         return self.seg(seg) & self.issued & self.table[f"target_{h}"].notna().to_numpy()
 
 
-def load_ctx(store_dir: Path | None = None) -> Ctx:
-    st = load_settings()
-    exp = load_config("experiment")
+def load_ctx(store_dir: Path | None = None, experiment_id: str | None = None) -> Ctx:
+    st = load_settings(experiment_id=experiment_id)
+    exp = load_experiment_config(experiment_id)
     store_dir = store_dir or dataset_store_dir()
-    out = store_dir / "experiment"
+    out = experiment_dir(store_dir, exp["experiment_id"])
     table = pd.read_parquet(out / "origins.parquet")
     table = table.sort_values(["patient_id", "origin"], kind="mergesort").reset_index(drop=True)
     manifest = json.loads((out / "split_manifest.json").read_text())
@@ -321,7 +321,7 @@ def event_eval(ctx: Ctx, seg: str, score: np.ndarray, H: int, threshold: float) 
             t[f"onset_{H}"].to_numpy(float)[r], threshold, H, merge)
         results.append(res)
         per_patient[pid] = res
-    summ = alert_eval.summarize(results, eligible_days, observed_days)
+    summ = alert_eval.summarize(results, eligible_days, observed_days, float(H))
     from sklearn.metrics import average_precision_score
     m = in_seg & elig & ctx.issued & np.isfinite(lab) & np.isfinite(score)
     summ["origin_pr_auc"] = (float(average_precision_score(lab[m], score[m]))
@@ -356,10 +356,11 @@ def _merge(base: dict, over: dict) -> dict:
 
 
 def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Path | None = None,
-        artifacts_dir: Path | None = None, register: bool = True, overrides: dict | None = None) -> dict[str, Any]:
+        artifacts_dir: Path | None = None, register: bool = True, overrides: dict | None = None,
+        experiment_id: str | None = None) -> dict[str, Any]:
     """Run the protocol. ``overrides`` exists only for fast synthetic integration tests."""
     t_run = time.perf_counter()
-    ctx = load_ctx(store_dir)
+    ctx = load_ctx(store_dir, experiment_id)
     if overrides:
         ctx.exp = _merge(ctx.exp, overrides)
     exp = ctx.exp
@@ -466,6 +467,7 @@ def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Pa
         "model_version": model_version, "model_family": serving.family, "feature_set_id": serving.feature_set_id,
         "experiment_id": exp_id, "config_hash": ctx.st.config_hash,
         "data_fingerprint": ctx.manifest["data_fingerprint"], "split_hash": ctx.manifest["split_hash"],
+        "transform_fingerprint": FEATURE_SETS[serving.feature_set_id].transform_fingerprint(),
         "adaptation": serving_policy.as_dict(),
         "adaptation_collect_rule": "origins at or after each participant's validation start; all origins for "
                                    "participants never seen in training",
@@ -543,9 +545,13 @@ def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Pa
         for fs in exp["features"]["candidate_feature_sets"]:
             add_cmp(f"lightgbm minus catboost ({fs}, population)", (f"lightgbm:{fs}", "off", "test", h),
                     (f"catboost:{fs}", "off", "test", h), h)
-        for fam in ("lightgbm", "catboost"):
-            add_cmp(f"{fam}: profile minus dynamic-only (population)", (f"{fam}:dyn-prof-v1", "off", "test", h),
-                    (f"{fam}:dyn-v1", "off", "test", h), h)
+        cands = exp["features"]["candidate_feature_sets"]
+        prof = next((f for f in cands if "prof" in f), None)
+        dyn = next((f for f in cands if "prof" not in f), None)
+        if prof and dyn:
+            for fam in ("lightgbm", "catboost"):
+                add_cmp(f"{fam}: profile minus dynamic-only (population)", (f"{fam}:{prof}", "off", "test", h),
+                        (f"{fam}:{dyn}", "off", "test", h), h)
 
     # intervals on test
     interval_rows = []
@@ -578,7 +584,7 @@ def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Pa
     # meal sensitivity (optimistic availability) — serving family, serving hyperparameters, never selectable
     sensitivity = []
     if serving.family in ("lightgbm", "catboost", "ridge"):
-        fs = "dyn-prof-meal-v1"
+        fs = next(iter(exp["features"].get("sensitivity_feature_sets") or {"dyn-prof-meal-v1": ""}))
         cols = FEATURE_SETS[fs].columns()
         models = {}
         for h in ctx.horizons:
@@ -638,6 +644,8 @@ def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Pa
     metrics = {
         "experiment_id": exp_id, "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "status": "completed", "model_version": model_version,
+        "corrects_experiment_id": exp.get("corrects"), "correction_note": (exp.get("correction_note") or "").strip() or None,
+        "feature_transform": ctx.manifest.get("feature_transform"),
         "fingerprints": {"config_hash": ctx.st.config_hash, "data_fingerprint": ctx.manifest["data_fingerprint"],
                          "split_hash": ctx.manifest["split_hash"],
                          "model_artifact": fingerprint(manifest["files"])},
