@@ -83,6 +83,63 @@ def import_cgmacros(verify_only: bool = False) -> dict[str, Any]:
     return {"store": str(out_dir), "participants": len(pdatas), "manifest_files": len(manifest["files"])}
 
 
+def export_cgmacros_canonical() -> dict[str, Any]:
+    """Write CGMacros canonical-cgm-1 partitions from the verified raw files WITHOUT touching the model store, and
+    check that the store's primary-device glucose table is exactly what the canonical layer derives."""
+    import numpy as np
+
+    from glucotwin.data import canonical as cn
+
+    cfg = load_config("data")
+    acquire.verify()
+    tables_dir = acquire.raw_dir() / "tables"
+    acquire.extract_tables(tables_dir)
+    bio = pd.read_csv(tables_dir / "bio.csv")
+    bio.columns = [c.strip() for c in bio.columns]
+    by_subject = {int(r["subject"]): r for _, r in bio.iterrows()}
+    store = Store(dataset_store_dir())
+    root = paths().processed / "canonical"
+    written, mismatches = 0, []
+    for key, path in participant_files(tables_dir).items():
+        subject = int(key.split("-")[1])
+        if subject not in by_subject:
+            continue
+        pdata, _ = normalize_participant(key, path, by_subject[subject], cfg)
+        pid = pdata.patient_id
+        sha = cn.file_hash(path)
+        frames = []
+        for device, rows in pdata.extras["canonical_rows"].items():
+            dcfg = cfg["normalization"]["devices"][device]
+            quality = np.where(rows["out_of_range"], "invalid", np.where(rows["at_limit"], "suspect", "ok"))
+            frames.append(pd.DataFrame({
+                "dataset_id": "cgmacros", "dataset_version": cfg["dataset"]["version"], "patient_id": pid,
+                "recording_id": f"{pid}-r0", "device_id": device,
+                "source_record_id": [f"{path.name}@{t}#{device}" for t in rows["original_timestamp"]],
+                "observed_at": rows["observed_at"], "available_at": rows["observed_at"],
+                "original_timestamp": rows["original_timestamp"], "original_timezone": "undocumented",
+                "native_cadence_minutes": float(dcfg["nominal_cadence_minutes"]), "glucose_mg_dl": rows["value"],
+                "original_value": [f"{v:g}" for v in rows["value"]], "original_unit": "mg/dL", "unit_conversion": "",
+                "quality": quality,
+                "missing_reason": np.where(rows["out_of_range"], "outside_device_reporting_range", ""),
+                "source_file_hash": sha, "parser_version": ADAPTER_VERSION,
+                "availability_assumption": "replay-zero-latency (study CGMs were blinded; sensor_latency_minutes = 0)",
+            }))
+        canon = cn.conform_canonical(pd.concat(frames, ignore_index=True))
+        cn.write_canonical(root, canon)
+        written += 1
+        # compatibility check against the existing model store (primary device only)
+        prim = canon[(canon["device_id"] == cfg["normalization"]["primary_device"]) &
+                     canon["quality"].isin(cn.USABLE_QUALITIES)]
+        stored = store.load(pid).glucose.sort_values("observed_at")
+        same = (len(prim) == len(stored)
+                and (prim["observed_at"].to_numpy() == stored["observed_at"].to_numpy()).all()
+                and np.allclose(prim["glucose_mg_dl"].to_numpy(float), stored["value_mg_dl"].to_numpy(float)))
+        if not same:
+            mismatches.append(pid)
+    return {"participants_written": written, "store_mismatches": mismatches,
+            "canonical_root": str(root / cn.CANONICAL_SCHEMA_VERSION)}
+
+
 def build_synthetic() -> dict[str, Any]:
     store = build_synthetic_store(synthetic_store_dir())
     return {"store": str(store.directory), "participants": len(store.patient_ids())}
