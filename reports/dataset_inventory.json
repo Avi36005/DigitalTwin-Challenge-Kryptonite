@@ -1,0 +1,355 @@
+{
+  "manifest_version": "source-manifest-1",
+  "canonical_schema": "canonical-cgm-1",
+  "generated_at": "2026-10-12T13:51:13+00:00",
+  "datasets": [
+    {
+      "dataset_id": "cgmacros",
+      "files": [
+        {
+          "name": "CGMacros_dateshifted365.zip",
+          "size_bytes": 657187340,
+          "sha256": "05c8b0e6f1a2757050aced55ce4bf6ab2ac9b30f2fd8ca193056812d9c621d4d",
+          "verified": true
+        },
+        {
+          "name": "DataDictionary.pdf",
+          "size_bytes": 967993,
+          "sha256": "f161ff8df4bd95efa79d3daa8aba5eab754df287ab0f4dfc74bce156f6862c1a",
+          "verified": true
+        },
+        {
+          "name": "DataDictionary_Bio.csv",
+          "size_bytes": 2079,
+          "sha256": "2d5b4c27873284ddbf218df51172b69ffa9caf6e97a3a122977b7a2761da4c61",
+          "verified": true
+        },
+        {
+          "name": "DataDictionary_CGMacros-00X.csv",
+          "size_bytes": 1604,
+          "sha256": "db7bf114d61b90fc5de43fed5e5cd6ba33af37e900a706e1b5747d7b0ffac3f8",
+          "verified": true
+        },
+        {
+          "name": "DataDictionary_Gut_Health_Test.csv",
+          "size_bytes": 4427,
+          "sha256": "fbc7555aacb93b2fb107b65db8d4a3d88d3546e7818fe5378fd2840cdceeb1b0",
+          "verified": true
+        },
+        {
+          "name": "LICENSE.txt",
+          "size_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "verified": true
+        }
+      ],
+      "acquired_bytes": 658163443,
+      "acquired_participants": 45,
+      "parsed_participants": 45,
+      "participants_by_group": {
+        "Type 2 diabetes": 14,
+        "Pre-diabetes": 16,
+        "No diabetes": 15
+      },
+      "eligible": {
+        "5-min Type 2 cohort": 14,
+        "15-min development": 14
+      },
+      "all_participants_dexcom": {
+        "native_readings": 126270,
+        "observed_hours": 10514.5,
+        "observed_days_equivalent": 438.1,
+        "calendar_days_with_readings": 492,
+        "recordings": 45,
+        "long_gaps_over_60_min": 12,
+        "excluded_rows_by_reason": {},
+        "duplicates_removed": 0
+      },
+      "all_participants_libre": {
+        "native_readings": 46224,
+        "observed_hours": 11485.0,
+        "observed_days_equivalent": 478.5,
+        "calendar_days_with_readings": 525,
+        "recordings": 45,
+        "long_gaps_over_60_min": 26,
+        "excluded_rows_by_reason": {
+          "outside_device_reporting_range": 1
+        },
+        "duplicates_removed": 0
+      },
+      "type2_cohort_dexcom": {
+        "native_readings": 39939,
+        "observed_hours": 3327.7,
+        "observed_days_equivalent": 138.7,
+        "calendar_days_with_readings": 154,
+        "recordings": 14,
+        "long_gaps_over_60_min": 1,
+        "excluded_rows_by_reason": {},
+        "duplicates_removed": 0
+      },
+      "activity": {
+        "source": "Fitbit Sense (5-minute summaries)",
+        "type2_participants_with_activity": 14,
+        "type2_mean_minute_coverage": 0.963
+      },
+      "baseline_profile": {
+        "type2_participants_with_profile": 14,
+        "availability": "assumed available at recording start (screening labs on study day 1)"
+      },
+      "excluded_people": {
+        "Pre-diabetes": 16,
+        "No diabetes": 15
+      },
+      "excluded_people_reason": "Outside the Type 2 population of the primary analysis (kept for replay only).",
+      "access_status": "eligible_for_experiment",
+      "split_counts": {
+        "participants": 14,
+        "outer_folds": 5,
+        "assessed_participants": 14,
+        "outer_assessment_group_sizes": "3/3/3/3/2",
+        "outer_calibration_group_sizes": "2/2/2/2/2",
+        "outer_development_sizes": "9/9/9/9/10",
+        "final_candidate_development_participants": 12,
+        "final_candidate_calibration_participants": 2,
+        "training_rows_note": "each outer fold trains on its development participants' chronological heads; early stopping uses their purged tails"
+      },
+      "publisher": {
+        "name": "CGMacros",
+        "release": "1.0.0",
+        "landing_page": "https://physionet.org/content/cgmacros/1.0.0/",
+        "doi": "https://doi.org/10.13026/3z8q-x658",
+        "license": "CC BY-NC-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "publisher_participants": 45,
+        "population": "Adults with no diabetes, pre-diabetes and Type 2 diabetes (cohort by documented HbA1c criterion)",
+        "country_site": "United States (Texas); site details per the data descriptor",
+        "devices": [
+          {
+            "device_id": "dexcom_g6_pro",
+            "native_cadence_minutes": 5,
+            "unit": "mg/dL"
+          },
+          {
+            "device_id": "libre_pro",
+            "native_cadence_minutes": 15,
+            "unit": "mg/dL"
+          }
+        ],
+        "role": "development cohort (already inspected in experiments gt-primary-2026-10-11-v1/v2)",
+        "access": "open (PhysioNet open data)",
+        "citation": "Gutierrez-Osuna, R., Kerr, D., Mortazavi, B., & Das, A. (2025). CGMacros: a scientific dataset for personalized nutrition and diet monitoring (version 1.0.0). PhysioNet. https://doi.org/10.13026/3z8q-x658"
+      },
+      "requested_modalities": [
+        "cgm_dexcom",
+        "cgm_libre",
+        "fitbit_activity",
+        "meal_log",
+        "baseline_bio"
+      ],
+      "expected_bytes": null,
+      "permitted_local_use": "Non-commercial research; attribution and share-alike apply to derived data.",
+      "redistribution": "Raw and participant-level derived files are not redistributed by this repository (git-ignored). Aggregate results may be shown with attribution."
+    },
+    {
+      "dataset_id": "shanghai_t2dm",
+      "files": [
+        {
+          "file": "diabetes_datasets.zip",
+          "size_bytes": 3738354,
+          "md5": "4bfb61cfa506b48155fd9e841ee48e21",
+          "sha256": "59b5f5c4053a32bb6b7827844a0191597dc82228fe88ce332a189fdfc659c4cb",
+          "verified": true
+        }
+      ],
+      "acquired_bytes": 3738354,
+      "acquired_participants": 100,
+      "acquired_recordings": 109,
+      "parsed_participants": 100,
+      "failed_participants": [],
+      "participants_by_group": {
+        "Type 2 diabetes": 100
+      },
+      "eligible": {
+        "15-min external (\u2265 72 h)": 98
+      },
+      "not_eligible": [
+        {
+          "reason": "70.2 observed hours below the 72 h minimum."
+        },
+        {
+          "reason": "61.8 observed hours below the 72 h minimum."
+        }
+      ],
+      "all_participants": {
+        "native_readings": 112462,
+        "observed_hours": 28115.5,
+        "observed_days_equivalent": 1171.5,
+        "calendar_days_with_readings": 1292,
+        "recordings": 109,
+        "long_gaps_over_60_min": 1,
+        "excluded_rows_by_reason": {
+          "missing_value": 13
+        },
+        "duplicates_removed": 0
+      },
+      "eligible_participants": {
+        "native_readings": 111934,
+        "observed_hours": 27983.5,
+        "observed_days_equivalent": 1166.0,
+        "calendar_days_with_readings": 1284,
+        "recordings": 107,
+        "long_gaps_over_60_min": 1,
+        "excluded_rows_by_reason": {
+          "missing_value": 13
+        },
+        "duplicates_removed": 0
+      },
+      "activity": {
+        "source": null,
+        "detail": "No wearable activity in ShanghaiT2DM."
+      },
+      "baseline_profile": {
+        "participants_with_summary_row": 100,
+        "availability": "labs up to 6 months before/after CGM without dates: not causally usable"
+      },
+      "t1dm_files_not_imported": 16,
+      "limit_values_flagged_suspect": 329,
+      "unit_from_dataset_convention_files": 2,
+      "import_duration_seconds": 3.3,
+      "import_peak_rss_bytes": 174391296,
+      "access_status": "eligible_for_experiment",
+      "split_counts": {
+        "participants": 98,
+        "assessed_participants": 98,
+        "role": "reserved external assessment (never trained, tuned or calibrated on)"
+      },
+      "publisher": {
+        "name": "ShanghaiT2DM",
+        "release": "figshare 21600933 v5 (2023-10-30)",
+        "landing_page": "https://doi.org/10.6084/m9.figshare.c.6310860",
+        "doi": "https://doi.org/10.6084/m9.figshare.21600933.v5",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "publisher_participants": 100,
+        "publisher_recordings": 109,
+        "population": "Adults with diagnosed Type 2 diabetes (WHO 1999 criteria), Shanghai, China; inpatient and outpatient registry (DiaDRIL), 3-14 day recordings",
+        "country_site": "China (Shanghai Fourth People's Hospital; Shanghai East Hospital)",
+        "devices": [
+          {
+            "device_id": "freestyle_libre_h",
+            "native_cadence_minutes": 15,
+            "unit": "mg/dL (source column; values are mmol/L x 18)"
+          }
+        ],
+        "role": "reserved external assessment cohort (portable 15-minute CGM-only track)",
+        "access": "open (figshare)",
+        "citation": "Chinese diabetes datasets for data-driven machine learning. Scientific Data 10, 35 (2023). https://doi.org/10.1038/s41597-023-01940-7 ; data: Zhao, Qinpei; Zhu, Jinhao; Wang, Congrong; Rao, Weixiong (2022). diabetes_datasets.zip. figshare. https://doi.org/10.6084/m9.figshare.21600933.v5"
+      },
+      "requested_modalities": [
+        "cgm"
+      ],
+      "expected_bytes": 3738354,
+      "permitted_local_use": "Any use with attribution (CC BY 4.0).",
+      "redistribution": "Permitted with attribution, but this repository still keeps raw and participant-level derived files out of git; only aggregate evidence is committed."
+    },
+    {
+      "dataset_id": "ai_readi_v3",
+      "access_status": "access_required",
+      "files_present": 0,
+      "detail": "No local AI-READI files.",
+      "acquired_participants": 0,
+      "parsed_participants": 0,
+      "acquired_bytes": 0,
+      "user_steps": [
+        "Create or provide an Azure Storage container to receive the data (required by the FAIRhub workflow).",
+        "Log in to FAIRhub through CILogon with institutional credentials (or contact the AI-READI Data Access Committee).",
+        "Confirm the research is related to Type 2 diabetes.",
+        "Answer the training questions on research methods and ethics.",
+        "Describe the research purpose (published with your name on the AI-READI website).",
+        "Review and accept the AI-READI Dataset License (DLA, \"I ACCEPT\").",
+        "Select only the CGM, participant table, permitted clinical fields and wearable summaries; provide storage details.",
+        "Wait for the request to be processed, then download into data/raw/ai_readi/3.0.0 and run `glucotwin data manifest`."
+      ],
+      "work_completed_without_access": [
+        "Open mHealth CGM JSON parser (fictional fixtures)",
+        "selective-download planner from a real manifest (fixture-tested)",
+        "canonical conversion with LOW/HIGH codes and timestamp anomaly checks"
+      ],
+      "publisher": {
+        "name": "AI-READI (Flagship Dataset of Type 2 Diabetes from the AI-READI Project)",
+        "release": "3.0.0",
+        "landing_page": "https://fairhub.io/datasets/3",
+        "license": "AI-READI custom Data License Agreement (DLA); restricted data require a DTUA and DAC approval",
+        "license_url": "https://docs.aireadi.org/docs/3/preliminary/license",
+        "publisher_participants": 2280,
+        "publisher_bytes": 3820000000000,
+        "population": "2,280 participants across disease stages (no diabetes, pre-diabetes, Type 2 diabetes with oral or insulin treatment); not all have usable CGM",
+        "country_site": "United States (three data-collection sites)",
+        "devices": [
+          {
+            "device_id": "dexcom_g6",
+            "native_cadence_minutes": 5,
+            "unit": "mg/dL"
+          }
+        ],
+        "role": "preferred large-data development expansion (not acquired)",
+        "access": "controlled (FAIRhub request workflow)",
+        "citation": null
+      },
+      "requested_modalities": [
+        "wearable_blood_glucose/continuous_glucose_monitoring/dexcom_g6",
+        "participants.tsv",
+        "clinical_data (permitted baseline fields)",
+        "wearable_activity_monitor summaries"
+      ],
+      "expected_bytes": null,
+      "permitted_local_use": "Type 2 diabetes related research and AI/ML model training under the accepted DLA. Do not attempt to identify participants. The documentation restricts uploading participant data to third-party LLM providers without the required institutional agreement: process locally only and never place records in prompts, tool output, screenshots or external services.",
+      "redistribution": "Not permitted; participant-level files must stay local and git-ignored."
+    },
+    {
+      "dataset_id": "glucose_ml",
+      "access_status": "planned",
+      "acquired_participants": 0,
+      "parsed_participants": 0,
+      "acquired_bytes": 0,
+      "detail": "Discovery resource only. Its harmonized copies overlap CGMacros, ShanghaiT2DM and AI-READI; no component was imported. Catalog totals are never GlucoTwin counts.",
+      "publisher": {
+        "name": "Glucose-ML collection",
+        "release": "GitHub main @ decf266 (2026-10-02)",
+        "landing_page": "https://github.com/Augmented-Health-Lab/Glucose-ML-Project",
+        "license": "MIT (code only). Each component dataset keeps its own license and access terms.",
+        "license_url": "https://github.com/Augmented-Health-Lab/Glucose-ML-Project/blob/main/LICENSE",
+        "publisher_participants": 4428,
+        "population": "Catalog-wide (authors) 44.9 M glucose samples, 4,300+ people, 20+ datasets, 6 countries; T1D 38 %, T2D 25 %, pre-diabetes 13 %, no diabetes 24 %",
+        "role": "discovery and harmonization resource (no data imported)",
+        "access": "mixed (14 open-access components, others controlled)",
+        "citation": "Prioleau, T., Lu, B. and Cui, Y. (2025). Glucose-ML: A collection of longitudinal diabetes datasets for development of robust AI solutions. arXiv:2507.14077"
+      },
+      "requested_modalities": [],
+      "expected_bytes": null,
+      "permitted_local_use": "Code reuse under MIT; data use follows each source's own terms.",
+      "redistribution": "Per component source."
+    }
+  ],
+  "overlap_check": {
+    "recordings_compared": 199,
+    "pairs": 19656,
+    "max_overlap": 0.1706,
+    "threshold": 0.5,
+    "flagged_pairs": []
+  },
+  "synthetic": {
+    "participants": 17,
+    "glucose_rows": 28762,
+    "note": "Fictional software fixtures and the demonstration model; never counted as real participants."
+  },
+  "split_membership_source": "artifacts/research/gt-nested-2026-10-12-v1/splits.json",
+  "assessed_participants_by_dataset": {
+    "cgmacros": 14,
+    "shanghai_t2dm": 98
+  },
+  "run": {
+    "duration_seconds": 2.32,
+    "peak_rss_bytes": 391921664
+  }
+}
