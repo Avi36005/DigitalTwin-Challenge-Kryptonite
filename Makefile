@@ -1,5 +1,5 @@
 # GlucoTwin — local research demo. All commands run on CPU, bind to 127.0.0.1 and need no cloud account.
-.PHONY: setup synthetic data-download data experiment report contracts api web dev test test-web e2e check build clean-var
+.PHONY: setup synthetic data-download data data-shanghai manifest experiment research research-report report contracts api web dev test test-web e2e check build clean-var
 
 setup:            ## install Python (uv) and web (npm) dependencies
 	uv sync --group dev --group docs
@@ -15,6 +15,24 @@ data:             ## verify + normalize CGMacros into data/processed (idempotent
 	uv run glucotwin data import
 	uv run glucotwin experiment build
 	uv run glucotwin data audit
+
+data-shanghai:    ## OPT-IN: download ShanghaiT2DM (3.7 MB, CC BY 4.0), verify the publisher MD5 and import it
+	uv run glucotwin data download --dataset shanghai_t2dm
+	uv run glucotwin data import --dataset shanghai_t2dm
+
+manifest:         ## canonical CGMacros export + source manifest + reports/dataset_expansion_audit.md
+	uv run glucotwin data canonical
+	uv run glucotwin data manifest
+
+research:         ## nested research experiment (ISOLATED: writes artifacts/research/, never the model registry)
+	uv run glucotwin research freeze
+	uv run glucotwin research develop
+	uv run glucotwin research assess
+	uv run glucotwin research external
+	uv run glucotwin research report
+
+research-report:  ## regenerate research reports from saved predictions only
+	uv run glucotwin research report
 
 experiment:       ## run the frozen primary experiment (writes artifacts/ and the model registry)
 	uv run glucotwin experiment run
@@ -43,7 +61,7 @@ test:             ## backend/data/model tests
 test-web:         ## frontend type check, unit tests and production build
 	cd apps/web && npm run typecheck && npm test && npm run build
 
-e2e:              ## browser journey tests against the running local API + web app (also writes reports/ui/*.png)
+e2e:              ## browser journeys on their own API (:8010) + web server (:5180) with throwaway storage (also writes reports/ui/*.png)
 	cd apps/web && npm run e2e
 
 check: test test-web e2e
