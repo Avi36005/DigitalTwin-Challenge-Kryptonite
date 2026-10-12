@@ -1,0 +1,271 @@
+# GlucoTwin research protocol gt-nested-2026-10-12-v2 — DECLARED, NOT FROZEN, NOT RUN.
+#
+# Successor of gt-nested-2026-10-12-v1 (whose results stay exactly as measured). Declared on 2026-10-12 after v1 was
+# assessed, in response to a review of v1. It cannot be frozen until AI-READI v3 five-minute CGM and wearable data are
+# imported and eligible on this machine (`requires_sources`); `glucotwin research freeze` refuses otherwise.
+# Changes from v1 (everything else is copied unchanged):
+#   * promotion: a declared multi-criteria rule — average error, high-glucose error, missed onsets and false warnings,
+#     each against the serving recipe under its own frozen warning policy (v1 bounded only average error and workload);
+#   * linear-trend windows per track; every window must hold three readings at the track cadence (v1 offered a 15-minute
+#     window on the 15-minute track, which degenerated to persistence);
+#   * folds assigned on public source participant keys, so every installation reproduces the same membership (v1 used
+#     installation-salted pseudonyms);
+#   * ShanghaiT2DM was opened in v1: here it is an exploratory transfer check only, never confirmatory evidence;
+#   * development adds AI-READI (Dexcom G6, 5-minute) Type 2 participants; a seeded, content-blind 25 % of eligible
+#     AI-READI participant IDs is reserved as the new external group before any record is read.
+# Thresholds below are research engineering tolerances, not clinically validated requirements.
+experiment_id: gt-nested-2026-10-12-v2
+status: declared_not_frozen
+supersedes_design_of: gt-nested-2026-10-12-v1
+requires_sources: [cgmacros, ai_readi_v3]
+promotion:
+  compare_against: >-
+    the serving recipe (LightGBM v2: dyn-v2, v2 hyperparameters and iterations, v2 adaptation) refit per fold, under its
+    own frozen warning policy (margin -30 mg/dL at 60 minutes)
+  all_required: true
+  criteria:
+    average_error: {rule: 95 % participant-bootstrap upper bound of (candidate - serving) macro MAE below 0 at 30 and 60 min}
+    high_glucose_error: {horizons: [30, 60], max_ci_upper_mg_dl: 1.0}   # MAE where the target exceeds 180 mg/dL
+    missed_onsets: {horizon: 60, max_recall_drop: 0.05}                 # absolute drop in pooled event recall
+    false_warnings: {horizon: 60, max_per_observed_day: 2.0, not_above_serving: true}
+external_v2:
+  shanghai_t2dm: exploratory transfer check only (already opened in gt-nested-2026-10-12-v1)
+  ai_readi_v3: >-
+    reserved group = eligible AI-READI participants whose SHA-256("20261012:" + public participant id) falls in the
+    lowest quarter; fixed before access and never used for training, tuning, calibration or thresholds
+kind: nested-participant-benchmark
+declared_on: "2026-10-12"
+random_seed: 20261012
+preserves: [gt-primary-2026-10-11-v1, gt-primary-2026-10-11-v2]
+registry_policy: >-
+  The research runner never reads or writes artifacts/registry.json. A frozen candidate can only reach the app through
+  `glucotwin research promote`, a separate explicit action that is not executed as part of this experiment.
+
+inspection_log:   # chronological record of what had been seen before this protocol was declared
+  - date: "2026-10-11"
+    what: >-
+      CGMacros Type 2 cohort (14 people): v1 final-test segment (last 20 % of each recording) inspected for every v1
+      candidate; v2 corrected re-run inspected on the same segment. Validation segments used for v1/v2 selection. The
+      v2 serving recipe (LightGBM dyn-v2 hyperparameters, adaptation k=96/half-life 240, warning margin -30) was chosen
+      on these 14 people. Nested resampling of CGMacros is therefore internal validation, not untouched evidence.
+  - date: "2026-10-12"
+    what: >-
+      ShanghaiT2DM schema and quality inspection only: archive layout, column headers, units (all CGM values are
+      multiples of 1.8), cadence steps, missing cells, participant/recording counts and the 72 observed-hour
+      eligibility count (98/100). No forecast, error, event or glucose-outcome summary was computed.
+  - date: "2026-10-12"
+    what: >-
+      gt-nested-2026-10-12-v1 fully assessed: every CGMacros outer fold and the ShanghaiT2DM external cohort were opened
+      (reports/nested_benchmark_report.md). No AI-READI record has been seen.
+
+data:
+  development:
+    datasets: [cgmacros, ai_readi_v3]
+    cohort: >-
+      CGMacros Type 2 group with >= 72 h of native Dexcom readings (14 people) plus AI-READI v3 participants in the
+      Type 2 study groups with >= 72 h of native Dexcom G6 readings, excluding the reserved AI-READI external group.
+    excluded: >-
+      Pre-diabetes and no-diabetes participants of both sources (outside the intended population).
+  external:
+    dataset: ai_readi_v3
+    cohort: the reserved AI-READI group defined in external_v2 (content-blind, seeded on public participant IDs)
+    role: opened once, after every development fold and the deployment candidate are frozen
+  exploratory_transfer:
+    dataset: shanghai_t2dm
+    note: already opened in gt-nested-2026-10-12-v1; any result here is exploratory and labelled as such
+  excluded_sources:
+    glucose_ml: discovery only; its harmonized copies would duplicate CGMacros, ShanghaiT2DM and AI-READI
+  duplicate_checks: >-
+    Shift-invariant recording signatures compared across every imported recording before freezing (0 flagged pairs
+    required).
+wearable_semantics: >-
+  AI-READI wearable measures (Garmin) are not Fitbit METs: activity features stay source-specific, and the pooled
+  development track is CGM-only first. Absent wearable data is missing, never zero activity.
+intended_deployment_population: >-
+  Adults with Type 2 diabetes wearing a CGM, in a research replay. Not a clinical population claim; no Indian cohort.
+inputs_by_source:
+  cgmacros: native Dexcom CGM (recovered), Fitbit 5-minute activity summaries, baseline profile assumed available at
+    recording start
+  shanghai_t2dm: native FreeStyle Libre H CGM only (labs lack dates; no wearable)
+
+horizons_minutes: [30, 60]
+
+tracks:
+  multimodal_5min:
+    sources: [cgmacros]
+    cadence_minutes: 5
+    feature_sets: [cgm-only-v1, dyn-v2, dyn-prof-v2]
+    superset_feature_set: dyn-prof-v2
+    target_match_tolerance_minutes: 2.5
+    events: true
+    serving_eligible: true
+  portable_15min:
+    sources: [cgmacros, shanghai_t2dm]
+    cadence_minutes: 15
+    decimation: >-
+      Keep the first native reading in each absolute 15-minute bin (bins anchored at the store epoch). Causal: keeping a
+      reading depends only on earlier readings. Nothing is interpolated. ShanghaiT2DM native readings pass unchanged.
+    feature_sets: [cgm15-v1]
+    superset_feature_set: cgm15-v1
+    target_match_tolerance_minutes: 7.5
+    events: false   # regression and prediction ranges only; no sampled-event proxy is declared in this experiment
+    serving_eligible: false   # the replay app streams 5-minute CGMacros data
+origins: >-
+  Every available native (or decimated) reading time is an origin. A forecast is issued when the shared feature builder
+  rates the origin ok or degraded; insufficient origins are reported as unavailable, never imputed. All candidates in a
+  track are scored on the identical issued-and-target-matched origins.
+features:
+  lookback_minutes: 180
+  min_history_minutes: 60
+  stale_threshold_minutes: {multimodal_5min: 15, portable_15min: 22.5}
+  time_of_day_features: false
+  patient_id_as_feature: false
+  missing_data: >-
+    Trees receive NaN. Ridge uses median imputation + missing indicators + standardization fitted on its training rows
+    only. Profile values enter only when available_at <= origin.
+
+folds:
+  outer_folds: 5               # grouped by participant: every visit/recording of a person stays in one fold
+  assignment_key: source_participant_key
+  assignment: >-
+    Participants sorted by public source key (dataset:source participant id), permuted with the seed, dealt round-robin into outer folds. Within each
+    outer-training set a seeded permutation reserves the calibration group, the rest are development participants dealt
+    round-robin into inner folds.
+  calibration_fraction: 0.2
+  calibration_min_participants: 2
+  inner_folds: 3
+  early_stopping_tail_fraction: 0.2   # last 20 % of each TRAINING participant's elapsed span, purged below
+  purge_minutes: 82.5                 # 75 min maximum label support + 7.5 min continuity allowance
+  final_candidate: >-
+    The same development procedure on all 14 participants (calibration group reserved the same way, no assessment
+    group) produces the deployment candidate of each track. Its internal performance estimate is the outer-fold result.
+  small_cohort_note: >-
+    14 people give outer assessment groups of 2-3 people, calibration groups of 2 and inner folds of 3. Fold-level
+    results are noisy; pooled cross-validated results and participant-cluster bootstrap intervals are the main summary.
+
+models:
+  baselines:
+    persistence: {}
+    linear_trend:
+      window_minutes: {multimodal_5min: [15, 30], portable_15min: [30, 60]}   # >= 2 x cadence and a slope feature
+      damping: [0.25, 0.5, 0.75, 1.0]
+      max_change_mg_dl: 120
+    ridge: {alpha: [0.1, 1.0, 10.0, 100.0]}
+  trees:
+    lightgbm_l2:  {family: lightgbm, objective: l2, stopping_metric: l2}           # current serving objective
+    lightgbm_l1:  {family: lightgbm, objective: l1, stopping_metric: macro_mae}    # MAE-aligned objective + stopping
+    catboost:     {family: catboost, objective: RMSE, stopping_metric: RMSE}
+  stopping_metric_definition: >-
+    macro_mae = mean over participants of each participant's mean absolute error on the early-stopping tail (every
+    participant weighted equally), not row-weighted MAE.
+  search:
+    trials_per_config: 6        # per family/objective x feature set x horizon; identical sampled parameter sets for L1 and L2
+    max_boosting_rounds: 1200
+    early_stopping_rounds: 50
+    threads_per_fit: 2
+    lightgbm_space:
+      learning_rate: [0.02, 0.1]
+      num_leaves: [7, 63]
+      max_depth: [3, 8]
+      min_child_samples: [20, 400]
+      lambda_l2: [0.0, 20.0]
+      feature_fraction: [0.6, 1.0]
+      bagging_fraction: [0.6, 1.0]
+    catboost_space:
+      learning_rate: [0.02, 0.1]
+      depth: [3, 8]
+      l2_leaf_reg: [1.0, 30.0]
+      rsm: [0.6, 1.0]
+    trial_selection: lowest inner out-of-fold macro MAE for that config, feature set and horizon
+  comparators:
+    v2_recipe: >-
+      LightGBM L2 on dyn-v2 with the frozen v2 serving hyperparameters and iteration counts, the v2 adaptation policy
+      (k=96, half-life 240) and the v2 warning margin (-30), refit inside every outer fold without tuning. Its settings
+      were chosen on these same 14 people, so it is a slightly favoured comparator. The registered v2 artifact itself
+      saw 60 % of every participant and is never scored on outer folds.
+  chronos2: {enabled: false, note: optional research track, not run in this experiment}
+
+selection:
+  stage: inner out-of-fold predictions of the development participants (population model, no adaptation)
+  score: equal-weight mean over horizons of macro per-participant MAE
+  tie_margin_mg_dl: 0.5
+  complexity_order: [persistence, linear_trend, ridge, lightgbm_l2, lightgbm_l1, catboost]
+  tie_break: >-
+    Within the tie margin prefer the earlier entry of complexity_order, then the smaller feature set, then the lower
+    score. Rule copied from v1/v2 with the L1 configuration placed after the incumbent L2.
+  no_feasible_candidate: persistence is selected (it always issues forecasts on the shared origins)
+
+adaptation:
+  policy_id: shrunk-bias-v1
+  controls: [off, v2_policy, adaptive, frozen_state]
+  v2_policy: {shrinkage_k: 96, half_life_minutes: 240}
+  grid: {shrinkage_k: [24, 48, 96, 192], half_life_minutes: [120, 240, 720]}
+  cap_mg_dl: 25
+  min_residuals: 6
+  reset_gap_minutes: 180
+  target_wait_minutes: 120
+  match_tolerance_minutes: {multimodal_5min: 2.5, portable_15min: 7.5}
+  frozen_state_boundary_hours: 24      # frozen-state control: state learned during the first 24 elapsed hours, then no updates
+  prequential: held-out inner participants start from an empty state at their first origin (new-participant setting)
+  adoption_rule: >-
+    base = v2_policy if it lowers the inner mean macro MAE versus off, else off. The best grid policy replaces base only
+    if it improves the inner mean macro MAE by >= 0.2 mg/dL and worsens neither horizon by more than 0.5 mg/dL.
+    Ties in the grid prefer larger shrinkage, then longer half-life. Applied with the same candidate set and masks to
+    the selected pipeline and to the best LightGBM and best CatBoost pipelines of each track.
+  min_improvement_mg_dl: 0.2
+  max_horizon_worsening_mg_dl: 0.5
+
+intervals:
+  level: 0.8
+  primary: >-
+    split-conformal: finite-sample ceil((n+1) x 0.8)-th smallest absolute residual of the FINAL (adapted) pipeline,
+    per horizon, pooled over the reserved calibration participants whose forecasts are generated causally from an
+    empty adaptation state. Fewer than 50 residuals -> no interval.
+  secondary: >-
+    causal locally scaled conformal (reported, not selectable here): half-width = q_s x sigma_p(t) where sigma_p(t) =
+    (sum w_i |r_i| + k_s sigma_g) / (sum w_i + k_s) over already-matured residuals of the person (w_i = 0.5 ^ (age /
+    720 min), k_s = 24), sigma_g = mean |residual| on calibration and q_s the finite-sample 80 % quantile of |r| /
+    sigma_p on calibration. With fewer than 6 matured residuals the frozen global range is used (fallback rate reported).
+  interval_score_alpha: 0.2
+  glucose_strata_mg_dl: {low: [null, 70], usual: [70, 180], high: [180, null]}   # by the latest glucose at the origin
+  min_stratum_observations: 100
+  min_stratum_participants: 3
+  no_endpoint_clipping: true
+
+warnings:
+  applies_to: multimodal_5min
+  event: {threshold_mg_dl: 180, confirm_minutes: 15, recovery_minutes: 15, max_gap_minutes: 7.5, jitter_minutes: 1.0}
+  score: max(final forecasts for horizons <= H) - 180 mg/dL (uncalibrated margin, not a probability)
+  horizons_minutes: [30, 60]
+  serving_horizon_minutes: 60
+  threshold_grid: [-30, -20, -10, 0, 10, 20, 30, 40]
+  episode_merge_minutes: 30
+  primary_rule: >-
+    On inner out-of-fold predictions of the exact final pipeline: maximize event recall subject to at most 2.0 false-alarm
+    episodes per observed forecastable patient-day. Ties: higher precision, then fewer warning episodes, then the higher
+    (more conservative) threshold. A threshold must issue at least one assessable warning. No feasible threshold ->
+    warnings disabled for that pipeline (reported, curve preserved).
+  workload_budget_per_observed_day: 2.0
+  sensitivity_budgets: [0.5, 1.0, 3.0]   # reported only, never selected from assessment results
+  comparator_rule: maximize event F1 (v1/v2 rule); ties -> fewer warnings per observed day
+  applied_to: [persistence, linear_trend, best lightgbm pipeline, best catboost pipeline, selected pipeline, v2_recipe]
+  exposure: >-
+    Observed forecastable time = sum over forecast-issued origins of min(next issued origin - t, 5 min) per person
+    (non-overlapping, gap-respecting). Eligible uncensored time uses only early-warning-eligible origins with a resolved
+    label. The legacy approximation (origins x 5 min) is reported beside it, labelled.
+  debounce_ablation: not run
+
+evaluation:
+  metrics: [macro per-participant MAE and RMSE by horizon and source, high-glucose stratum MAE (target > 180),
+            forecast availability, cold-start strata, interval coverage/width/score, event recall/precision/workload]
+  cold_start_strata_hours: [0, 6, 24]   # elapsed since the first reading of the current recording
+  bootstrap_resamples: 2000            # participants resampled with both pipelines' predictions together
+  latency: inference-only ms per 1,000 forecasts and end-to-end replay ms per origin, reported separately
+  figures: [warning recall vs false alarms per observed day, precision vs recall, coverage by horizon]
+  failures: every failed fit, unavailable forecast and unavailable interval is counted with its reason
+
+artifacts:
+  root: artifacts/research/gt-nested-2026-10-12-v2
+  splits: splits.json (written by `glucotwin research freeze` before any fit)
+  predictions: development/<fold>/<track>/inner_oof.parquet, assessment/predictions.parquet, external/predictions.parquet
+  reports: reports/nested_benchmark_report.md, reports/model_upgrade_review.md
