@@ -63,6 +63,7 @@ class AdaptationState:
         self.reset_count = 0
         self.just_reset = False
         self.h: dict[int, _HorizonState] = {h: _HorizonState() for h in self.horizons}
+        self._last_out: dict[int, float | None] = {}
 
     def reset(self) -> None:
         self.h = {h: _HorizonState() for h in self.horizons}
@@ -86,8 +87,15 @@ class AdaptationState:
         pop_preds: dict[int, float | None],
         forecast_id: str,
     ) -> dict[int, float | None]:
-        """Advance to origin ``t``; return the correction per horizon (None if adaptation disabled)."""
+        """Advance to origin ``t``; return the correction per horizon (None if adaptation disabled).
+
+        Origins must not go backwards. Repeating the latest origin (e.g. the same forecast requested twice) returns the
+        same corrections without registering the forecast again, so its residual can never be counted twice."""
         p = self.policy
+        if self.prev_origin is not None and t <= self.prev_origin + 1e-9:
+            if t < self.prev_origin - 1e-9:
+                raise ValueError("Adaptation origins went backwards; rebuild the state causally from the start")
+            return dict(self._last_out)
         self.just_reset = False
         if self.prev_origin is not None and t - self.prev_origin > p.reset_gap_minutes:
             self.reset()
@@ -132,6 +140,7 @@ class AdaptationState:
             pop = pop_preds.get(h)
             if t >= self.collect_from and pop is not None and np.isfinite(pop):
                 hs.pending.append((t, float(pop), forecast_id))
+        self._last_out = dict(out)
         return out
 
     def status(self) -> str:
