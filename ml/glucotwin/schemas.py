@@ -139,7 +139,8 @@ class PatientDetail(PatientSummary):
 class PatientPage(Versioned):
     items: list[PatientSummary]
     next_cursor: str | None = None
-    total: int
+    total: int = Field(description="Participants matching the filters (all pages), not the size of this page.")
+    total_unfiltered: int | None = Field(default=None, description="Participants in the catalogue before filtering.")
 
 
 class ProfileValue(Contract):
@@ -412,13 +413,26 @@ class AlertEvidence(Contract):
     latest_glucose_mg_dl: float | None
     predicted_mg_dl: dict[str, float | None]
     explanation_codes: list[str]
+    # the warning policy this warning was issued under (pinned for the life of the session)
+    policy_id: str | None = None
+    rule_version: str | None = None
+    experiment_id: str | None = None
+    score_units: str | None = None
+    episode_merge_minutes: float | None = None
+    applicability: str | None = None
 
 
 class AlertOutcome(Contract):
     status: Literal["pending", "onset_observed", "no_onset_observed", "unknown"]
     onset_at: datetime | None = None
     confirmed_at: datetime | None = None
-    lead_time_minutes: float | None = None
+    lead_time_minutes: float | None = Field(
+        default=None, description="Deprecated alias of episode_start_to_onset_minutes (v1 'lead time').")
+    episode_start_to_onset_minutes: float | None = Field(
+        default=None, description="Onset minus the first warning of the merged episode. Can exceed the horizon.")
+    qualified_lead_minutes: float | None = Field(
+        default=None, description="Onset minus the earliest firing whose own horizon contains the onset (0 < x <= H).")
+    last_supporting_forecast_at: datetime | None = None
     note: str | None = None
 
 
@@ -505,10 +519,21 @@ class EventMetricsRow(Contract):
     origin_pr_auc: MetricValue
     false_alarms_per_patient_day: MetricValue
     warnings_per_patient_day: MetricValue
-    lead_time_minutes_median: MetricValue
+    lead_time_minutes_median: MetricValue = Field(description="Episode-start-to-onset time (v1 definition), median.")
     lead_time_minutes_iqr: list[float | None]
     eligible_patient_days: float
     censored_origins: int
+    # added with the Prompt 05 corrections; null for reports produced before them
+    observed_patient_days: float | None = None
+    false_alarms_per_observed_patient_day: MetricValue | None = None
+    warnings_per_eligible_patient_day: MetricValue | None = None
+    qualified_lead_minutes_median: MetricValue | None = None
+    qualified_lead_minutes_iqr: list[float | None] | None = None
+    qualified_lead_n: int | None = None
+    episode_start_lead_max_minutes: float | None = None
+    episode_start_lead_over_horizon: int | None = None
+    matched_without_qualified_firing: int | None = None
+    time_base: str | None = None
 
 
 class IntervalMetricsRow(Contract):
@@ -546,6 +571,9 @@ class EvaluationReport(Versioned):
     status: Literal["completed", "not_run", "unavailable", "synthetic_only"]
     status_message: str
     experiment_id: str | None = None
+    corrects_experiment_id: str | None = Field(
+        default=None, description="Earlier experiment this one corrects; that test segment was already inspected.")
+    correction_note: str | None = None
     created_at: datetime | None = None
     mode: ReplayMode | None = None
     dataset: DatasetRef | None = None
@@ -559,6 +587,170 @@ class EvaluationReport(Versioned):
     interval_results: list[IntervalMetricsRow] = Field(default_factory=list)
     optional_experiments: list[dict[str, Any]] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
+
+
+# --------------------------------------------------------------------------------------------
+# Experiment catalogue, research reports, serving summary and dataset inventory (additive, schema 1.0)
+# --------------------------------------------------------------------------------------------
+
+EvaluationRegime = Literal["serving_retrospective", "superseded_original", "nested_research"]
+AccessStatus = Literal["planned", "access_required", "available_locally", "imported", "failed_validation",
+                       "eligible_for_experiment"]
+
+
+class EvaluationSummary(Contract):
+    experiment_id: str
+    regime: EvaluationRegime
+    title: str
+    description: str
+    status: Literal["completed", "not_run", "development_only", "unavailable"]
+    created_at: datetime | None = None
+    is_serving_evidence: bool = Field(description="True only for the experiment that produced the serving model.")
+
+
+class EvaluationList(Versioned):
+    items: list[EvaluationSummary]
+    serving_experiment_id: str | None = None
+
+
+class ServingSummary(Versioned):
+    mode: ReplayMode
+    status: Literal["ready", "unavailable"]
+    detail: str
+    model_version: str | None = None
+    model_family: str | None = None
+    feature_set_id: str | None = None
+    experiment_id: str | None = None
+    evaluation_regime: EvaluationRegime | None = None
+    adaptation: dict[str, Any] | None = None
+    interval_level: float | None = None
+    interval_quantiles_mg_dl: dict[str, float | None] | None = None
+    warning_threshold_margin_mg_dl: float | None = None
+    warning_horizon_minutes: int | None = None
+
+
+class ServingList(Versioned):
+    items: list[ServingSummary]
+
+
+class ResearchHorizonResult(Contract):
+    horizon: int
+    mae: float | None
+    rmse: float | None
+    mae_high_glucose_target: float | None = Field(
+        default=None, description="Macro MAE on origins whose target exceeded 180 mg/dL (people with >= 20 such origins).")
+    high_glucose_participants: int
+    n_participants: int
+    n_origins: int
+    availability: float | None = Field(
+        default=None, description="Share of target-bearing origins that received a forecast. Not accuracy.")
+    cold_start: dict[str, dict[str, Any]]
+    unavailable_forecasts: int
+
+
+class ResearchPipeline(Contract):
+    pipeline: str
+    mode: str
+    display: str
+    config: str | None = None
+    feature_set: str | None = None
+    selected: bool | None = None
+    horizons: dict[str, ResearchHorizonResult]
+    intervals: dict[str, dict[str, Any]]
+    inference_ms_per_1k: float | None = None
+
+
+class ResearchComparison(Contract):
+    comparison: str
+    horizon: int
+    kind: str | None = None
+    a: list[str] | None = None
+    b: list[str] | None = None
+    mean_diff: float | None
+    ci95: list[float | None]
+    n_participants: int
+    improved: int
+    worsened: int
+    unchanged: int | None = None
+
+
+class ResearchTrack(Contract):
+    name: str
+    participants: int
+    selection_by_fold: dict[str, dict[str, Any]]
+    pipelines: list[ResearchPipeline]
+    comparisons: list[ResearchComparison]
+    warnings: dict[str, Any] | None = None
+
+
+class ResearchExternal(Contract):
+    status: Literal["completed", "not_run"]
+    reason: str | None = None
+    dataset: str | None = None
+    opened: dict[str, Any] | None = None
+    candidate: str | None = None
+    candidate_freeze_hash: str | None = None
+    participants: int | None = None
+    decimation: dict[str, Any] | None = None
+    pipelines: list[ResearchPipeline] = Field(default_factory=list)
+    comparisons: list[ResearchComparison] = Field(default_factory=list)
+    note: str | None = None
+
+
+class ResearchReport(Versioned):
+    """Nested participant-level research experiment (internal folds + reserved external cohort)."""
+
+    experiment_id: str
+    status: Literal["completed", "not_run"]
+    status_message: str
+    kind: str | None = None
+    created_at: datetime | None = None
+    declared_on: str | None = None
+    frozen_at: str | None = None
+    protocol_hash: str | None = None
+    split_hash: str | None = None
+    assessment_opened: dict[str, Any] | None = None
+    inspection_log: list[dict[str, Any]] = Field(default_factory=list)
+    folds: list[dict[str, Any]] = Field(default_factory=list)
+    tracks: dict[str, ResearchTrack] = Field(default_factory=dict)
+    external: ResearchExternal | None = None
+    candidates: dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
+    limitations: list[str] = Field(default_factory=list)
+
+
+class DatasetEntry(Contract):
+    dataset_id: str
+    name: str
+    release: str | None = None
+    access_status: AccessStatus
+    role: str | None = None
+    license: str | None = None
+    country_site: str | None = None
+    native_cadence_minutes: list[float] = Field(default_factory=list)
+    publisher_participants: int | None = Field(default=None, description="Publisher-reported scale: external metadata.")
+    acquired_participants: int | None = None
+    parsed_participants: int | None = None
+    eligible: dict[str, int] = Field(default_factory=dict)
+    native_readings: int | None = None
+    observed_hours: float | None = None
+    wearable: str | None = None
+    profile: str | None = None
+    split_counts: dict[str, Any] | None = None
+    detail: str | None = None
+    user_steps: list[str] = Field(default_factory=list)
+    citation_url: str | None = None
+
+
+class DatasetInventory(Versioned):
+    status: Literal["available", "not_generated"]
+    generated_at: datetime | None = None
+    canonical_schema: str | None = None
+    datasets: list[DatasetEntry] = Field(default_factory=list)
+    summary_sentence: str | None = Field(
+        default=None, description="Rendered only from verified assessed counts; null when they are not available.")
+    overlap_check: dict[str, Any] | None = None
+    synthetic: dict[str, Any] | None = None
 
 
 # --------------------------------------------------------------------------------------------
