@@ -1,0 +1,131 @@
+# GlucoTwin primary experiment protocol.
+# Declared on 2026-10-11 BEFORE any model was fitted or any outcome metric was computed.
+# Any later change requires a new experiment_id and an entry in docs/decisions.md.
+experiment_id: gt-primary-2026-10-11-v1
+declared_on: "2026-10-11"
+random_seed: 20261011
+
+cohort:
+  dataset: cgmacros
+  inclusion: >-
+    CGMacros participants in the Type 2 diabetes group by the dataset's documented HbA1c criterion
+    (HbA1c > 6.4 % at screening) with at least 72 h of native Dexcom G6 Pro readings.
+  primary_device: dexcom_g6_pro     # one device for every participant; Libre is not stitched in
+  sensitivity_device: libre_pro     # separately identified sensitivity analysis only (not run in v1)
+
+horizons_minutes: [30, 60]
+
+features:
+  lookback_minutes: 180
+  min_history_minutes: 60
+  stale_threshold_minutes: 15
+  time_of_day_features: false       # timezone undocumented; synthetic clock is not biological time
+  candidate_feature_sets: [dyn-v1, dyn-prof-v1]   # eligible for serving selection
+  sensitivity_feature_sets:
+    dyn-prof-meal-v1: >-
+      OPTIMISTIC meal-logging sensitivity: assumes meal macronutrients were available at the photo
+      timestamp. Never eligible for serving selection.
+  patient_id_as_feature: false
+
+target:
+  kind: delta_from_latest           # models predict g(t + h) - g_latest; forecasts add g_latest back
+  match_tolerance_minutes: 2.5      # nearest native reading within +/- 2.5 min of t + h, else unavailable
+
+event:
+  threshold_mg_dl: 180              # strictly greater than
+  confirm_minutes: 15
+  recovery_minutes: 15
+  max_gap_minutes: 7.5              # continuity limit between consecutive native Dexcom readings
+  jitter_minutes: 1.0               # timestamp tolerance (native times known only to the minute)
+
+splits:
+  scheme: within-participant chronological by elapsed eligible span
+  train_fraction: 0.6
+  selection_fraction: 0.1           # validation part used for model, hyperparameter and threshold selection
+  calibration_fraction: 0.1         # later validation part used only for interval calibration
+  test_fraction: 0.2
+  max_label_support_minutes: 75
+  continuity_allowance_minutes: 7.5
+
+models:
+  baselines:
+    persistence: {}
+    linear_trend:
+      window_minutes: [15, 30]
+      damping: [0.25, 0.5, 0.75, 1.0]
+      max_change_mg_dl: 120
+    ridge:
+      alpha: [0.1, 1.0, 10.0, 100.0]
+  tree_search:
+    trials_per_family_per_horizon: 12
+    wall_clock_budget_seconds_per_family: 900
+    early_stopping_rounds: 50
+    max_boosting_rounds: 2000
+    lightgbm_space:
+      learning_rate: [0.02, 0.1]          # log-uniform
+      num_leaves: [7, 63]
+      max_depth: [3, 8]
+      min_child_samples: [20, 400]
+      lambda_l2: [0.0, 20.0]
+      feature_fraction: [0.6, 1.0]
+      bagging_fraction: [0.6, 1.0]
+    catboost_space:
+      learning_rate: [0.02, 0.1]          # log-uniform
+      depth: [3, 8]
+      l2_leaf_reg: [1.0, 30.0]           # log-uniform
+      rsm: [0.6, 1.0]
+      # min_data_in_leaf removed before any fit: incompatible with CatBoost's default SymmetricTree
+      # growing policy (see docs/decisions.md D-011).
+  selection:
+    rule: >-
+      Lowest equal-weight mean of per-patient MAE across the 30- and 60-minute horizons on the
+      validation-selection segment, population model without patient adaptation.
+    tie_break: >-
+      Candidates within 0.5 mg/dL of the best are tied; prefer the simpler/faster in the order
+      persistence < linear_trend < ridge < lightgbm < catboost, then the smaller feature set.
+    tie_margin_mg_dl: 0.5
+    complexity_order: [persistence, linear_trend, ridge, lightgbm, catboost]
+
+adaptation:
+  policy_id: shrunk-bias-v1
+  description: >-
+    Per horizon, correction = clip(sum(w_i r_i) / (sum(w_i) + k), -cap, cap), where r_i = observed
+    target - frozen population prediction for matured forecasts only (target available at the
+    current origin), w_i = 0.5 ** (age_i / half_life). Zero until min_residuals have matured; reset
+    after a glucose gap longer than reset_gap_minutes. Residuals are collected only from origins at or
+    after the start of validation (training origins are in-sample for the population model).
+  grid:
+    shrinkage_k: [6, 12, 24, 48, 96]
+    half_life_minutes: [240, 720, 1440, 4320]
+  cap_mg_dl: 25
+  min_residuals: 6
+  reset_gap_minutes: 180
+  adoption_rule: >-
+    Adaptation is enabled for serving only if, with its validation-selected settings, it lowers the
+    macro per-patient MAE (mean of both horizons) on the validation-selection segment.
+
+intervals:
+  method: split-conformal absolute residuals, pooled across participants, per horizon
+  calibration_segment: calibration
+  level: 0.8
+
+alerts:
+  rule_version: new-high-warning-v1
+  serving_horizon_minutes: 60
+  score: >-
+    Forecast margin: max(serving forecasts for horizons <= H) - 180 mg/dL. An uncalibrated score in
+    mg/dL, not a probability.
+  threshold_grid: [-30, -20, -10, 0, 10, 20, 30, 40]
+  threshold_selection: >-
+    Maximize event-level F1 on the validation-selection segment; ties go to fewer warnings per day.
+  episode_merge_minutes: 30         # firings within 30 min of the previous firing extend one episode
+  matching: >-
+    A warning episode matches the earliest unmatched new onset o with episode_start < o <=
+    episode_last_firing + H. Each onset matches at most one episode. Unmatched episodes whose follow-up
+    is uncensored are false alarms. Lead time = o - episode_start.
+
+evaluation:
+  bootstrap: participant-cluster
+  bootstrap_resamples: 2000
+  secondary_lopo: true              # leave-one-participant-out cold-start analysis (no retuning)
+  optional_chronos_bolt: false      # optional research track; disabled by default
