@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "session_id": "d30221215231",
+  "session_id": "4cbadc6d923f",
   "session_revision": 1,
   "clock_at": "2000-01-03T00:30:00Z",
   "availability": "not_ready",
@@ -13,13 +13,13 @@
   ],
   "forecast": {
     "schema_version": "1.0",
-    "forecast_id": "58d6a634-1ee9-5dd6-b5f2-c8be04ddf52e",
-    "session_id": "d30221215231",
+    "forecast_id": "1055d88f-4987-5cf9-b7f7-632e520f1de8",
+    "session_id": "4cbadc6d923f",
     "patient_id": "SYN-A",
     "session_revision": 1,
     "as_of": "2000-01-03T00:27:05.103844Z",
     "mode": "synthetic_demo",
-    "model_version": "synthetic-demo.lightgbm.dyn-v1.v1",
+    "model_version": "synthetic-demo.lightgbm.dyn-v2.v1",
     "model_family": "lightgbm",
     "personalization": {
       "enabled": true,

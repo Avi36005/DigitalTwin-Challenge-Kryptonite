@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "session_id": "d30221215231",
+  "session_id": "4cbadc6d923f",
   "session_revision": 1,
   "clock_at": "2000-01-03T03:00:00Z",
   "availability": "available",
@@ -8,13 +8,13 @@
   "reasons": [],
   "forecast": {
     "schema_version": "1.0",
-    "forecast_id": "bc058431-43ec-56b1-9c3a-71199e17f8b2",
-    "session_id": "d30221215231",
+    "forecast_id": "901f6a62-2645-5bb5-9721-de69238f2a3b",
+    "session_id": "4cbadc6d923f",
     "patient_id": "SYN-A",
     "session_revision": 1,
     "as_of": "2000-01-03T02:57:08.788007Z",
     "mode": "synthetic_demo",
-    "model_version": "synthetic-demo.lightgbm.dyn-v1.v1",
+    "model_version": "synthetic-demo.lightgbm.dyn-v2.v1",
     "model_family": "lightgbm",
     "personalization": {
       "enabled": true,
@@ -26,41 +26,41 @@
           "horizon_minutes": 30,
           "matured_residuals": 17,
           "min_required": 6,
-          "correction_mg_dl": 1.209176388091801,
+          "correction_mg_dl": 1.380269227532389,
           "last_matured_at": "2000-01-03T02:57:08.788007Z",
           "consumed_forecast_ids": [
-            "6d57c2cb-f37c-51b4-8301-523a354c50e7",
-            "9348d803-9f5a-50e6-8fc1-75421636a918",
-            "8def3749-7eb5-5902-b46f-d21d8cc1a74a",
-            "8f4e81c9-6c7a-5adc-a52c-99e288933bcc",
-            "be94b3b3-b3ab-5e9e-ac7d-18ed5675eb6c",
-            "16a82e20-8578-53be-88b3-fd8daa1fefcc",
-            "1582d688-ccef-5e6d-be78-535064c73023",
-            "2a592708-7e59-5afc-a4be-6c90a9ef3ec7",
-            "685462d4-efee-590c-a6b3-116d1994a651",
-            "fa09cc62-a28d-5323-9930-799a40d697d7",
-            "ac10dd91-7581-5c29-b0aa-21cff5f8f4c3",
-            "e153bc5d-d537-52a2-ab79-80c31cccfc4e"
+            "18ff5002-ebda-5c3e-a539-3d670491df7c",
+            "5bd4c3e4-2509-5c2a-8aa2-69b2cc295f25",
+            "97974cac-30bd-502e-8249-47f83c0ef428",
+            "dd637011-d604-5c36-94a0-80865e206ace",
+            "b9a4e114-4ef4-5e28-9208-263ea0e99538",
+            "19e3a752-b7f8-58ad-acf5-3810c1527537",
+            "3db7fab9-8efd-575d-9c6b-8b5e11b738bf",
+            "0133e897-984f-5941-8265-ba1797e688d6",
+            "b2c59bf7-5854-5b6d-99d9-a11bc48636d7",
+            "facef37f-f2a3-5ade-9cc8-d694f14081e5",
+            "e089d182-1fd4-5836-b558-3a92b8f03f6e",
+            "9fc2b4c3-9912-535a-8c5c-a5de93421092"
           ]
         },
         {
           "horizon_minutes": 60,
           "matured_residuals": 11,
           "min_required": 6,
-          "correction_mg_dl": 2.2278999995911226,
+          "correction_mg_dl": 2.132401523476154,
           "last_matured_at": "2000-01-03T02:57:08.788007Z",
           "consumed_forecast_ids": [
-            "2dfae63e-e6a6-501e-bdcb-dc95ec60f1a5",
-            "df3f8c5c-abd5-5e3a-a98d-cba941795cd5",
-            "1483b958-dcea-53d7-9db9-aedbc82ba6c8",
-            "6f49b3bb-0187-559e-b5b0-0a630af2b5b2",
-            "35503393-8dd3-53fa-a2d6-5732ed611dc0",
-            "6d57c2cb-f37c-51b4-8301-523a354c50e7",
-            "9348d803-9f5a-50e6-8fc1-75421636a918",
-            "8def3749-7eb5-5902-b46f-d21d8cc1a74a",
-            "8f4e81c9-6c7a-5adc-a52c-99e288933bcc",
-            "be94b3b3-b3ab-5e9e-ac7d-18ed5675eb6c",
-            "16a82e20-8578-53be-88b3-fd8daa1fefcc"
+            "4fdda35d-e395-5889-b8e1-75686ebce590",
+            "490e411a-a523-5abd-b735-61703182ee46",
+            "a288ff07-fc70-5e14-a638-84d2c95f03df",
+            "fde5df12-1fe9-5efe-b122-b1c6a6e1b148",
+            "d0b5b6b9-c4fb-51ac-9cb5-0eab96c32dbf",
+            "18ff5002-ebda-5c3e-a539-3d670491df7c",
+            "5bd4c3e4-2509-5c2a-8aa2-69b2cc295f25",
+            "97974cac-30bd-502e-8249-47f83c0ef428",
+            "dd637011-d604-5c36-94a0-80865e206ace",
+            "b9a4e114-4ef4-5e28-9208-263ea0e99538",
+            "19e3a752-b7f8-58ad-acf5-3810c1527537"
           ]
         }
       ]
@@ -75,27 +75,27 @@
       {
         "horizon_minutes": 30,
         "target_at": "2000-01-03T03:27:08.788007Z",
-        "predicted_mg_dl": 132.9,
-        "lower_mg_dl": 117.4,
-        "upper_mg_dl": 148.3,
+        "predicted_mg_dl": 132.4,
+        "lower_mg_dl": 117.0,
+        "upper_mg_dl": 147.8,
         "interval_level": 0.8,
         "interval_status": "calibrated",
         "components": {
-          "population_mg_dl": 131.7,
-          "patient_correction_mg_dl": 1.2
+          "population_mg_dl": 131.0,
+          "patient_correction_mg_dl": 1.4
         }
       },
       {
         "horizon_minutes": 60,
         "target_at": "2000-01-03T03:57:08.788007Z",
-        "predicted_mg_dl": 135.0,
+        "predicted_mg_dl": 135.3,
         "lower_mg_dl": 111.7,
-        "upper_mg_dl": 158.3,
+        "upper_mg_dl": 158.9,
         "interval_level": 0.8,
         "interval_status": "calibrated",
         "components": {
-          "population_mg_dl": 132.8,
-          "patient_correction_mg_dl": 2.2
+          "population_mg_dl": 133.2,
+          "patient_correction_mg_dl": 2.1
         }
       }
     ],
@@ -104,7 +104,7 @@
       {
         "horizon_minutes": 30,
         "probability": null,
-        "score": -47.1,
+        "score": -47.6,
         "score_kind": "forecast_margin_mg_dl",
         "score_description": "Highest forecast within 30 min minus 180 mg/dL. Uncalibrated research score in mg/dL \u2014 not a probability.",
         "state": "eligible",
@@ -114,7 +114,7 @@
       {
         "horizon_minutes": 60,
         "probability": null,
-        "score": -45.0,
+        "score": -44.7,
         "score_kind": "forecast_margin_mg_dl",
         "score_description": "Highest forecast within 60 min minus 180 mg/dL. Uncalibrated research score in mg/dL \u2014 not a probability.",
         "state": "eligible",
@@ -157,13 +157,13 @@
       },
       {
         "code": "patient_correction",
-        "text": "Patient adaptation adjusts the 60-minute population forecast by +2.2 mg/dL, learned from 11 earlier forecast errors for this person.",
+        "text": "Patient adaptation adjusts the 60-minute population forecast by +2.1 mg/dL, learned from 11 earlier forecast errors for this person.",
         "kind": "personalization",
         "evidence_event_ids": []
       },
       {
         "code": "tree_contributions",
-        "text": "Largest 60-minute population-model associations (tree contributions, not causes): activity energy (60 min) -4 mg/dL; average glucose (60 min) +3 mg/dL; average activity (METs, 30 min) -2 mg/dL. The patient correction is reported separately.",
+        "text": "Largest 60-minute population-model associations (tree contributions, not causes): activity energy (60 min) -4 mg/dL; average glucose (60 min) +3 mg/dL; average activity (METs, 30 min) -3 mg/dL. The patient correction is reported separately.",
         "kind": "model_association",
         "evidence_event_ids": []
       }
