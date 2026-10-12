@@ -1,0 +1,340 @@
+# GlucoTwin — personalized glucose forecasting between clinic visits
+
+**Team Kryptonite · Digital Twin Challenge 2026 (Happiest Health) · student research prototype.** GlucoTwin keeps a
+patient-specific state for a person with Type 2 diabetes, updates it as continuous-glucose and wearable observations
+arrive, forecasts glucose 30 and 60 minutes ahead, and warns of a new sustained high-glucose episode — while showing a
+clinician exactly what was known at each moment.
+
+> Research demonstration only. Not a medical device; no treatment advice; replay of recorded or synthetic data — never a
+> live device connection. Results come from three separately labelled models, all reproducible with the commands below:
+>
+> * **Current demo model — LightGBM v2** (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`). It serves every replay in the app.
+>   Its numbers come from the corrected experiment `gt-primary-2026-10-11-v2`, the frozen v1 protocol re-run after two
+>   code fixes ([repair report](reports/repair_report.md)) on an already-inspected test segment; v1 is preserved.
+> * **Five-minute candidate — Ridge on CGM-only features** (`ridge.cgm-only-v1.gt-nested-2026-10-12-v1`). Chosen by a
+>   frozen rule and evaluated on people it never saw (experiment `gt-nested-2026-10-12-v1`). Evaluated, **not promoted**.
+> * **External check — a separate 15-minute LightGBM** (`lightgbm.cgm15-v1.gt-nested-2026-10-12-v1`). Trained on
+>   CGMacros and evaluated once on an independent Chinese cohort; it is not the demo model and not the Ridge candidate.
+>
+> **145 participants imported; 14 evaluated internally and 98 evaluated externally.**
+
+![GlucoTwin workspace: recorded-data replay in the held-out test period](reports/ui/03-forecast-with-interval-recorded.png)
+
+## Submission checklist (Unstop form)
+
+The twelve mandatory items, where each is answered below, and its status on **11 October 2026**. Status is updated
+only when the evidence exists; details and owners: [`docs/submission_checklist.md`](docs/submission_checklist.md).
+
+| # | Form item | Section | Status |
+|---|---|---|---|
+| 1 | Team details | [Team details](#1-team-details) | Ready |
+| 2 | College / incubator information | [College or incubator](#2-college-or-incubator-information) | **Missing — team to supply** |
+| 3 | Project title | [Project title](#3-project-title) | Ready |
+| 4 | Problem statement | [Problem statement](#4-problem-statement) | Ready |
+| 5 | Healthcare use case | [Healthcare use case](#5-healthcare-use-case) | Ready |
+| 6 | Technical stack | [Technical stack](#6-technical-stack) | Ready |
+| 7 | AI/ML model or framework details | [AI and ML model details](#7-ai-and-ml-model-details) | Ready |
+| 8 | Demo video (unlisted YouTube, 15–20 min) | [Demo video](#8-demo-video) | **Missing — not yet recorded or uploaded** |
+| 9 | Open-source license details | [Open-source license](#9-open-source-license) | Ready (holder to be confirmed by the team) |
+| 10 | Architecture diagram (PDF/PPT) | [Architecture diagram](#10-architecture-diagram) | Ready |
+| 11 | Presentation with details and outcomes (PDF/PPT) | [Presentation](#11-presentation) | Ready (video link added after upload) |
+| 12 | Files and links accessible without extra permissions | [Accessible files and links](#12-accessible-files-and-links) | **Unverified — repository not yet public** |
+
+## 1. Team details
+
+| | |
+|---|---|
+| Team name | **Kryptonite** |
+| Team leader | Avinash Gehi |
+| Members | Avinash Gehi (leader) · Hardik Hinduja |
+| Contact | Through the Unstop submission (the leader's contact details are entered on the form, not published here) |
+
+More: [`docs/team_details.md`](docs/team_details.md).
+
+## 2. College or incubator information
+
+**Not yet supplied.** The team will add its confirmed college or incubator name here before submission; it is not
+inferred from any other source.
+
+## 3. Project title
+
+**GlucoTwin — a personalized Type 2 diabetes glucose digital twin for between-visit monitoring.**
+
+## 4. Problem statement
+
+HbA1c summarises about three months of glucose and cannot show the short high-glucose excursions that happen between
+appointments. Continuous glucose monitors can, but they produce about 288 readings a day — far too many for a
+clinician to review by hand. Population models also ignore that the same meal or activity affects each person
+differently.
+
+GlucoTwin addresses one prediction problem: from data available **up to now** — a static baseline profile (EHR-like
+demographics and screening labs) plus dynamic streams (native CGM readings and wearable heart-rate/activity) —
+forecast glucose **30 and 60 minutes ahead** and warn of a **new episode above 180 mg/dL sustained for at least 15
+minutes** (a research definition, not triage), with each prediction tied to the person's own recent forecast errors.
+
+## 5. Healthcare use case
+
+* **Who:** a clinician or diabetes educator reviewing a small cohort of adults with Type 2 diabetes who wear CGMs and
+  activity trackers between visits; a second user is a reviewer inspecting the evidence.
+* **Question answered:** “Which monitored patient's glucose pattern merits review, and what observations support that
+  conclusion?”
+* **Scope:** research use with recorded (CGMacros) or synthetic data. No insulin or medication advice, no triage, no
+  live device connection, no LLM-generated predictions.
+
+**Clinician workflow in the working dashboard**
+
+1. **Open the workspace** from the landing page and **choose a participant** (Participants page or ⌘K/Ctrl+K search),
+   then start a **New replay** — recorded data or the synthetic demonstration; the data mode stays visible.
+2. **Read the twin at the replay time:** baseline profile as known at that moment, current glucose, 30/60-minute
+   forecasts with a prediction range (target coverage 80 %), and data freshness. An unavailable forecast says why.
+3. **Review research warnings:** each shows its forecast margin and threshold, stays *pending* until the outcome is
+   knowable, then reports detected (with its forecast lead) or false alarm. *Mark as reviewed* records a local note only.
+4. **Inspect a forecast:** information cutoff, model version, population forecast vs patient correction, factual
+   explanations (associations, not causes).
+5. **Check the evidence:** Model evidence (measured comparison) and Data quality (provenance, cadence, missingness).
+
+| Desktop (1920×1080) — recorded data, a real 70-minute sensor gap: reading and forecasts marked stale | Mobile (375 px) |
+|---|---|
+| ![Recorded-data sensor gap with stale reading and forecasts](reports/ui/09-recording-1920-recorded-gap-stale.png) | ![Mobile workspace](reports/ui/07-mobile-workspace.png) |
+
+Product details: [`docs/product.md`](docs/product.md) · interface handoff: [`docs/frontend-handoff.md`](docs/frontend-handoff.md).
+
+## 6. Technical stack
+
+| Layer | Technologies actually used |
+|---|---|
+| Data processing | Python 3.12, NumPy, pandas, PyArrow/Parquet, SHA-256-verified acquisition (`uv` for environments) |
+| Machine learning | scikit-learn (ridge), **LightGBM 4.7**, **CatBoost 1.2**, split-conformal intervals, TreeSHAP contributions |
+| Backend | FastAPI, Pydantic (OpenAPI contract `schema_version 1.0`), SQLite (sessions, issued forecasts, acknowledgements) |
+| Frontend | React 19, TypeScript 5.9, Vite, React Router, TanStack Query, Recharts, Lucide icons, Inter (bundled) |
+| Testing | pytest, Vitest + Testing Library, Playwright |
+| Documents | matplotlib, python-pptx, reportlab |
+
+CPU only; no cloud account, GPU, API key or LLM. Exact versions: `uv.lock`, `apps/web/package-lock.json`.
+
+## 7. AI and ML model details
+
+| Aspect | What was actually done |
+|---|---|
+| Inputs | Trailing native CGM features (≤ 180 min), Fitbit heart-rate/activity summaries (each 5-minute summary counts only the part inside the lookback window); profile-augmented variants add baseline age, sex, BMI, HbA1c, fasting glucose and insulin, triglycerides and HDL (each only once available). Meals excluded from the primary model (logging time undocumented). Only records with `observed_at` and `available_at` ≤ forecast time |
+| Horizons | 30 and 60 minutes (direct per-horizon models) |
+| Candidates | Persistence, bounded linear trend, ridge; **LightGBM** and **CatBoost** with identical inputs, origins and 12-trial seeded searches; each on dynamic-only (`dyn-v2`) and profile-augmented (`dyn-prof-v2`) features |
+| Personalization | The same causal policy for every tree model: a shrunk, capped, decaying bias learned from the person's own *matured* forecast errors; weights never refit online |
+| Protocol | Within-participant chronological split 60/10/10/20 (training / selection / calibration / test) with purge gaps; protocol frozen before fitting; selection, adaptation, split-conformal prediction ranges (target coverage 80 %) and alert threshold chosen without test data. v1 evaluated test once; **v2 re-runs the same protocol after code corrections, on the already-inspected test segment** |
+| Selected (serving) | **LightGBM `dyn-v2` + patient adaptation** (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`) — chosen on validation by a rule declared in advance (lowest mean error; candidates within 0.5 mg/dL tie → simpler model, then smaller feature set). Four tree models tied; the tie-break chose this one |
+| Warning | Max forecast within 60 min − 180 mg/dL; an uncalibrated score, never shown as a probability; threshold chosen on validation by event-level F1 |
+
+**Measured results — final test segment, corrected re-run `gt-primary-2026-10-11-v2`** (14 participants in CGMacros'
+Type 2 group, 7,730 forecast origins ≈ 644 h, 64 new high-glucose onsets; mean absolute error averaged equally over
+participants, in mg/dL — an average error, not an accuracy percentage; 95 % participant-cluster bootstrap):
+
+| Model | MAE 30 min | MAE 60 min |
+|---|---|---|
+| Persistence (last reading) | 14.84 | 23.23 |
+| Ridge (dynamic features) | 14.37 | 23.11 |
+| LightGBM, population | 13.38 | 21.20 |
+| **LightGBM + patient adaptation (serving)** | **13.15** | **20.81** |
+| CatBoost + patient adaptation | 13.23 | 20.44 |
+| CatBoost + profile + adaptation (evaluated, not selected) | 12.93 | 19.80 |
+
+* Serving vs persistence: **−1.69 [−2.34, −1.11]** (30 min) and **−2.42 [−3.81, −1.11]** (60 min); better for 14/14
+  participants at 30 min and 12/14 at 60 min.
+* Patient adaptation: **−0.24 [−0.43, −0.07]** and **−0.39 [−0.79, −0.02]** mg/dL — small; a frozen-state control shows it
+  comes from online updating. New participants (leave-one-participant-out, secondary): 14.92 / 25.47 → 14.07 / 23.12.
+* LightGBM vs CatBoost: no clear difference on dynamic features. Profile-augmented models did better on test; we did not
+  switch after seeing test results (disclosed in [`docs/decisions.md`](docs/decisions.md)).
+* Early warning (60 min): 64/64 onsets detected but precision 0.45 — **79 false alarms, 4.51 per eligible patient-day**;
+  qualified forecast lead median **55 min**. The declared F1 rule picked the lowest threshold of a nearly flat curve, so
+  this rule is sensitive but burdensome ([next experiment](docs/next_experiment.md)).
+* Prediction ranges (target coverage 80 %) covered **74.4 % / 75.9 %** on test — under-coverage, reported as such.
+* Correction history: v1 (`gt-primary-2026-10-11-v1`, declared before fitting) gave 13.32 / 21.20 mg/dL with 26 false
+  alarms; its activity features counted up to 65 minutes in a 60-minute window. v1 artifacts and report are preserved.
+* Not run: the optional Chronos-Bolt foundation-model track.
+
+**Limitations:** 14 participants from one US site; no Indian participants; blinded research CGMs replayed with assumed
+zero latency; medication use unknown; ranges under-cover; the warning rule trades many false alarms for recall; 180 mg/dL
+is a research threshold; v2 re-uses an already-inspected test segment. Nothing here is clinical validation.
+
+**New-participant and external evidence (research experiment `gt-nested-2026-10-12-v1`; the demo model above is
+unchanged).** 145 participants imported (45 CGMacros, 100 ShanghaiT2DM); 14 evaluated internally and 98 evaluated
+externally. A protocol frozen before fitting evaluated every pipeline on people it never saw: five outer participant
+folds over the 14 CGMacros Type 2 people (internal validation — that cohort was already inspected) and a reserved
+external cohort, ShanghaiT2DM (FreeStyle Libre H at 15-minute cadence, China), opened once.
+
+| Internal: 14 CGMacros people, each held out once (macro MAE, mg/dL) | 30 min | 60 min |
+|---|---|---|
+| Persistence | 15.34 | 24.47 |
+| Current demo recipe (LightGBM v2), refit per fold | 14.52 | 24.25 |
+| **Five-minute candidate procedure** — Ridge, CGM-only, v2 adaptation (the rule's choice in 4 of 5 folds; LightGBM L1 in 1) | **13.88** | **22.30** |
+
+| External: 98 ShanghaiT2DM people — separate 15-minute LightGBM vs persistence | 30 min | 60 min |
+|---|---|---|
+| Persistence | 12.14 | 20.44 |
+| 15-minute LightGBM | 11.15 | 20.11 |
+| Difference (95 % participant bootstrap interval) | **−0.99 [−1.21, −0.77]**, better for 80 of 98 | −0.34 [−0.76, +0.10], **inconclusive** |
+
+* Chosen pipeline minus v2 recipe: −0.64 [−0.98, −0.32] and −1.95 [−2.83, −1.04] mg/dL; better for 12/14 and 13/14
+  people. It is worse when the target exceeds 180 mg/dL (39.71 vs 37.00 mg/dL at 60 min). Wearable activity inputs
+  made new-person forecasts worse in this cohort.
+* Warnings (60 min, threshold chosen on inner folds for ≤ 2 false alarms per observed forecastable day): 301 of 329
+  onsets at 1.31 false alarms per observed day, versus 329 of 329 at 2.80 for the v2 recipe with its −30 margin.
+* Ranges (target 80 %) covered 80.1 % / 78.8 % on outer-fold people and 87.1 % / 86.1 % on ShanghaiT2DM (wider than
+  needed there). The external 30-minute improvement is clear; at 60 minutes it is not distinguishable from zero. Other
+  frozen pipelines had lower external error (lowest: LightGBM L1, 10.81 / 19.00 mg/dL) — reported, not adopted, because
+  choosing on the external cohort would make it a tuning set.
+* The pre-specified rule recommends switching to the Ridge candidate, but it is worse on large highs and its evidence
+  is internal; **nothing was promoted** and LightGBM v2 remains the demo model. Promotion criteria for the next
+  experiment now also bound high-glucose error, missed onsets and false warnings
+  ([`configs/experiments/gt-nested-2026-10-12-v2.yaml`](configs/experiments/gt-nested-2026-10-12-v2.yaml), declared, not run) ([model upgrade review](reports/model_upgrade_review.md),
+  [full research report](reports/nested_benchmark_report.md), [data expansion audit](reports/dataset_expansion_audit.md)).
+  AI-READI was not accessed; no Indian participants were evaluated.
+
+Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:
+[`reports/repair_report.md`](reports/repair_report.md) · model card:
+[`docs/model_card.md`](docs/model_card.md) · data card: [`docs/data_card.md`](docs/data_card.md).
+
+## 8. Demo video
+
+* **Unlisted YouTube link: not yet available** — the 20:00 recording has not been made or uploaded.
+* Target duration **20:00** (the form allows 15–20 minutes). The actual rendered and YouTube-displayed durations will be
+  recorded here after upload.
+* Recording plan with chapter timestamps: [`docs/demo_script.md`](docs/demo_script.md); replay sequence verified
+  against the running app: [`reports/demo_sequence.md`](reports/demo_sequence.md).
+
+## 9. Open-source license
+
+* **Code:** MIT — [`LICENSE`](LICENSE). Copyright holder entered as “Avinash Gehi and Hardik Hinduja (Team
+  Kryptonite)”, pending the team's confirmation.
+* **Data:** CGMacros 1.0.0 — Gutierrez-Osuna R., Kerr D., Mortazavi B., Das A. *CGMacros: a scientific dataset for
+  personalized nutrition and diet monitoring* (version 1.0.0). PhysioNet (2025). https://doi.org/10.13026/3z8q-x658 —
+  **CC BY-NC-SA 4.0**. The dataset and model weights trained on it are **not** redistributed here.
+* **Synthetic fixtures:** generated by this repository, CC0-1.0. Third-party packages keep their own licenses.
+
+## 10. Architecture diagram
+
+**[`docs/submission/GlucoTwin_Architecture.pdf`](docs/submission/GlucoTwin_Architecture.pdf)** (2 pages: system
+architecture; forecast lifecycle, availability boundary and state ownership).
+
+![Architecture](docs/assets/fig_architecture.png)
+
+Narrative: [`docs/architecture.md`](docs/architecture.md) · contracts: [`docs/contracts.md`](docs/contracts.md) ·
+replay semantics: [`docs/replay.md`](docs/replay.md).
+
+## 11. Presentation
+
+**[`docs/submission/GlucoTwin_Presentation.pdf`](docs/submission/GlucoTwin_Presentation.pdf)** ·
+editable [`GlucoTwin_Presentation.pptx`](docs/submission/GlucoTwin_Presentation.pptx) — problem, use case, data,
+architecture, models, measured outcomes, limitations and next steps. Every number is generated from the experiment
+artifact by [`scripts/build_submission_assets.py`](scripts/build_submission_assets.py).
+
+## 12. Accessible files and links
+
+All submission links above are relative paths to files tracked in this repository; none points to a private drive,
+authenticated notebook or local-only file. Last local check: **11 October 2026** — every README link target exists, is
+tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** public repository visibility,
+signed-out access and the YouTube link, because the repository has not been published and the video has not been
+uploaded. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
+
+---
+
+## Run it locally
+
+### Synthetic demonstration (no download, ~3 minutes)
+
+Requirements: [uv](https://docs.astral.sh/uv/) and Node.js ≥ 20.
+
+```bash
+make setup        # Python + web dependencies
+make synthetic    # fictional fixtures + synthetic demonstration model
+make dev          # API on http://127.0.0.1:8000 and web app on http://127.0.0.1:5173
+```
+
+Open http://127.0.0.1:5173 (landing page) → **Open workspace** → **New replay** → *Synthetic demonstration*. Synthetic participants exercise edge cases
+(sensor gaps, late meal logs, short history). Nothing computed on them is clinical evidence.
+
+### Recorded-data replay — CGMacros 1.0.0
+
+The dataset (CC BY-NC-SA 4.0, ≈ 657 MB) is **not** included. Download it yourself and reproduce everything:
+
+```bash
+make data-download   # PhysioNet open-data mirror; verifies SHA256SUMS.txt (`uv run glucotwin data download --primary` uses physionet.org)
+make data            # verify + normalize + split manifest + reports/data_audit.md   (idempotent)
+make experiment      # current protocol (v2): search, selection, adaptation, calibration, test run (~2 min on a laptop CPU)
+make dev
+```
+
+If you already have the files, place them in `data/raw/cgmacros/1.0.0/` and run `make data`. A changed or partial file
+fails verification. The published 1-minute CGM columns are linearly interpolated; the adapter recovers the native
+5-minute Dexcom readings and never treats interpolated rows as measurements ([`docs/data_card.md`](docs/data_card.md)).
+
+### Larger-data research experiment (optional)
+
+Prerequisites: the CGMacros steps above (`make data-download`, `make data`, `make experiment` — the current recipe is
+the comparator).
+
+```bash
+make data-shanghai   # ShanghaiT2DM (3.7 MB, CC BY 4.0): download, verify publisher MD5, import
+make manifest        # canonical CGMacros export + reports/dataset_expansion_audit.md
+make research        # freeze → nested development → outer assessment → external → reports (~15 min on 10 CPU cores)
+```
+
+Exact numbers: fold membership and training-row order of `gt-nested-2026-10-12-v1` follow this installation's salted
+pseudonyms, so another installation gets an equally valid but different draw; the declared successor protocol assigns
+folds and orders rows by public source keys so every installation reproduces the same split. With the same salt, a
+clean copy reproduced every headline number and the internal predictions bit for bit
+([verification](reports/verification.md)).
+
+The research runner writes only `artifacts/research/` and never the model registry; a frozen candidate reaches the app
+only through `uv run glucotwin research promote --track multimodal_5min --yes` (rollback:
+`uv run glucotwin research rollback --to lightgbm.dyn-v2.gt-primary-2026-10-11-v2`). An assessment that was already
+opened refuses to run again without `--reopen-reason`. AI-READI needs steps only you can complete; they are listed in
+[`reports/dataset_expansion_audit.md`](reports/dataset_expansion_audit.md).
+
+### Replay semantics in one paragraph
+
+The backend owns each session's clock. Only records whose observation **and** availability times are at or before the
+clock are released; forecasts are stored immutably; seeking or resetting creates a new session revision, rebuilds the
+twin from earlier data only and invalidates old cursors. Replay times are shown as “Day N · HH:MM” on a declared
+synthetic UTC timeline ([`docs/replay.md`](docs/replay.md)).
+
+## Verification
+
+```bash
+make test       # backend tests: leakage, labels, splits, adaptation maturity, activity windows, warning matching, replay invariants, API, integration
+make test-web   # type check + frontend tests + production build
+make e2e        # Playwright journeys on their own API + web server with throwaway storage (also refreshes reports/ui/*.png)
+uv run python scripts/demo_sequence.py     # re-records the demo replay sequence from the API
+uv run python scripts/check_submission.py  # README links, anchors, tracked files, PDF/PPTX readability
+scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an empty directory: setup, tests, e2e, Shanghai path
+```
+
+Latest results: [`reports/verification.md`](reports/verification.md) · integration audit:
+[`reports/integration_audit.md`](reports/integration_audit.md).
+
+## Repository layout
+
+```text
+apps/web/            React clinician workspace (+ e2e tests)
+services/api/        FastAPI service: catalogue, replay sessions, SQLite audit, contracts export
+packages/contracts/  OpenAPI, validated example payloads, generated TypeScript types
+ml/glucotwin/        adapter, features, events, splits, models, adaptation, evaluation, twin engine, CLI
+configs/             data.yaml (policies), sources.yaml (source registry), experiment.yaml (current protocol, v2), experiments/ (v1 protocol, nested research protocol), submission.yaml
+data/                raw/processed/private (git-ignored), synthetic (generated)
+artifacts/           model artifacts, experiment outputs, registry (git-ignored)
+reports/             data audit, evaluation report (+ archived v1), repair report, demo sequence, verification, UI screenshots
+docs/                product, architecture, contracts, model/data cards, decisions, submission materials
+scripts/             submission assets, demo sequence recorder, landing preview export, submission link check
+tests/               backend tests
+```
+
+## Documentation index
+
+[Product](docs/product.md) · [Architecture](docs/architecture.md) · [Contracts](docs/contracts.md) ·
+[Decisions](docs/decisions.md) · [Data schema](docs/data_schema.md) · [Feature availability](docs/feature_availability.md) ·
+[Replay](docs/replay.md) · [Model card](docs/model_card.md) · [Data card](docs/data_card.md) ·
+[Frontend handoff](docs/frontend-handoff.md) · [Artifact manifest](docs/artifact_manifest.md) ·
+[Submission checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
+[Presentation outline](docs/presentation_outline.md) · [Demo script](docs/demo_script.md) ·
+[Jury questions](docs/jury_questions.md) · [Repair report](reports/repair_report.md) ·
+[Next experiment (executed)](docs/next_experiment.md) · [Dataset expansion audit](reports/dataset_expansion_audit.md) ·
+[Nested benchmark report](reports/nested_benchmark_report.md) · [Model upgrade review](reports/model_upgrade_review.md)
