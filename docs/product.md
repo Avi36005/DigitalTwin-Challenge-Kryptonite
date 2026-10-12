@@ -22,7 +22,7 @@ learning from a patient's own earlier forecast errors improves later forecasts.
 ## Scope (version 1)
 
 In scope: Type 2 diabetes; recorded-data replay of CGMacros 1.0.0; synthetic demonstration mode; 30/60-minute
-glucose forecasts with calibrated-on-held-out-data intervals; research warning of a new sustained episode
+glucose forecasts with prediction ranges calibrated on held-out data (target coverage 80 %, measured coverage reported); research warning of a new sustained episode
 (> 180 mg/dL for ≥ 15 minutes); patient adaptation; clinician dashboard; measured evaluation against baselines.
 
 Out of scope: patient app, EHR integration, real device connection, notifications, billing, prescriptions,

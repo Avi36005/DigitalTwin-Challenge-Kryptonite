@@ -1,0 +1,18 @@
+# Submission metadata read by scripts/build_submission_assets.py and scripts/check_submission.py.
+# null means "not yet supplied or not yet verified" — fill only with confirmed values, never by guessing.
+team:
+  name: Kryptonite
+  leader: Avinash Gehi
+  members: [Avinash Gehi, Hardik Hinduja]
+  institution: null            # college or incubator — not yet supplied by the team
+links:
+  repository: null             # direct public GitHub URL, after the team publishes (form field: max 500 characters)
+  video: null                  # unlisted YouTube URL, after the team uploads the recording
+video:
+  target_duration: "20:00"
+  allowed_range: "15:00–20:00" # submission form; the challenge webpage said "minimum 20 minutes"
+  rendered_duration: null      # measured from the exported file
+  youtube_displayed_duration: null
+license:
+  software: MIT
+  holder: Avinash Gehi and Hardik Hinduja (Team Kryptonite)

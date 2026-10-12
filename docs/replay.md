@@ -56,4 +56,9 @@ curl -s localhost:8000/api/v1/replay/sessions/<id>/forecast
 Fictional, deterministic, CC0 participants (no real data copied or perturbed): `SYN-A` normal operation, `SYN-B`
 rising glucose with frequent highs, `SYN-C` meals logged 90 minutes late, `SYN-D` sensor gaps and sensor-limit
 readings, `SYN-E` insufficient history; `SYN-T01…T12` hidden training participants for the synthetic
-demonstration model (`synthetic-demo.lightgbm.dyn-v1.v1`, labelled synthetic in API and UI).
+demonstration model (`synthetic-demo.lightgbm.dyn-v2.v1`, labelled synthetic in API and UI).
+
+Warning outcomes in replay use the same one-to-one onset matcher as the offline evaluation
+(`glucotwin.evaluation.alerts.match_episodes`): one onset is credited to at most one warning episode, confirmed onsets
+persist for the session revision, and a false alarm is declared only after the whole follow-up window has been observed.
+Each detected warning reports its qualified forecast lead (≤ 60 min) and, separately, the time from its first warning.

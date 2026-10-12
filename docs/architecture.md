@@ -35,8 +35,8 @@ is in [`docs/submission/GlucoTwin_Architecture.pdf`](submission/GlucoTwin_Archit
    └──────────────────┬────────────────────────┘      └──────────────────┬───────────────────┘
                       ▼                                                  ▼ /api/v1 (schema 1.0)
    metrics.json · predictions.parquet · alerts.json        React clinician workspace (polling)
-   reports/evaluation_report.md                            Dashboard · Participants · Sessions ·
-                                                           Model evidence · Data quality
+   reports/evaluation_report.md                            Landing page (/) · workspace (/app): Overview ·
+                                                           Participants · Sessions · Model evidence · Data quality
 ```
 
 The same functions run in both columns: `glucotwin.features.build_features` (features and quality),
@@ -55,7 +55,7 @@ observations**:
 | Observations | Native CGM readings, 5-minute wearable summaries, meal records (context only), released by the replay clock |
 | Model | Population forecaster (serving: LightGBM, dynamic features) predicting 30- and 60-minute glucose change |
 | Patient state | Per-horizon shrunk, bounded, decaying bias correction learned only from matured forecast errors; episode state; issued-forecast history |
-| Outputs | Immutable forecasts with conformal intervals, uncalibrated warning score, factual explanations, research alerts |
+| Outputs | Immutable forecasts with conformal prediction ranges (target coverage 80 %), uncalibrated warning score, factual explanations, research alerts |
 
 It is a **statistical research twin**, not a validated physiological simulator.
 
@@ -65,7 +65,8 @@ It is a **statistical research twin**, not a validated physiological simulator.
 2. Features use only records with `observed_at ≤ t` **and** `available_at ≤ t`.
 3. The population model predicts glucose change at 30 and 60 minutes; the adaptation state adds a correction
    learned from earlier forecasts whose target readings were already available.
-4. Conformal quantiles (calibrated on the calibration segment for this exact pipeline) give 80% intervals.
+4. Conformal quantiles (calibrated on the calibration segment for this exact pipeline) give prediction ranges with a
+   target coverage of 80 % (measured test coverage is lower and reported).
 5. The warning score is `max(forecasts within H) − 180 mg/dL`; the alert rule fires only in the online
    `normal` episode state and above the validation-selected threshold.
 6. The forecast is stored immutably (SQLite, `INSERT OR IGNORE`) under a deterministic ID
@@ -106,3 +107,18 @@ are not installed by default.
 Local demonstration defaults: loopback binding, narrow CORS (`localhost:5173/4173` only), no authentication, no
 external network calls at runtime, trusted local artifacts verified by SHA-256 before loading, no pickles. This is
 **not** a production or regulatory-compliant deployment.
+
+## Research runner and canonical data layer (prompt pack v4)
+
+* `ml/glucotwin/data/canonical.py` — provenance-carrying canonical CGM records (`canonical-cgm-1`), unit handling,
+  LOW/HIGH codes, timestamp anomalies, causal decimation and shift-invariant overlap signatures. Adapters:
+  `cgmacros.py` (export only; the model store is unchanged), `shanghai.py`, `aireadi.py` (fixtures only).
+  `inventory.py` writes the source manifest and `reports/dataset_expansion_audit.md`.
+* `ml/glucotwin/research/` — isolated nested experiments: `protocol` (frozen membership), `tables` (origin tables with
+  the serving feature code), `develop` (inner participant CV, selection, adaptation, workload-aware thresholds, refit,
+  calibration, freeze), `assess` (outer folds and the external cohort, each opened once; candidate packaging and
+  online/offline parity), `report`/`render` (everything recomputed from saved predictions) and `promote` (explicit,
+  atomic, verified registry change with rollback). Nothing in this package writes the registry implicitly.
+* API: `/evaluations`, `/evaluations/{id}`, `/research/{id}`, `/serving`, `/datasets`; `/patients` filters, sorts and
+  pages on the server. The Model evidence page shows the serving model on its own line above whichever experiment is
+  selected.

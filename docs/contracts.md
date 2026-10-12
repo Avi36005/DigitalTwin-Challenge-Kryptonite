@@ -30,8 +30,11 @@ this page together — run `make contracts`.
 | `HorizonEstimate` | `horizon_minutes, target_at, predicted_mg_dl, lower_mg_dl, upper_mg_dl, interval_level, interval_status, components{population_mg_dl, patient_correction_mg_dl}` |
 | `EventRisk` | `probability` is always `null` (no calibrated event model); `score` is the uncalibrated forecast margin in mg/dL with `score_kind = forecast_margin_mg_dl`; `state` ∈ eligible / already_high / in_episode / unknown / insufficient |
 | `LatestForecast` | `availability` ∈ available / stale / not_ready, `age_minutes`, reasons, forecast |
-| `Alert` | Research warning episode with evidence, supporting forecast IDs, outcome (pending / onset_observed with lead time / no_onset_observed / unknown) and local acknowledgement |
-| `EvaluationReport` | `status` ∈ completed / not_run / unavailable / synthetic_only, protocol, cohort accounting, selection record, forecast/event/interval rows, optional experiments, limitations |
+| `Alert` | Research warning episode with evidence (pinned warning policy: `policy_id`, `rule_version`, `experiment_id`, score units, merge rule, applicability), supporting forecast IDs, outcome (pending / onset_observed / no_onset_observed / unknown; for onsets `qualified_lead_minutes` ≤ H, `episode_start_to_onset_minutes`, `last_supporting_forecast_at`; `lead_time_minutes` is a deprecated alias of the episode-start measure) and local acknowledgement |
+| `EvaluationReport` | `status` ∈ completed / not_run / unavailable / synthetic_only, `corrects_experiment_id` and `correction_note` for corrected re-runs, protocol, cohort accounting, selection record, forecast/event/interval rows (event rows carry both time bases, qualified lead and episode-start measures when available), optional experiments, limitations |
+| `EvaluationList` / `ServingList` | Experiment catalogue with regimes; serving model per mode with adaptation, range quantiles and warning margin |
+| `ResearchReport` | Nested experiment: folds, per-track pipelines (macro MAE/RMSE, high-glucose MAE, availability, cold start, ranges), paired participant-bootstrap comparisons, warning policies with both workload denominators, external results, frozen candidates. Per-person values and raw lead lists are stripped before serving |
+| `DatasetInventory` | Per source: access status, publisher-reported people (external metadata), imported/eligible people, native readings, observed hours, cadence, inputs, user steps when access is blocked; a summary sentence only when assessed counts are verified |
 | `ErrorEnvelope` | `{schema_version, error: {code, message, request_id, details}}` — never a stack trace |
 
 Enumerations: modes `dataset_replay | synthetic_demo`; session status `ready | playing | paused | completed | error`;
@@ -43,7 +46,7 @@ forecast quality `ok | degraded | insufficient`; control actions `play | pause |
 |---|---|
 | `GET /health` | Liveness |
 | `GET /health/ready` | Separate readiness for dataset store, synthetic store, model artifacts and evaluation |
-| `GET /patients?mode&limit&cursor` | Paginated catalogue (no future observations, no clinical values) |
+| `GET /patients?mode&cohort&eligible&q&sort&order&limit&cursor` | Server-side filtered, stably sorted, paginated catalogue; `total` counts every match, `total_unfiltered` the catalogue (no future observations, no clinical values) |
 | `GET /patients/{id}` | Catalogue detail + evaluation segments |
 | `GET /replay/sessions` | Local sessions, newest first |
 | `POST /replay/sessions` | Create (`patient_id, mode, start_at?, speed`) |
@@ -56,7 +59,12 @@ forecast quality `ok | degraded | insufficient`; control actions `play | pause |
 | `GET /replay/sessions/{id}/forecasts?cursor&limit&order` | Immutable issued forecasts of the current revision (≤ clock) |
 | `GET /replay/sessions/{id}/alerts` | Research warnings and review state |
 | `POST /replay/sessions/{id}/alerts/{alert_id}/acknowledgement` | Idempotent local acknowledgement; sends nothing |
-| `GET /evaluations/latest` | Measured report built from saved artifacts, or `not_run` |
+| `GET /evaluations` | Every saved experiment with its regime (`serving_retrospective`, `nested_research`, `superseded_original`); the serving one is flagged |
+| `GET /evaluations/latest` | Measured report of the experiment behind the serving model, or `not_run` |
+| `GET /evaluations/{experiment_id}` | Chronological-split report of another saved experiment (e.g. the original v1) |
+| `GET /research/{experiment_id}` | Nested participant-level research report (internal folds, reserved external cohort, frozen candidates) |
+| `GET /serving` | The model each replay mode uses, independent of any report being read |
+| `GET /datasets` | Audited dataset inventory (publisher scale as external metadata; imported/eligible/assessed measured) |
 
 Errors: 404 for unknown resources, 409 for stale cursors / completed replays, 422 for malformed commands
 (`validation_error`, `time_out_of_bounds`, `mode_mismatch`). Scientific abstention is a normal 200 response with
