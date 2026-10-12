@@ -57,7 +57,9 @@ class Catalog:
 
     def _load_boundaries(self) -> dict[str, Boundaries]:
         out: dict[str, Boundaries] = {}
-        path = dataset_store_dir() / "experiment" / "split_manifest.json"
+        from glucotwin.dataset import current_split_manifest
+
+        path = current_split_manifest(dataset_store_dir())
         if path.exists():
             for p in json.loads(path.read_text())["patients"]:
                 out[p["patient_id"]] = Boundaries(**p["boundaries_minutes"])
