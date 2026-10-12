@@ -45,7 +45,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Patients */
+        /**
+         * Patients
+         * @description Server-side filtering and stable sorting; ``total`` counts every match, not just this page.
+         */
         get: operations["patients_api_v1_patients_get"];
         put?: never;
         post?: never;
@@ -243,6 +246,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/evaluations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Evaluations */
+        get: operations["evaluations_api_v1_evaluations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/evaluations/latest": {
         parameters: {
             query?: never;
@@ -252,6 +272,74 @@ export interface paths {
         };
         /** Evaluation */
         get: operations["evaluation_api_v1_evaluations_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/evaluations/{experiment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Evaluation By Id */
+        get: operations["evaluation_by_id_api_v1_evaluations__experiment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/{experiment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Research */
+        get: operations["research_api_v1_research__experiment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/serving": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Serving Models */
+        get: operations["serving_models_api_v1_serving_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Datasets */
+        get: operations["datasets_api_v1_datasets_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -351,6 +439,18 @@ export interface components {
             };
             /** Explanation Codes */
             explanation_codes: string[];
+            /** Policy Id */
+            policy_id?: string | null;
+            /** Rule Version */
+            rule_version?: string | null;
+            /** Experiment Id */
+            experiment_id?: string | null;
+            /** Score Units */
+            score_units?: string | null;
+            /** Episode Merge Minutes */
+            episode_merge_minutes?: number | null;
+            /** Applicability */
+            applicability?: string | null;
         };
         /** AlertList */
         AlertList: {
@@ -387,8 +487,23 @@ export interface components {
             onset_at?: string | null;
             /** Confirmed At */
             confirmed_at?: string | null;
-            /** Lead Time Minutes */
+            /**
+             * Lead Time Minutes
+             * @description Deprecated alias of episode_start_to_onset_minutes (v1 'lead time').
+             */
             lead_time_minutes?: number | null;
+            /**
+             * Episode Start To Onset Minutes
+             * @description Onset minus the first warning of the merged episode. Can exceed the horizon.
+             */
+            episode_start_to_onset_minutes?: number | null;
+            /**
+             * Qualified Lead Minutes
+             * @description Onset minus the earliest firing whose own horizon contains the onset (0 < x <= H).
+             */
+            qualified_lead_minutes?: number | null;
+            /** Last Supporting Forecast At */
+            last_supporting_forecast_at?: string | null;
             /** Note */
             note?: string | null;
         };
@@ -503,6 +618,92 @@ export interface components {
             /** Activity Coverage Fraction */
             activity_coverage_fraction?: number | null;
         };
+        /** DatasetEntry */
+        DatasetEntry: {
+            /** Dataset Id */
+            dataset_id: string;
+            /** Name */
+            name: string;
+            /** Release */
+            release?: string | null;
+            /**
+             * Access Status
+             * @enum {string}
+             */
+            access_status: "planned" | "access_required" | "available_locally" | "imported" | "failed_validation" | "eligible_for_experiment";
+            /** Role */
+            role?: string | null;
+            /** License */
+            license?: string | null;
+            /** Country Site */
+            country_site?: string | null;
+            /** Native Cadence Minutes */
+            native_cadence_minutes?: number[];
+            /**
+             * Publisher Participants
+             * @description Publisher-reported scale: external metadata.
+             */
+            publisher_participants?: number | null;
+            /** Acquired Participants */
+            acquired_participants?: number | null;
+            /** Parsed Participants */
+            parsed_participants?: number | null;
+            /** Eligible */
+            eligible?: {
+                [key: string]: number;
+            };
+            /** Native Readings */
+            native_readings?: number | null;
+            /** Observed Hours */
+            observed_hours?: number | null;
+            /** Wearable */
+            wearable?: string | null;
+            /** Profile */
+            profile?: string | null;
+            /** Split Counts */
+            split_counts?: {
+                [key: string]: unknown;
+            } | null;
+            /** Detail */
+            detail?: string | null;
+            /** User Steps */
+            user_steps?: string[];
+            /** Citation Url */
+            citation_url?: string | null;
+        };
+        /** DatasetInventory */
+        DatasetInventory: {
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "not_generated";
+            /** Generated At */
+            generated_at?: string | null;
+            /** Canonical Schema */
+            canonical_schema?: string | null;
+            /** Datasets */
+            datasets?: components["schemas"]["DatasetEntry"][];
+            /**
+             * Summary Sentence
+             * @description Rendered only from verified assessed counts; null when they are not available.
+             */
+            summary_sentence?: string | null;
+            /** Overlap Check */
+            overlap_check?: {
+                [key: string]: unknown;
+            } | null;
+            /** Synthetic */
+            synthetic?: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** DatasetRef */
         DatasetRef: {
             /** Name */
@@ -549,6 +750,19 @@ export interface components {
             /** Patient Correction Mg Dl */
             patient_correction_mg_dl: number | null;
         };
+        /** EvaluationList */
+        EvaluationList: {
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /** Items */
+            items: components["schemas"]["EvaluationSummary"][];
+            /** Serving Experiment Id */
+            serving_experiment_id?: string | null;
+        };
         /** EvaluationReport */
         EvaluationReport: {
             /**
@@ -566,6 +780,13 @@ export interface components {
             status_message: string;
             /** Experiment Id */
             experiment_id?: string | null;
+            /**
+             * Corrects Experiment Id
+             * @description Earlier experiment this one corrects; that test segment was already inspected.
+             */
+            corrects_experiment_id?: string | null;
+            /** Correction Note */
+            correction_note?: string | null;
             /** Created At */
             created_at?: string | null;
             /** Mode */
@@ -616,6 +837,32 @@ export interface components {
              */
             end_at: string;
         };
+        /** EvaluationSummary */
+        EvaluationSummary: {
+            /** Experiment Id */
+            experiment_id: string;
+            /**
+             * Regime
+             * @enum {string}
+             */
+            regime: "serving_retrospective" | "superseded_original" | "nested_research";
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "completed" | "not_run" | "development_only" | "unavailable";
+            /** Created At */
+            created_at?: string | null;
+            /**
+             * Is Serving Evidence
+             * @description True only for the experiment that produced the serving model.
+             */
+            is_serving_evidence: boolean;
+        };
         /** EventMetricsRow */
         EventMetricsRow: {
             /** Model Label */
@@ -643,6 +890,7 @@ export interface components {
             origin_pr_auc: components["schemas"]["MetricValue"];
             false_alarms_per_patient_day: components["schemas"]["MetricValue"];
             warnings_per_patient_day: components["schemas"]["MetricValue"];
+            /** @description Episode-start-to-onset time (v1 definition), median. */
             lead_time_minutes_median: components["schemas"]["MetricValue"];
             /** Lead Time Minutes Iqr */
             lead_time_minutes_iqr: (number | null)[];
@@ -650,6 +898,23 @@ export interface components {
             eligible_patient_days: number;
             /** Censored Origins */
             censored_origins: number;
+            /** Observed Patient Days */
+            observed_patient_days?: number | null;
+            false_alarms_per_observed_patient_day?: components["schemas"]["MetricValue"] | null;
+            warnings_per_eligible_patient_day?: components["schemas"]["MetricValue"] | null;
+            qualified_lead_minutes_median?: components["schemas"]["MetricValue"] | null;
+            /** Qualified Lead Minutes Iqr */
+            qualified_lead_minutes_iqr?: (number | null)[] | null;
+            /** Qualified Lead N */
+            qualified_lead_n?: number | null;
+            /** Episode Start Lead Max Minutes */
+            episode_start_lead_max_minutes?: number | null;
+            /** Episode Start Lead Over Horizon */
+            episode_start_lead_over_horizon?: number | null;
+            /** Matched Without Qualified Firing */
+            matched_without_qualified_firing?: number | null;
+            /** Time Base */
+            time_base?: string | null;
         };
         /** EventPage */
         EventPage: {
@@ -1114,8 +1379,16 @@ export interface components {
             items: components["schemas"]["PatientSummary"][];
             /** Next Cursor */
             next_cursor?: string | null;
-            /** Total */
+            /**
+             * Total
+             * @description Participants matching the filters (all pages), not the size of this page.
+             */
             total: number;
+            /**
+             * Total Unfiltered
+             * @description Participants in the catalogue before filtering.
+             */
+            total_unfiltered?: number | null;
         };
         /**
          * PatientSummary
@@ -1273,6 +1546,204 @@ export interface components {
             /** Items */
             items: components["schemas"]["ReplaySession"][];
         };
+        /** ResearchComparison */
+        ResearchComparison: {
+            /** Comparison */
+            comparison: string;
+            /** Horizon */
+            horizon: number;
+            /** Kind */
+            kind?: string | null;
+            /** A */
+            a?: string[] | null;
+            /** B */
+            b?: string[] | null;
+            /** Mean Diff */
+            mean_diff: number | null;
+            /** Ci95 */
+            ci95: (number | null)[];
+            /** N Participants */
+            n_participants: number;
+            /** Improved */
+            improved: number;
+            /** Worsened */
+            worsened: number;
+            /** Unchanged */
+            unchanged?: number | null;
+        };
+        /** ResearchExternal */
+        ResearchExternal: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "completed" | "not_run";
+            /** Reason */
+            reason?: string | null;
+            /** Dataset */
+            dataset?: string | null;
+            /** Opened */
+            opened?: {
+                [key: string]: unknown;
+            } | null;
+            /** Candidate */
+            candidate?: string | null;
+            /** Candidate Freeze Hash */
+            candidate_freeze_hash?: string | null;
+            /** Participants */
+            participants?: number | null;
+            /** Decimation */
+            decimation?: {
+                [key: string]: unknown;
+            } | null;
+            /** Pipelines */
+            pipelines?: components["schemas"]["ResearchPipeline"][];
+            /** Comparisons */
+            comparisons?: components["schemas"]["ResearchComparison"][];
+            /** Note */
+            note?: string | null;
+        };
+        /** ResearchHorizonResult */
+        ResearchHorizonResult: {
+            /** Horizon */
+            horizon: number;
+            /** Mae */
+            mae: number | null;
+            /** Rmse */
+            rmse: number | null;
+            /**
+             * Mae High Glucose Target
+             * @description Macro MAE on origins whose target exceeded 180 mg/dL (people with >= 20 such origins).
+             */
+            mae_high_glucose_target?: number | null;
+            /** High Glucose Participants */
+            high_glucose_participants: number;
+            /** N Participants */
+            n_participants: number;
+            /** N Origins */
+            n_origins: number;
+            /**
+             * Availability
+             * @description Share of target-bearing origins that received a forecast. Not accuracy.
+             */
+            availability?: number | null;
+            /** Cold Start */
+            cold_start: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+            /** Unavailable Forecasts */
+            unavailable_forecasts: number;
+        };
+        /** ResearchPipeline */
+        ResearchPipeline: {
+            /** Pipeline */
+            pipeline: string;
+            /** Mode */
+            mode: string;
+            /** Display */
+            display: string;
+            /** Config */
+            config?: string | null;
+            /** Feature Set */
+            feature_set?: string | null;
+            /** Selected */
+            selected?: boolean | null;
+            /** Horizons */
+            horizons: {
+                [key: string]: components["schemas"]["ResearchHorizonResult"];
+            };
+            /** Intervals */
+            intervals: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+            /** Inference Ms Per 1K */
+            inference_ms_per_1k?: number | null;
+        };
+        /**
+         * ResearchReport
+         * @description Nested participant-level research experiment (internal folds + reserved external cohort).
+         */
+        ResearchReport: {
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /** Experiment Id */
+            experiment_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "completed" | "not_run";
+            /** Status Message */
+            status_message: string;
+            /** Kind */
+            kind?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Declared On */
+            declared_on?: string | null;
+            /** Frozen At */
+            frozen_at?: string | null;
+            /** Protocol Hash */
+            protocol_hash?: string | null;
+            /** Split Hash */
+            split_hash?: string | null;
+            /** Assessment Opened */
+            assessment_opened?: {
+                [key: string]: unknown;
+            } | null;
+            /** Inspection Log */
+            inspection_log?: {
+                [key: string]: unknown;
+            }[];
+            /** Folds */
+            folds?: {
+                [key: string]: unknown;
+            }[];
+            /** Tracks */
+            tracks?: {
+                [key: string]: components["schemas"]["ResearchTrack"];
+            };
+            external?: components["schemas"]["ResearchExternal"] | null;
+            /** Candidates */
+            candidates?: {
+                [key: string]: unknown;
+            };
+            /** Data */
+            data?: {
+                [key: string]: unknown;
+            };
+            /** Limitations */
+            limitations?: string[];
+        };
+        /** ResearchTrack */
+        ResearchTrack: {
+            /** Name */
+            name: string;
+            /** Participants */
+            participants: number;
+            /** Selection By Fold */
+            selection_by_fold: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+            /** Pipelines */
+            pipelines: components["schemas"]["ResearchPipeline"][];
+            /** Comparisons */
+            comparisons: components["schemas"]["ResearchComparison"][];
+            /** Warnings */
+            warnings?: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** SelectionRecord */
         SelectionRecord: {
             /** Rule */
@@ -1289,6 +1760,62 @@ export interface components {
             selected_model_family: string | null;
             /** Rationale */
             rationale: string;
+        };
+        /** ServingList */
+        ServingList: {
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /** Items */
+            items: components["schemas"]["ServingSummary"][];
+        };
+        /** ServingSummary */
+        ServingSummary: {
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "dataset_replay" | "synthetic_demo";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "unavailable";
+            /** Detail */
+            detail: string;
+            /** Model Version */
+            model_version?: string | null;
+            /** Model Family */
+            model_family?: string | null;
+            /** Feature Set Id */
+            feature_set_id?: string | null;
+            /** Experiment Id */
+            experiment_id?: string | null;
+            /** Evaluation Regime */
+            evaluation_regime?: ("serving_retrospective" | "superseded_original" | "nested_research") | null;
+            /** Adaptation */
+            adaptation?: {
+                [key: string]: unknown;
+            } | null;
+            /** Interval Level */
+            interval_level?: number | null;
+            /** Interval Quantiles Mg Dl */
+            interval_quantiles_mg_dl?: {
+                [key: string]: number | null;
+            } | null;
+            /** Warning Threshold Margin Mg Dl */
+            warning_threshold_margin_mg_dl?: number | null;
+            /** Warning Horizon Minutes */
+            warning_horizon_minutes?: number | null;
         };
         /** SessionBrief */
         SessionBrief: {
@@ -1474,6 +2001,11 @@ export interface operations {
         parameters: {
             query?: {
                 mode?: ("dataset_replay" | "synthetic_demo") | null;
+                cohort?: string | null;
+                eligible?: boolean | null;
+                q?: string | null;
+                sort?: "alias" | "recording_days" | "coverage" | "meals";
+                order?: "asc" | "desc";
                 limit?: number;
                 cursor?: string | null;
             };
@@ -2091,6 +2623,26 @@ export interface operations {
             };
         };
     };
+    evaluations_api_v1_evaluations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationList"];
+                };
+            };
+        };
+    };
     evaluation_api_v1_evaluations_latest_get: {
         parameters: {
             query?: never;
@@ -2107,6 +2659,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EvaluationReport"];
+                };
+            };
+        };
+    };
+    evaluation_by_id_api_v1_evaluations__experiment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                experiment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationReport"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    research_api_v1_research__experiment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                experiment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchReport"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    serving_models_api_v1_serving_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServingList"];
+                };
+            };
+        };
+    };
+    datasets_api_v1_datasets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetInventory"];
                 };
             };
         };

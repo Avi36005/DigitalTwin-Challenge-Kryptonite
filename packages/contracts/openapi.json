@@ -45,6 +45,7 @@
     "/api/v1/patients": {
       "get": {
         "summary": "Patients",
+        "description": "Server-side filtering and stable sorting; ``total`` counts every match, not just this page.",
         "operationId": "patients_api_v1_patients_get",
         "parameters": [
           {
@@ -65,6 +66,86 @@
                 }
               ],
               "title": "Mode"
+            }
+          },
+          {
+            "name": "cohort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cohort"
+            }
+          },
+          {
+            "name": "eligible",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Eligible"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "alias",
+                "recording_days",
+                "coverage",
+                "meals"
+              ],
+              "type": "string",
+              "default": "alias",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "default": "asc",
+              "title": "Order"
             }
           },
           {
@@ -914,6 +995,24 @@
         }
       }
     },
+    "/api/v1/evaluations": {
+      "get": {
+        "summary": "Evaluations",
+        "operationId": "evaluations_api_v1_evaluations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/evaluations/latest": {
       "get": {
         "summary": "Evaluation",
@@ -925,6 +1024,160 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EvaluationReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evaluations/{experiment_id}": {
+      "get": {
+        "summary": "Evaluation By Id",
+        "operationId": "evaluation_by_id_api_v1_evaluations__experiment_id__get",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/research/{experiment_id}": {
+      "get": {
+        "summary": "Research",
+        "operationId": "research_api_v1_research__experiment_id__get",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Experiment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/serving": {
+      "get": {
+        "summary": "Serving Models",
+        "operationId": "serving_models_api_v1_serving_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServingList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets": {
+      "get": {
+        "summary": "Datasets",
+        "operationId": "datasets_api_v1_datasets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetInventory"
                 }
               }
             }
@@ -1168,6 +1421,72 @@
             },
             "type": "array",
             "title": "Explanation Codes"
+          },
+          "policy_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Id"
+          },
+          "rule_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Version"
+          },
+          "experiment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Experiment Id"
+          },
+          "score_units": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Units"
+          },
+          "episode_merge_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episode Merge Minutes"
+          },
+          "applicability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applicability"
           }
         },
         "additionalProperties": false,
@@ -1284,7 +1603,44 @@
                 "type": "null"
               }
             ],
-            "title": "Lead Time Minutes"
+            "title": "Lead Time Minutes",
+            "description": "Deprecated alias of episode_start_to_onset_minutes (v1 'lead time')."
+          },
+          "episode_start_to_onset_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episode Start To Onset Minutes",
+            "description": "Onset minus the first warning of the merged episode. Can exceed the horizon."
+          },
+          "qualified_lead_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualified Lead Minutes",
+            "description": "Onset minus the earliest firing whose own horizon contains the onset (0 < x <= H)."
+          },
+          "last_supporting_forecast_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Supporting Forecast At"
           },
           "note": {
             "anyOf": [
@@ -1690,6 +2046,305 @@
         "type": "object",
         "title": "DataCoverage"
       },
+      "DatasetEntry": {
+        "properties": {
+          "dataset_id": {
+            "type": "string",
+            "title": "Dataset Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "release": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Release"
+          },
+          "access_status": {
+            "type": "string",
+            "enum": [
+              "planned",
+              "access_required",
+              "available_locally",
+              "imported",
+              "failed_validation",
+              "eligible_for_experiment"
+            ],
+            "title": "Access Status"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License"
+          },
+          "country_site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Site"
+          },
+          "native_cadence_minutes": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Native Cadence Minutes"
+          },
+          "publisher_participants": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publisher Participants",
+            "description": "Publisher-reported scale: external metadata."
+          },
+          "acquired_participants": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acquired Participants"
+          },
+          "parsed_participants": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parsed Participants"
+          },
+          "eligible": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Eligible"
+          },
+          "native_readings": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Native Readings"
+          },
+          "observed_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Hours"
+          },
+          "wearable": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wearable"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "split_counts": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Split Counts"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "user_steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "User Steps"
+          },
+          "citation_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Citation Url"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dataset_id",
+          "name",
+          "access_status"
+        ],
+        "title": "DatasetEntry"
+      },
+      "DatasetInventory": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "not_generated"
+            ],
+            "title": "Status"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "canonical_schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Schema"
+          },
+          "datasets": {
+            "items": {
+              "$ref": "#/components/schemas/DatasetEntry"
+            },
+            "type": "array",
+            "title": "Datasets"
+          },
+          "summary_sentence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Sentence",
+            "description": "Rendered only from verified assessed counts; null when they are not available."
+          },
+          "overlap_check": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overlap Check"
+          },
+          "synthetic": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synthetic"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "DatasetInventory"
+      },
       "DatasetRef": {
         "properties": {
           "name": {
@@ -1827,6 +2482,40 @@
         ],
         "title": "EstimateComponents"
       },
+      "EvaluationList": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvaluationSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "serving_experiment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Serving Experiment Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "EvaluationList"
+      },
       "EvaluationReport": {
         "properties": {
           "schema_version": {
@@ -1859,6 +2548,29 @@
               }
             ],
             "title": "Experiment Id"
+          },
+          "corrects_experiment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrects Experiment Id",
+            "description": "Earlier experiment this one corrects; that test segment was already inspected."
+          },
+          "correction_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correction Note"
           },
           "created_at": {
             "anyOf": [
@@ -2015,6 +2727,69 @@
         ],
         "title": "EvaluationSegment"
       },
+      "EvaluationSummary": {
+        "properties": {
+          "experiment_id": {
+            "type": "string",
+            "title": "Experiment Id"
+          },
+          "regime": {
+            "type": "string",
+            "enum": [
+              "serving_retrospective",
+              "superseded_original",
+              "nested_research"
+            ],
+            "title": "Regime"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "not_run",
+              "development_only",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "is_serving_evidence": {
+            "type": "boolean",
+            "title": "Is Serving Evidence",
+            "description": "True only for the experiment that produced the serving model."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "experiment_id",
+          "regime",
+          "title",
+          "description",
+          "status",
+          "is_serving_evidence"
+        ],
+        "title": "EvaluationSummary"
+      },
       "EventMetricsRow": {
         "properties": {
           "model_label": {
@@ -2079,7 +2854,8 @@
             "$ref": "#/components/schemas/MetricValue"
           },
           "lead_time_minutes_median": {
-            "$ref": "#/components/schemas/MetricValue"
+            "$ref": "#/components/schemas/MetricValue",
+            "description": "Episode-start-to-onset time (v1 definition), median."
           },
           "lead_time_minutes_iqr": {
             "items": {
@@ -2102,6 +2878,123 @@
           "censored_origins": {
             "type": "integer",
             "title": "Censored Origins"
+          },
+          "observed_patient_days": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Patient Days"
+          },
+          "false_alarms_per_observed_patient_day": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MetricValue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings_per_eligible_patient_day": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MetricValue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "qualified_lead_minutes_median": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MetricValue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "qualified_lead_minutes_iqr": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualified Lead Minutes Iqr"
+          },
+          "qualified_lead_n": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualified Lead N"
+          },
+          "episode_start_lead_max_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episode Start Lead Max Minutes"
+          },
+          "episode_start_lead_over_horizon": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episode Start Lead Over Horizon"
+          },
+          "matched_without_qualified_firing": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Without Qualified Firing"
+          },
+          "time_base": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Base"
           }
         },
         "additionalProperties": false,
@@ -3396,7 +4289,20 @@
           },
           "total": {
             "type": "integer",
-            "title": "Total"
+            "title": "Total",
+            "description": "Participants matching the filters (all pages), not the size of this page."
+          },
+          "total_unfiltered": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Unfiltered",
+            "description": "Participants in the catalogue before filtering."
           }
         },
         "additionalProperties": false,
@@ -3816,6 +4722,635 @@
         ],
         "title": "ReplaySessionList"
       },
+      "ResearchComparison": {
+        "properties": {
+          "comparison": {
+            "type": "string",
+            "title": "Comparison"
+          },
+          "horizon": {
+            "type": "integer",
+            "title": "Horizon"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "a": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "A"
+          },
+          "b": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "B"
+          },
+          "mean_diff": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Diff"
+          },
+          "ci95": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Ci95"
+          },
+          "n_participants": {
+            "type": "integer",
+            "title": "N Participants"
+          },
+          "improved": {
+            "type": "integer",
+            "title": "Improved"
+          },
+          "worsened": {
+            "type": "integer",
+            "title": "Worsened"
+          },
+          "unchanged": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unchanged"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "comparison",
+          "horizon",
+          "mean_diff",
+          "ci95",
+          "n_participants",
+          "improved",
+          "worsened"
+        ],
+        "title": "ResearchComparison"
+      },
+      "ResearchExternal": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "not_run"
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "dataset": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataset"
+          },
+          "opened": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opened"
+          },
+          "candidate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate"
+          },
+          "candidate_freeze_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Freeze Hash"
+          },
+          "participants": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participants"
+          },
+          "decimation": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decimation"
+          },
+          "pipelines": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchPipeline"
+            },
+            "type": "array",
+            "title": "Pipelines"
+          },
+          "comparisons": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchComparison"
+            },
+            "type": "array",
+            "title": "Comparisons"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ResearchExternal"
+      },
+      "ResearchHorizonResult": {
+        "properties": {
+          "horizon": {
+            "type": "integer",
+            "title": "Horizon"
+          },
+          "mae": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mae"
+          },
+          "rmse": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rmse"
+          },
+          "mae_high_glucose_target": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mae High Glucose Target",
+            "description": "Macro MAE on origins whose target exceeded 180 mg/dL (people with >= 20 such origins)."
+          },
+          "high_glucose_participants": {
+            "type": "integer",
+            "title": "High Glucose Participants"
+          },
+          "n_participants": {
+            "type": "integer",
+            "title": "N Participants"
+          },
+          "n_origins": {
+            "type": "integer",
+            "title": "N Origins"
+          },
+          "availability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability",
+            "description": "Share of target-bearing origins that received a forecast. Not accuracy."
+          },
+          "cold_start": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Cold Start"
+          },
+          "unavailable_forecasts": {
+            "type": "integer",
+            "title": "Unavailable Forecasts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "horizon",
+          "mae",
+          "rmse",
+          "high_glucose_participants",
+          "n_participants",
+          "n_origins",
+          "cold_start",
+          "unavailable_forecasts"
+        ],
+        "title": "ResearchHorizonResult"
+      },
+      "ResearchPipeline": {
+        "properties": {
+          "pipeline": {
+            "type": "string",
+            "title": "Pipeline"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "display": {
+            "type": "string",
+            "title": "Display"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          },
+          "feature_set": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Set"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected"
+          },
+          "horizons": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ResearchHorizonResult"
+            },
+            "type": "object",
+            "title": "Horizons"
+          },
+          "intervals": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Intervals"
+          },
+          "inference_ms_per_1k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inference Ms Per 1K"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "pipeline",
+          "mode",
+          "display",
+          "horizons",
+          "intervals"
+        ],
+        "title": "ResearchPipeline"
+      },
+      "ResearchReport": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "experiment_id": {
+            "type": "string",
+            "title": "Experiment Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "not_run"
+            ],
+            "title": "Status"
+          },
+          "status_message": {
+            "type": "string",
+            "title": "Status Message"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "declared_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared On"
+          },
+          "frozen_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frozen At"
+          },
+          "protocol_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocol Hash"
+          },
+          "split_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Split Hash"
+          },
+          "assessment_opened": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Opened"
+          },
+          "inspection_log": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Inspection Log"
+          },
+          "folds": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Folds"
+          },
+          "tracks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ResearchTrack"
+            },
+            "type": "object",
+            "title": "Tracks"
+          },
+          "external": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchExternal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "candidates": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Candidates"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "experiment_id",
+          "status",
+          "status_message"
+        ],
+        "title": "ResearchReport",
+        "description": "Nested participant-level research experiment (internal folds + reserved external cohort)."
+      },
+      "ResearchTrack": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "participants": {
+            "type": "integer",
+            "title": "Participants"
+          },
+          "selection_by_fold": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Selection By Fold"
+          },
+          "pipelines": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchPipeline"
+            },
+            "type": "array",
+            "title": "Pipelines"
+          },
+          "comparisons": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchComparison"
+            },
+            "type": "array",
+            "title": "Comparisons"
+          },
+          "warnings": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warnings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "participants",
+          "selection_by_fold",
+          "pipelines",
+          "comparisons"
+        ],
+        "title": "ResearchTrack"
+      },
       "SelectionRecord": {
         "properties": {
           "rule": {
@@ -3872,6 +5407,193 @@
           "rationale"
         ],
         "title": "SelectionRecord"
+      },
+      "ServingList": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ServingSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ServingList"
+      },
+      "ServingSummary": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "dataset_replay",
+              "synthetic_demo"
+            ],
+            "title": "Mode"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "model_family": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Family"
+          },
+          "feature_set_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Set Id"
+          },
+          "experiment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Experiment Id"
+          },
+          "evaluation_regime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "serving_retrospective",
+                  "superseded_original",
+                  "nested_research"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Regime"
+          },
+          "adaptation": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adaptation"
+          },
+          "interval_level": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Level"
+          },
+          "interval_quantiles_mg_dl": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Quantiles Mg Dl"
+          },
+          "warning_threshold_margin_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning Threshold Margin Mg Dl"
+          },
+          "warning_horizon_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning Horizon Minutes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mode",
+          "status",
+          "detail"
+        ],
+        "title": "ServingSummary"
       },
       "SessionBrief": {
         "properties": {
