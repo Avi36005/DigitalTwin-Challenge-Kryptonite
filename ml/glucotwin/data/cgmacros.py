@@ -183,6 +183,7 @@ def normalize_participant(
 
     # ---- glucose (each device separately)
     glucose_tables: dict[str, pd.DataFrame] = {}
+    canonical_rows: dict[str, pd.DataFrame] = {}
     device_stats: dict[str, Any] = {}
     for device, dcfg in norm["devices"].items():
         col = dcfg["column"]
@@ -221,6 +222,12 @@ def normalize_participant(
         g["observed_at"] = pd.to_datetime(g["observed_at"], utc=True)
         g["available_at"] = g["observed_at"] + pd.Timedelta(minutes=avail_cfg["sensor_latency_minutes"])
         glucose_tables[device] = g
+        # provenance for the canonical layer (glucotwin.data.canonical); never written to the model store
+        canonical_rows[device] = pd.DataFrame({
+            "original_timestamp": grid["_ts"].iloc[rows].dt.strftime("%Y-%m-%d %H:%M:%S").to_numpy(),
+            "observed_at": times.to_numpy(), "value": vals, "out_of_range": out_of_range, "at_limit": at_limit,
+            "recovery": flags.astype(str), "grid_row": rows,
+        })
     audit["devices"] = device_stats
 
     # ---- activity: trailing 5-minute summaries ending on the source 5-minute grid
@@ -351,6 +358,7 @@ def normalize_participant(
     }
     pdata = PatientData(meta, profile, glucose_tables.get(primary, pd.DataFrame()), activity, meals)
     pdata.extras["glucose_by_device"] = glucose_tables
+    pdata.extras["canonical_rows"] = canonical_rows
     private = {"source_key": source_key, "patient_id": pid, "source_first_day": str(first_day.date()),
                "synthetic_offset_days": int(offset / pd.Timedelta(days=1))}
     audit.update({"patient_id": pid, "cohort": cohort, "eligible": bool(eligible), "exclusion_reason": reason,
