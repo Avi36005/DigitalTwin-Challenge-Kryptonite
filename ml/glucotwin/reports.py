@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 import numpy as np
 import pandas as pd
 
-from glucotwin.config import load_config, paths
+from glucotwin.config import load_config, load_experiment_config, paths
 from glucotwin.data.pipeline import dataset_store_dir
 from glucotwin.evaluation.report import LIMITATIONS, latest_metrics_path
 
@@ -32,7 +32,9 @@ def write_data_audit() -> str:
     d = dataset_store_dir()
     audit = json.loads((d / "audit.json").read_text())
     prov = json.loads((d / "provenance.json").read_text())
-    man_path = d / "experiment" / "split_manifest.json"
+    from glucotwin.dataset import current_split_manifest
+
+    man_path = current_split_manifest(d)
     man = json.loads(man_path.read_text()) if man_path.exists() else None
     cfg = load_config("data")
     parts = audit["participants"]
@@ -195,12 +197,30 @@ def write_evaluation_report() -> str:
     cmp = pd.DataFrame(m["comparisons"])
     cmp["95% CI"] = cmp["ci95"].map(lambda c: f"[{c[0]:.2f}, {c[1]:.2f}]")
     cmp = cmp[["comparison", "horizon", "mean_diff_mae", "95% CI", "n_patients"]].round(2)
-    ev = pd.DataFrame(m["events"])
-    ev = ev[["model", "horizon", "split", "threshold", "true_onsets", "detected_onsets", "warning_episodes",
-             "false_alarm_episodes", "recall", "precision", "f1", "origin_pr_auc", "false_alarms_per_patient_day",
-             "lead_time_median", "lead_time_iqr"]].copy()
-    ev["lead_time_iqr"] = ev["lead_time_iqr"].map(lambda x: f"{x[0]}–{x[1]}" if x and x[0] is not None else "n/a")
-    ev = ev.round(3)
+    ev_all = pd.DataFrame(m["events"])
+    corrected = "qualified_lead_median" in ev_all.columns
+    cols = ["model", "horizon", "split", "threshold", "true_onsets", "detected_onsets", "warning_episodes",
+            "false_alarm_episodes", "recall", "precision", "f1", "origin_pr_auc", "false_alarms_per_patient_day",
+            "lead_time_median", "lead_time_iqr"]
+    if corrected:
+        cols = cols[:13] + ["warnings_per_patient_day", "false_alarms_per_observed_patient_day", "lead_time_median",
+                            "qualified_lead_median", "episode_start_lead_over_horizon"]
+    ev = ev_all[cols].copy()
+    if "lead_time_iqr" in ev:
+        ev["lead_time_iqr"] = ev["lead_time_iqr"].map(lambda x: f"{x[0]}–{x[1]}" if x and x[0] is not None else "n/a")
+    ev = ev.rename(columns={"false_alarms_per_patient_day": "FA / eligible day", "warnings_per_patient_day": "warnings / observed day",
+                            "false_alarms_per_observed_patient_day": "FA / observed day",
+                            "lead_time_median": "episode-start-to-onset median", "qualified_lead_median": "qualified lead median",
+                            "episode_start_lead_over_horizon": "episode-start > H"}).round(3)
+    H = int(m.get("serving_alert_horizon", 60))
+    srv = ev_all[(ev_all["split"] == "test") & (ev_all["horizon"] == H)
+                 & (ev_all["model"] == f"{serving} ({'adaptive' if smode == 'adaptive' else 'population'})")]
+    srv = srv.iloc[0] if len(srv) else None
+    tlog = m.get("alert_threshold_selection", {}).get(f"{serving} ({'adaptive' if smode == 'adaptive' else 'population'})|{H}", [])
+    near = []
+    if tlog:
+        best_f1 = max((r["f1"] or 0) for r in tlog)
+        near = [r["threshold"] for r in tlog if (r["f1"] or 0) >= best_f1 - 0.03]
     iv = pd.DataFrame(m["intervals"])
     iv = iv[iv["label"] == serving][["personalization", "horizon", "split", "q", "coverage", "width",
                                     "per_patient_min", "per_patient_max", "n"]].round(3)
@@ -217,6 +237,36 @@ def write_evaluation_report() -> str:
     adapt = pd.DataFrame(sel["adaptation"]).round(3)
     summ = m["cohort"]["by_segment"]
     test_fr = fr[(fr["split"] == "test") & (fr["label"] == serving) & (fr["personalization"] == smode)]
+    if srv is not None:
+        serving_sentence = (
+            f"Serving rule on the final test ({H}-minute horizon, margin threshold {srv['threshold']:+.0f} mg/dL chosen on "
+            f"validation): {int(srv['detected_onsets'])} of {int(srv['true_onsets'])} new onsets detected, "
+            f"{int(srv['warning_episodes'])} warning episodes, {int(srv['false_alarm_episodes'])} false alarms "
+            f"({srv['false_alarms_per_patient_day']:.2f} per eligible day). Episode-start-to-onset median "
+            f"{srv['lead_time_median']:.1f} min"
+            + (f"; qualified forecast lead median {srv['qualified_lead_median']:.1f} min; "
+               f"{int(srv['episode_start_lead_over_horizon'])} matched episodes started more than {H} min before their onset."
+               if corrected and srv.get("qualified_lead_median") is not None else ".")
+            + (f" On validation, thresholds {', '.join(f'{t:+.0f}' for t in near)} mg/dL were within 0.03 F1 of the best, "
+               "so this operating point is sensitive to a few validation onsets." if len(near) > 1 else ""))
+    else:
+        serving_sentence = ""
+    corrects = m.get("corrects_experiment_id")
+    if corrects:
+        protocol_line = (
+            f"* **Corrected retrospective result.** This experiment re-runs the declared protocol of `{corrects}` after code "
+            f"corrections (activity-window features, warning accounting; `reports/repair_report.md`). Protocol: "
+            f"`configs/experiment.yaml` (differences from `configs/experiments/{corrects}.yaml` are listed in its header). "
+            f"The test segment had already been inspected in `{corrects}`; nothing was tuned on it. The original report is "
+            f"preserved at `reports/archive/evaluation_report_{corrects}.md`.")
+    else:
+        protocol_line = ("* Protocol declared in `configs/experiment.yaml` before fitting; test segment evaluated once after "
+                         "freezing the serving model, adaptation settings, interval quantiles and alert thresholds.")
+    best_cand = cand.sort_values("selection_score").iloc[0]
+    grid = load_experiment_config(m["experiment_id"])["adaptation"]["grid"]
+    k_sel, hl_sel = adapt.iloc[0]["shrinkage_k"], adapt.iloc[0]["half_life_minutes"]
+    at_edge = (k_sel in (min(grid["shrinkage_k"]), max(grid["shrinkage_k"]))
+               or hl_sel in (min(grid["half_life_minutes"]), max(grid["half_life_minutes"])))
     out = f"""# GlucoTwin evaluation report — experiment `{m['experiment_id']}`
 
 Generated by `glucotwin experiment report` from `{mp.relative_to(paths().root)}` (created {m['created_at']}).
@@ -227,8 +277,7 @@ All values are measured on CGMacros 1.0.0 Type 2 participants. Nothing here is a
 * Environment: Python {m['environment']['python']}, LightGBM {m['environment']['lightgbm']}, CatBoost
   {m['environment']['catboost']}, scikit-learn {m['environment']['scikit-learn']} on {m['environment']['machine']}
   ({m['environment']['platform']}); total runtime {m['timings_seconds']['total']:.0f} s on CPU.
-* Protocol declared in `configs/experiment.yaml` before fitting; test segment evaluated once after freezing the
-  serving model, adaptation settings, interval quantiles and alert thresholds.
+{protocol_line}
 
 ## Cohort
 
@@ -245,15 +294,15 @@ Tie-break: {sel['tie_break']}
 {_table(cand)}
 
 **Selected:** `{serving}` — {sel['rationale']}
-Note: the profile-augmented tree models scored slightly better on validation but fell inside the declared
-0.5 mg/dL tie margin, so the declared rule chose the smaller dynamic-only feature set.
+The best validation score was `{best_cand['label']}` ({best_cand['selection_score']:.2f} mg/dL); candidates inside the
+declared tie margin are resolved by the declared complexity order, not by their scores.
 
 ### Patient adaptation (selected on validation-selection, same policy for both tree families)
 
 {_table(adapt)}
 
-The selected settings (k = {adapt.iloc[0]['shrinkage_k']}, half-life = {adapt.iloc[0]['half_life_minutes']} min) lie at
-the edge of the declared grid; a wider grid was not searched. Serving personalization: **{smode}**.
+The selected settings (k = {k_sel}, half-life = {hl_sel} min){" lie at the edge of the declared grid; a wider grid was not searched" if at_edge else " lie inside the declared grid"}.
+Serving personalization: **{smode}**.
 
 ## Forecast accuracy — final test segment (macro mean of per-participant errors, mg/dL)
 
@@ -281,13 +330,14 @@ per-participant coverage varies widely. No coverage guarantee is claimed.
 
 Score = highest forecast within the horizon minus 180 mg/dL (uncalibrated, not a probability). Thresholds were
 selected on validation-selection to maximise event-level F1. Persistence and linear-trend rows use the same
-procedure with their own forecasts.
+procedure with their own forecasts. "FA / eligible day" divides false alarms by eligible, forecastable, uncensored
+time; "warnings / observed day" divides warning episodes by all forecast-issued time; both bases are approximate
+(forecast-issued origins x 5-minute cadence). {"Rates on the other base are included so they can be compared. " if corrected else ""}"Episode-start-to-onset" is measured from the first
+warning of a merged episode and can exceed the forecast horizon; {"the qualified lead uses the earliest firing whose own horizon contains the onset (never more than H). " if corrected else "it is not a forecasting lead. "}
 
 {_table(ev)}
 
-Reading this table: the serving warning rule detects most onsets with far fewer false alarms than threshold rules
-on the current reading, but its **median lead time is short** (about 10 minutes). The simple "glucose already above
-~150 mg/dL" rule gives earlier warnings at the cost of roughly 2.5–3× more false alarms per patient-day.
+{serving_sentence}
 
 ## Secondary analyses
 
@@ -308,7 +358,7 @@ serving):
 
 ## Limitations
 
-""" + "\n".join(f"* {x}" for x in LIMITATIONS) + "\n"
+""" + "\n".join(f"* {x}" for x in LIMITATIONS + ([f"Corrected retrospective result of `{corrects}`: same test segment, already inspected."] if corrects else [])) + "\n"
     path = paths().reports / "evaluation_report.md"
     path.write_text(out)
     return str(path)
