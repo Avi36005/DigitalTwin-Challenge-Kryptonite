@@ -8,7 +8,7 @@ from glucotwin.features import FEATURE_SETS, build_features, prepare
 from glucotwin.models.adaptation import AdaptationPolicy, AdaptationState
 from glucotwin.splits import SplitConfig, assign_segments, boundaries_for
 
-SPEC = FEATURE_SETS["dyn-prof-meal-v1"]
+SPEC = FEATURE_SETS["dyn-prof-meal-v2"]
 
 
 def _patient(pid="SYN-A"):
@@ -50,7 +50,7 @@ def test_unavailable_or_missing_lab_values_stay_missing():
         if a["name"] == "hba1c":
             a["available_at"] = "2000-01-05T00:00:00+00:00"  # result arrives two days into the record
     prep = prepare(p)
-    spec = FEATURE_SETS["dyn-prof-v1"]
+    spec = FEATURE_SETS["dyn-prof-v2"]
     early = build_features(prep, np.array([prep.g_obs[100]]), spec).frame.iloc[0]
     late = build_features(prep, np.array([prep.g_obs[-1]]), spec).frame.iloc[0]
     assert np.isnan(early["p_hba1c"]) and np.isfinite(late["p_hba1c"])
