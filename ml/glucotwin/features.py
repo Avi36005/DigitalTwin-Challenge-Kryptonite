@@ -8,7 +8,9 @@ engine (on events released by the replay clock), which is what the parity tests 
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import hashlib
+import json
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 import numpy as np
@@ -17,6 +19,20 @@ import pandas as pd
 from glucotwin.data.store import PatientData, to_minutes
 
 EPS = 1e-6
+
+# Activity-window conventions. A 5-minute summary observed at ``e`` covers the interval (e - window, e].
+#
+# * "end-in-window-v1" (feature sets *-v1, experiment gt-primary-2026-10-11-v1): selects every released summary
+#   whose END lies in [t - w, t] and counts its full duration. A summary ending exactly at t - w is included although
+#   its support lies outside the window, so a 60-minute window could hold 65 minutes (act_cov_60 = 1.083).
+#   Kept unchanged ONLY so the v1 artifacts reproduce; it is a known defect (reports/repair_report.md).
+# * "overlap-v2" (feature sets *-v2): each released summary contributes the part of (e - window, e] that overlaps the
+#   lookback window (t - w, t]. A summary ending at t - w contributes nothing. Covered minutes, activity energy and
+#   active minutes are allocated in proportion to the overlapping share of the summary (an approximation for
+#   non-aligned origins: minute-level data are not part of the event model); means are weighted by covered minutes
+#   in the window; overlapping summaries are de-duplicated so no minute is counted twice. Missing wearable data stays
+#   missing (NaN), never zero activity.
+ACTIVITY_POLICIES = ("end-in-window-v1", "overlap-v2")
 
 PROFILE_FEATURES = [
     ("age_years", "age"),
@@ -42,6 +58,7 @@ class FeatureSpec:
     match_tolerance_minutes: float = 2.5
     stale_threshold_minutes: float = 15.0
     lags: tuple[int, ...] = (5, 10, 15, 20, 30, 45, 60, 90, 120)
+    activity_policy: str = "end-in-window-v1"
 
     def columns(self) -> list[str]:
         cols = ["g_last", "g_age_min"]
@@ -61,12 +78,32 @@ class FeatureSpec:
             cols += [f"p_{name}" for _, name in PROFILE_FEATURES]
         return cols
 
+    def transform_fingerprint(self) -> str:
+        """Identity of the feature TRANSFORMATION, not just the column order. Artifacts store it; the loader rejects
+        weights whose fingerprint differs from this code's, even when the column names are identical."""
+        d = asdict(self)
+        d["lags"] = list(self.lags)
+        d["columns"] = self.columns()
+        if not self.use_activity:
+            d.pop("activity_policy")  # the activity convention cannot change a CGM-only transformation
+        return hashlib.sha256(json.dumps(d, sort_keys=True).encode()).hexdigest()[:16]
+
 
 FEATURE_SETS: dict[str, FeatureSpec] = {
     "cgm-only-v1": FeatureSpec("cgm-only-v1", use_activity=False),
+    # v1: experiment gt-primary-2026-10-11-v1 (legacy activity windows, kept for reproducibility)
     "dyn-v1": FeatureSpec("dyn-v1", use_activity=True),
     "dyn-prof-v1": FeatureSpec("dyn-prof-v1", use_activity=True, use_profile=True),
     "dyn-prof-meal-v1": FeatureSpec("dyn-prof-meal-v1", use_activity=True, use_profile=True, use_meals=True),
+    # v2: corrected activity-window overlap (same columns, different transformation)
+    "dyn-v2": FeatureSpec("dyn-v2", use_activity=True, activity_policy="overlap-v2"),
+    "dyn-prof-v2": FeatureSpec("dyn-prof-v2", use_activity=True, use_profile=True, activity_policy="overlap-v2"),
+    "dyn-prof-meal-v2": FeatureSpec("dyn-prof-meal-v2", use_activity=True, use_profile=True, use_meals=True,
+                                    activity_policy="overlap-v2"),
+    # portable 15-minute CGM-only track (experiment gt-nested-2026-10-12-v1): native 15-minute sources and causally
+    # decimated 5-minute sources share it. slope_15 needs three readings in 15 minutes, so it is always missing here.
+    "cgm15-v1": FeatureSpec("cgm15-v1", use_activity=False, cadence_minutes=15.0, match_tolerance_minutes=7.5,
+                            stale_threshold_minutes=22.5, lags=(15, 30, 45, 60, 90, 120)),
 }
 
 
@@ -81,6 +118,7 @@ def spec_for(feature_set_id: str, device_cfg: dict[str, Any] | None = None) -> F
         use_meals=base.use_meals,
         cadence_minutes=float(device_cfg["nominal_cadence_minutes"]),
         match_tolerance_minutes=float(device_cfg["match_tolerance_minutes"]),
+        activity_policy=base.activity_policy,
     )
 
 
@@ -99,6 +137,7 @@ class Prepared:
     a_mets: np.ndarray
     a_kcal: np.ndarray
     a_cov: np.ndarray
+    a_win: np.ndarray
     m_obs: np.ndarray
     m_avail: np.ndarray
     m_carbs: np.ndarray
@@ -134,6 +173,7 @@ def prepare(pdata: PatientData) -> Prepared:
         a_obs=to_minutes(a["observed_at"]), a_avail=to_minutes(a["available_at"]),
         a_hr=a["heart_rate_bpm"].to_numpy(float), a_mets=a["mets"].to_numpy(float),
         a_kcal=a["activity_kcal"].to_numpy(float), a_cov=a["minutes_covered"].to_numpy(float),
+        a_win=(a["window_minutes"].to_numpy(float) if "window_minutes" in a else np.full(len(a), 5.0)),
         m_obs=to_minutes(m["observed_at"]), m_avail=to_minutes(m["available_at"]),
         m_carbs=m["carbs_g"].to_numpy(float), m_kcal=m["energy_kcal"].to_numpy(float),
         m_protein=m["protein_g"].to_numpy(float), m_fat=m["fat_g"].to_numpy(float),
@@ -248,26 +288,10 @@ def build_features(prep: Prepared, origins: np.ndarray, spec: FeatureSpec) -> Fe
         support_ids.append(prep.g_ids[idx[in60]].tolist())
 
         if spec.use_activity:
-            alo = np.searchsorted(prep.a_obs, t - 120 - EPS, "left")
-            ahi = np.searchsorted(prep.a_obs, t + EPS, "right")
-            aidx = np.arange(alo, ahi)
-            aidx = aidx[prep.a_avail[alo:ahi] <= t + EPS]
-            a_t = prep.a_obs[aidx]
-            for w, name in ((30, "30"), (60, "60"), (120, "120")):
-                sel = aidx[a_t > t - w - EPS]
-                row[col_idx[f"hr_mean_{name}"]] = _nanmean(prep.a_hr[sel]) if sel.size else np.nan
-                if w in (30, 60):
-                    row[col_idx[f"mets_mean_{name}"]] = _nanmean(prep.a_mets[sel]) if sel.size else np.nan
-            sel60 = aidx[a_t > t - 60 - EPS]
-            if sel60.size:
-                mets60 = prep.a_mets[sel60]
-                row[col_idx["mets_max_60"]] = np.nanmax(mets60) if np.isfinite(mets60).any() else np.nan
-                row[col_idx["kcal_sum_60"]] = np.nansum(prep.a_kcal[sel60])
-                active = (mets60 >= 3.0) & np.isfinite(mets60)
-                row[col_idx["active_min_60"]] = float(np.nansum(prep.a_cov[sel60][active]))
-                cov = float(np.nansum(prep.a_cov[sel60])) / 60.0
+            if spec.activity_policy == "overlap-v2":
+                cov = _activity_overlap(prep, t, row, col_idx)
             else:
-                cov = 0.0
+                cov = _activity_end_in_window_v1(prep, t, row, col_idx)
             row[col_idx["act_cov_60"]] = cov
             if cov <= 0:
                 why.append("activity_unavailable")
@@ -323,6 +347,85 @@ def build_features(prep: Prepared, origins: np.ndarray, spec: FeatureSpec) -> Fe
 
     frame = pd.DataFrame(out, columns=cols)
     return FeatureResult(frame, quality, reasons, latest_idx, support_ids)
+
+
+def _released_activity(prep: Prepared, t: float, lookback: float) -> np.ndarray:
+    """Indices of activity summaries observed AND available by ``t`` whose end lies within ``lookback`` (+ window)."""
+    wmax = float(np.nanmax(prep.a_win)) if prep.a_win.size else 0.0
+    alo = np.searchsorted(prep.a_obs, t - lookback - wmax - EPS, "left")
+    ahi = np.searchsorted(prep.a_obs, t + EPS, "right")
+    aidx = np.arange(alo, ahi)
+    return aidx[prep.a_avail[alo:ahi] <= t + EPS]
+
+
+def _activity_end_in_window_v1(prep: Prepared, t: float, row: np.ndarray, col_idx: dict[str, int]) -> float:
+    """LEGACY (feature sets *-v1). Reproduces experiment gt-primary-2026-10-11-v1 exactly, including its defect."""
+    alo = np.searchsorted(prep.a_obs, t - 120 - EPS, "left")
+    ahi = np.searchsorted(prep.a_obs, t + EPS, "right")
+    aidx = np.arange(alo, ahi)
+    aidx = aidx[prep.a_avail[alo:ahi] <= t + EPS]
+    a_t = prep.a_obs[aidx]
+    for w, name in ((30, "30"), (60, "60"), (120, "120")):
+        sel = aidx[a_t > t - w - EPS]
+        row[col_idx[f"hr_mean_{name}"]] = _nanmean(prep.a_hr[sel]) if sel.size else np.nan
+        if w in (30, 60):
+            row[col_idx[f"mets_mean_{name}"]] = _nanmean(prep.a_mets[sel]) if sel.size else np.nan
+    sel60 = aidx[a_t > t - 60 - EPS]
+    if not sel60.size:
+        return 0.0
+    mets60 = prep.a_mets[sel60]
+    row[col_idx["mets_max_60"]] = np.nanmax(mets60) if np.isfinite(mets60).any() else np.nan
+    row[col_idx["kcal_sum_60"]] = np.nansum(prep.a_kcal[sel60])
+    active = (mets60 >= 3.0) & np.isfinite(mets60)
+    row[col_idx["active_min_60"]] = float(np.nansum(prep.a_cov[sel60][active]))
+    return float(np.nansum(prep.a_cov[sel60])) / 60.0
+
+
+def activity_overlap_weights(prep: Prepared, aidx: np.ndarray, t: float, w: float) -> np.ndarray:
+    """Share (0..1) of each summary's own interval (e - window, e] that lies inside (t - w, t].
+
+    Summaries are processed in end order; a summary's start is moved past the end of any earlier summary so that two
+    overlapping or duplicate summaries never count the same minute twice.
+    """
+    if aidx.size == 0:
+        return np.zeros(0)
+    e = prep.a_obs[aidx]
+    win = np.where(np.isfinite(prep.a_win[aidx]) & (prep.a_win[aidx] > 0), prep.a_win[aidx], 5.0)
+    start = e - win
+    prev_end = np.maximum.accumulate(np.concatenate([[-np.inf], e[:-1]]))
+    start_eff = np.maximum(start, prev_end)
+    lo = np.maximum(start_eff, t - w)
+    hi = np.minimum(e, t)
+    overlap = np.clip(hi - lo, 0.0, None)
+    overlap[overlap < EPS] = 0.0
+    return overlap / win
+
+
+def _activity_overlap(prep: Prepared, t: float, row: np.ndarray, col_idx: dict[str, int]) -> float:
+    """Corrected activity features (feature sets *-v2); see ACTIVITY_POLICIES. Returns act_cov_60 (0..1)."""
+    aidx = _released_activity(prep, t, 120.0)
+    for w, name in ((30, "30"), (60, "60"), (120, "120")):
+        f = activity_overlap_weights(prep, aidx, t, w)
+        covered = prep.a_cov[aidx] * f  # covered minutes of each summary that fall inside the window
+        row[col_idx[f"hr_mean_{name}"]] = _weighted_mean(prep.a_hr[aidx], covered)
+        if w in (30, 60):
+            row[col_idx[f"mets_mean_{name}"]] = _weighted_mean(prep.a_mets[aidx], covered)
+        if w == 60:
+            inside = f > 0
+            mets = prep.a_mets[aidx]
+            ok_mets = inside & np.isfinite(mets)
+            row[col_idx["mets_max_60"]] = float(mets[ok_mets].max()) if ok_mets.any() else np.nan
+            kcal = prep.a_kcal[aidx]
+            ok_kcal = inside & np.isfinite(kcal)
+            row[col_idx["kcal_sum_60"]] = float((kcal[ok_kcal] * f[ok_kcal]).sum()) if ok_kcal.any() else np.nan
+            row[col_idx["active_min_60"]] = float(covered[ok_mets & (mets >= 3.0)].sum()) if ok_mets.any() else np.nan
+            cov60 = float(np.nansum(covered)) / 60.0
+    return cov60  # <= 1 by construction: de-duplicated intervals inside a 60-minute window (no clamping)
+
+
+def _weighted_mean(x: np.ndarray, w: np.ndarray) -> float:
+    ok = np.isfinite(x) & (w > 0)
+    return float((x[ok] * w[ok]).sum() / w[ok].sum()) if ok.any() else np.nan
 
 
 def match_targets(
