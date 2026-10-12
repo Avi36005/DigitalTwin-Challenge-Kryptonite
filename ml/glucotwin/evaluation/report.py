@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from glucotwin.config import load_config, paths
+from glucotwin.config import load_config, load_experiment_config, paths
 
 LIMITATIONS = [
     "Small cohort: 14 participants with Type 2 diabetes (CGMacros, US, recruited 2021-2024); overlapping "
@@ -46,8 +46,16 @@ def _mv(v, reason: str = "not computed") -> dict[str, Any]:
     return {"value": float(v), "reason_if_null": None}
 
 
-def build_report() -> dict[str, Any]:
-    path = latest_metrics_path()
+def metrics_path(experiment_id: str | None) -> Path | None:
+    """Saved metrics of a chronological-split experiment (None = the one behind the serving model)."""
+    if experiment_id is None:
+        return latest_metrics_path()
+    p = paths().artifacts / "experiments" / experiment_id / "metrics.json"
+    return p if p.exists() else None
+
+
+def build_report(experiment_id: str | None = None) -> dict[str, Any]:
+    path = metrics_path(experiment_id)
     if path is None:
         return {"schema_version": "1.0", "status": "not_run",
                 "status_message": "No completed real-data evaluation is registered. Run `glucotwin data import` "
@@ -55,7 +63,7 @@ def build_report() -> dict[str, Any]:
                 "limitations": LIMITATIONS}
     m = json.loads(path.read_text())
     data_cfg = load_config("data")["dataset"]
-    exp = load_config("experiment")
+    exp = load_experiment_config(m["experiment_id"])
     aliases = m.get("aliases", {})
     selected = m["selection"]["selected_label"]
     serving_mode = m["selection"]["serving_personalization"]
@@ -84,6 +92,20 @@ def build_report() -> dict[str, Any]:
             "lead_time_minutes_median": _mv(e["lead_time_median"], "no detected onsets"),
             "lead_time_minutes_iqr": e["lead_time_iqr"], "eligible_patient_days": e["eligible_patient_days"],
             "censored_origins": e["censored_origins"],
+            # present only for experiments run after the Prompt 05 corrections
+            "observed_patient_days": e.get("observed_patient_days"),
+            "false_alarms_per_observed_patient_day": (_mv(e["false_alarms_per_observed_patient_day"])
+                                                      if "false_alarms_per_observed_patient_day" in e else None),
+            "warnings_per_eligible_patient_day": (_mv(e["warnings_per_eligible_patient_day"])
+                                                  if "warnings_per_eligible_patient_day" in e else None),
+            "qualified_lead_minutes_median": (_mv(e["qualified_lead_median"], "no qualifying firing")
+                                              if "qualified_lead_median" in e else None),
+            "qualified_lead_minutes_iqr": e.get("qualified_lead_iqr"),
+            "qualified_lead_n": e.get("qualified_lead_n"),
+            "episode_start_lead_max_minutes": e.get("episode_start_lead_max"),
+            "episode_start_lead_over_horizon": e.get("episode_start_lead_over_horizon"),
+            "matched_without_qualified_firing": e.get("matched_without_qualified_firing"),
+            "time_base": e.get("time_base"),
         })
     iv_rows = []
     for i in m["intervals"]:
@@ -126,11 +148,20 @@ def build_report() -> dict[str, Any]:
         {"name": "Paired comparisons (participant-cluster bootstrap)", "status": "evaluated",
          "results": m.get("comparisons", [])},
     ]
+    corrects = m.get("corrects_experiment_id")
+    status_message = (
+        "Completed real-data evaluation on the held-out final test segment (evaluated once after the protocol was frozen)."
+        if not corrects else
+        f"Corrected retrospective evaluation: the declared protocol of {corrects} re-run after code corrections. "
+        f"The test segment had already been inspected in {corrects}, so these are not untouched test results.")
+    limitations = LIMITATIONS + ([
+        f"This experiment corrects {corrects} (feature and warning-accounting defects; see reports/repair_report.md). "
+        "Its test segment is the same one inspected before; the original results are preserved."] if corrects else [])
     return {
         "schema_version": "1.0", "status": "completed",
-        "status_message": "Completed real-data evaluation on the held-out final test segment (evaluated once after "
-                          "the protocol was frozen).",
+        "status_message": status_message,
         "experiment_id": m["experiment_id"], "created_at": m["created_at"], "mode": "dataset_replay",
+        "corrects_experiment_id": corrects, "correction_note": m.get("correction_note"),
         "dataset": {"name": data_cfg["name"], "version": data_cfg["version"], "license": data_cfg["license"],
                     "citation_url": data_cfg["doi"], "synthetic": False},
         "fingerprints": m["fingerprints"],
@@ -148,5 +179,5 @@ def build_report() -> dict[str, Any]:
         },
         "cohort": cohort, "selection": selection, "forecast_results": rows, "per_patient": per_patient,
         "event_results": ev_rows, "interval_results": iv_rows, "optional_experiments": optional,
-        "limitations": LIMITATIONS,
+        "limitations": limitations,
     }
