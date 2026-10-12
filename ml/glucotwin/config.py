@@ -86,6 +86,20 @@ def load_config(name: str) -> dict[str, Any]:
     return _load_yaml(str(path))
 
 
+def load_experiment_config(experiment_id: str | None = None) -> dict[str, Any]:
+    """The protocol of ``experiment_id``: ``configs/experiments/<id>.yaml`` when archived there, otherwise the current
+    ``configs/experiment.yaml`` (which must then declare that id). ``None`` = the current protocol."""
+    if experiment_id:
+        archived = paths().configs / "experiments" / f"{experiment_id}.yaml"
+        if archived.exists():
+            return _load_yaml(str(archived))
+        cur = load_config("experiment")
+        if cur.get("experiment_id") != experiment_id:
+            raise FileNotFoundError(f"No protocol file for experiment {experiment_id!r}")
+        return cur
+    return load_config("experiment")
+
+
 def fingerprint(obj: Any) -> str:
     """Stable short SHA-256 of a JSON-serializable object."""
     blob = json.dumps(obj, sort_keys=True, default=str, separators=(",", ":")).encode()
