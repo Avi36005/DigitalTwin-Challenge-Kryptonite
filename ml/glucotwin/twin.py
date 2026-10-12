@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 
 from glucotwin.data.store import PatientData, from_minutes
+from glucotwin.evaluation.alerts import match_episodes, qualified_lead
 from glucotwin.events import EpisodeMachine, EventDefinition, Onset
 from glucotwin.features import QUALITY_MESSAGES, build_features, prepare
 from glucotwin.models.adaptation import AdaptationState
@@ -62,6 +63,7 @@ class AlertRecord:
     last_supported_at: float
     forecast_ids: list[str]
     evidence: dict[str, Any]
+    firing_times: list[float] = field(default_factory=list)
     state: str = "open"
     outcome: dict[str, Any] = field(default_factory=lambda: {"status": "pending"})
 
@@ -94,6 +96,8 @@ class TwinEngine:
         self.alerts: list[AlertRecord] = []
         self.consumed_event_count = 0
         self.gap_times: list[float] = []
+        # confirmed onsets persist across updates so matching never depends on which call delivered an onset
+        self.confirmed_onsets: list[Onset] = []
 
     # ------------------------------------------------------------------ helpers
 
@@ -320,36 +324,58 @@ class TwinEngine:
         if open_alert is not None and t - open_alert.last_supported_at <= merge:
             open_alert.last_supported_at = t
             open_alert.forecast_ids.append(forecast["forecast_id"])
+            open_alert.firing_times.append(t)
             return
         aid = str(uuid.uuid5(NAMESPACE, f"alert:{self.session_id}:{self.revision}:{t:.6f}"))
         preds = {str(e["horizon_minutes"]): e["predicted_mg_dl"] for e in forecast["estimates"]}
         self.alerts.append(AlertRecord(
-            alert_id=aid, issued_at=t, last_supported_at=t, forecast_ids=[forecast["forecast_id"]],
+            alert_id=aid, issued_at=t, last_supported_at=t, forecast_ids=[forecast["forecast_id"]], firing_times=[t],
             evidence={"forecast_id": forecast["forecast_id"], "score": risk["score"], "score_kind": risk["score_kind"],
                       "threshold": risk["alert_threshold"],
                       "latest_glucose_mg_dl": forecast["observed_glucose"]["value_mg_dl"]
                       if forecast["observed_glucose"] else None,
                       "predicted_mg_dl": preds,
-                      "explanation_codes": [e["code"] for e in forecast["explanations"]]},
+                      "explanation_codes": [e["code"] for e in forecast["explanations"]],
+                      "policy_id": self.serving.alert.get("policy_id") or
+                      f"{self.serving.config.get('experiment_id')}:{self.serving.alert.get('rule_version')}",
+                      "rule_version": self.serving.alert.get("rule_version"),
+                      "experiment_id": self.serving.config.get("experiment_id"),
+                      "score_units": "mg/dL forecast margin above 180 (uncalibrated; not a probability)",
+                      "episode_merge_minutes": merge,
+                      "applicability": f"{self.serving.spec.cadence_minutes:g}-minute CGM; recorded-data replay"},
         ))
 
     def _update_alert_outcomes(self, t: float, onsets: list[Onset]) -> None:
+        """Resolve warning outcomes with the SAME one-to-one matcher as the offline evaluation.
+
+        Matching is recomputed from all warnings and all confirmed onsets known so far, so repeated calls, late
+        delivery of an onset and replays to the same clock give identical results; a new revision (seek/reset) gets a
+        fresh engine. An onset is credited to at most one warning, and a warning becomes a false alarm only after its
+        whole follow-up window (H + confirmation + continuity gap) has been observed.
+        """
         if self.serving is None:
             return
+        known = {o.onset_at for o in self.confirmed_onsets}
+        self.confirmed_onsets += [o for o in onsets if o.certain and o.onset_at not in known]
         H = float(self.serving.alert.get("horizon_minutes", 60))
         settle = H + self.event_def.confirm_minutes + self.event_def.max_gap_minutes
-        for a in self.alerts:
+        by_time = {o.onset_at: o for o in self.confirmed_onsets}
+        hits = match_episodes([(a.issued_at, a.last_supported_at) for a in self.alerts], list(by_time), H)
+        for a, hit in zip(self.alerts, hits, strict=True):
             if a.state != "open":
                 continue
-            for o in onsets:
-                if o.certain and a.issued_at < o.onset_at <= a.last_supported_at + H:
-                    a.state = "closed"
-                    a.outcome = {"status": "onset_observed", "onset_at": from_minutes(o.onset_at),
-                                 "confirmed_at": from_minutes(o.confirmed_at),
-                                 "lead_time_minutes": round(o.onset_at - a.issued_at, 1),
-                                 "note": "New sustained high-glucose onset confirmed after the warning."}
-                    break
-            if a.state == "open" and t > a.last_supported_at + settle:
+            if hit is not None:
+                o = by_time[hit]
+                q, support = qualified_lead(a.firing_times, hit, H)
+                a.state = "closed"
+                a.outcome = {"status": "onset_observed", "onset_at": from_minutes(o.onset_at),
+                             "confirmed_at": from_minutes(o.confirmed_at),
+                             "lead_time_minutes": round(o.onset_at - a.issued_at, 1),
+                             "episode_start_to_onset_minutes": round(o.onset_at - a.issued_at, 1),
+                             "qualified_lead_minutes": None if q is None else round(q, 1),
+                             "last_supporting_forecast_at": from_minutes(support) if support is not None else None,
+                             "note": "New sustained high-glucose onset confirmed after the warning."}
+            elif t > a.last_supported_at + settle:
                 gap = any(a.issued_at < g <= a.last_supported_at + settle for g in self.gap_times)
                 a.state = "closed"
                 a.outcome = ({"status": "unknown", "note": "A sensor gap prevented a definite outcome."} if gap else
