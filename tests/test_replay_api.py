@@ -242,3 +242,39 @@ def test_license_and_provenance_are_present():
 
     p = json.loads(prov.read_text())
     assert p["license"] == "CC BY-NC-SA 4.0" and all(f["verified"] for f in p["files"])
+
+
+# ------------------------------------------------------------------------------------------------ evidence catalogue
+
+
+def test_participant_filters_are_server_side_and_total_counts_every_match(client):
+    allp = client.get("/api/v1/patients", params={"limit": 200}).json()
+    syn = client.get("/api/v1/patients", params={"mode": "synthetic_demo", "limit": 3}).json()
+    assert syn["total"] == sum(1 for p in allp["items"] if p["mode"] == "synthetic_demo")
+    assert len(syn["items"]) <= 3 and syn["total_unfiltered"] == allp["total"]
+    if syn["total"] > 3:
+        nxt = client.get("/api/v1/patients", params={"mode": "synthetic_demo", "limit": 3,
+                                                       "cursor": syn["next_cursor"]}).json()
+        assert not {p["patient_id"] for p in nxt["items"]} & {p["patient_id"] for p in syn["items"]}
+    q = client.get("/api/v1/patients", params={"q": "SYN-T0", "sort": "recording_days", "order": "desc"}).json()
+    days = [p["coverage"]["recording_days"] for p in q["items"] if p["coverage"]["recording_days"] is not None]
+    assert days == sorted(days, reverse=True) and all("SYN-T0" in p["patient_id"] for p in q["items"])
+
+
+def test_serving_model_is_reported_independently_of_any_research_report(client):
+    s = client.get("/api/v1/serving").json()
+    modes = {x["mode"]: x for x in s["items"]}
+    assert set(modes) == {"dataset_replay", "synthetic_demo"}
+    ev = client.get("/api/v1/evaluations").json()
+    assert sum(1 for x in ev["items"] if x["is_serving_evidence"]) <= 1
+    assert all(x["regime"] in ("serving_retrospective", "superseded_original", "nested_research") for x in ev["items"])
+
+
+def test_unknown_research_experiment_and_inventory_shapes(client):
+    assert client.get("/api/v1/research/not-an-experiment").status_code == 404
+    inv = client.get("/api/v1/datasets").json()
+    assert inv["status"] in ("available", "not_generated")
+    for d in inv.get("datasets", []):
+        # imported != trained on: the inventory never claims assessment without the research report
+        assert d["access_status"] in ("planned", "access_required", "available_locally", "imported",
+                                      "failed_validation", "eligible_for_experiment")
