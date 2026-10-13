@@ -26,7 +26,7 @@ import pandas as pd
 from glucotwin.data.store import PatientData, from_minutes
 from glucotwin.evaluation.alerts import match_episodes, qualified_lead
 from glucotwin.events import EpisodeMachine, EventDefinition, Onset
-from glucotwin.features import QUALITY_MESSAGES, build_features, prepare
+from glucotwin.features import QUALITY_MESSAGES, build_features, prepare, profile_unavailable
 from glucotwin.models.adaptation import AdaptationState
 from glucotwin.serving import ServingModel
 from glucotwin.splits import Boundaries, segment_of
@@ -147,21 +147,26 @@ class TwinEngine:
         if spec is not None:
             fr = build_features(prep, origins, spec)
             pop = self.serving.predict(fr.frame)
+            no_profile = (profile_unavailable(prep, origins, spec) if self.serving.profile_gate
+                          else np.zeros(origins.size, dtype=bool))
         else:
             from glucotwin.features import FEATURE_SETS
 
             fr = build_features(prep, origins, FEATURE_SETS["cgm-only-v1"])
             pop = None
+            no_profile = np.zeros(origins.size, dtype=bool)
         for i, t in enumerate(origins.tolist()):
             onsets: list[Onset] = []
             self._sync_machine(prep, t, onsets)
             row = fr.frame.iloc[i]
-            q = fr.quality[i]
+            q, why = fr.quality[i], fr.reasons[i]
+            if no_profile[i]:
+                q, why = "insufficient", ["profile_unavailable", *why]
             fid = self._forecast_id(t)
             pop_t = {h: (float(pop[h][i]) if pop is not None and q != "insufficient" else None) for h in self.horizons}
             corr = (self.state.step(t, prep.g_obs, prep.g_val, prep.g_avail, pop_t, fid)
                     if self.state is not None else {h: None for h in self.horizons})
-            forecast = self._build_forecast(t, fid, row, q, fr.reasons[i], fr.latest_index[i], fr.support_ids[i],
+            forecast = self._build_forecast(t, fid, row, q, why, fr.latest_index[i], fr.support_ids[i],
                                             pop_t, corr, prep, released, i, fr)
             self.forecasts.append(forecast)
             issued.append(forecast)

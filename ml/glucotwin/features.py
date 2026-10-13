@@ -217,7 +217,23 @@ QUALITY_MESSAGES = {
     "recent_gap": "A gap longer than 15 minutes occurred in the last 60 minutes.",
     "sensor_limit_value": "The latest reading is at a sensor reporting limit (40 or 400 mg/dL).",
     "activity_unavailable": "No wearable activity summary is available for the last 60 minutes.",
+    "profile_unavailable": "A baseline profile value used by this model is missing or not yet available.",
 }
+
+
+def profile_unavailable(prep: Prepared, origins: np.ndarray, spec: FeatureSpec) -> np.ndarray:
+    """Serving-time gate: True where a profile model would see a profile value that is missing or not yet available.
+
+    Profile models were trained on complete profiles only; with a value blanked they forecast worse than persistence,
+    so the replay engine abstains at these origins. Offline feature quality is deliberately left unchanged."""
+    origins = np.asarray(origins, dtype=float)
+    if not spec.use_profile:
+        return np.zeros(origins.size, dtype=bool)
+    avail = [prep.profile.get(name, (None, None)) for _, name in PROFILE_FEATURES]
+    if any(v is None or a is None for v, a in avail):
+        return np.ones(origins.size, dtype=bool)
+    latest = max(a for _, a in avail)
+    return origins < latest - EPS
 
 
 def build_features(prep: Prepared, origins: np.ndarray, spec: FeatureSpec) -> FeatureResult:

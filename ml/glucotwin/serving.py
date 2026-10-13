@@ -46,6 +46,11 @@ class ServingModel:
         return bool(self.config.get("synthetic_fitted"))
 
     @property
+    def profile_gate(self) -> bool:
+        """True for profile models trained only on complete profiles: they abstain when a value is unavailable."""
+        return bool(self.config.get("profile_gate"))
+
+    @property
     def policy(self) -> AdaptationPolicy:
         return AdaptationPolicy(**self.config["adaptation"])
 

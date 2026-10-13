@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from glucotwin.data.cgmacros import recover_native
 from glucotwin.data.synthetic import SCENARIOS, generate
-from glucotwin.features import FEATURE_SETS, build_features, prepare
+from glucotwin.features import FEATURE_SETS, build_features, prepare, profile_unavailable
 from glucotwin.models.adaptation import AdaptationPolicy, AdaptationState
 from glucotwin.splits import SplitConfig, assign_segments, boundaries_for
 
@@ -55,6 +55,25 @@ def test_unavailable_or_missing_lab_values_stay_missing():
     late = build_features(prep, np.array([prep.g_obs[-1]]), spec).frame.iloc[0]
     assert np.isnan(early["p_hba1c"]) and np.isfinite(late["p_hba1c"])
     assert np.isnan(late["p_fasting_insulin"])  # missing in source -> NaN, never 0
+
+
+def test_profile_model_is_gated_until_every_profile_value_is_available():
+    p = _patient()  # SYN-A: fasting insulin missing in source; the other values arrive on day 2
+    prep = prepare(p)
+    prof_spec, dyn_spec = FEATURE_SETS["dyn-prof-v2"], FEATURE_SETS["dyn-v2"]
+    early, late = prep.g_obs[100], prep.g_obs[-1]
+    assert profile_unavailable(prep, np.array([early, late]), prof_spec).all()  # a value missing in source
+    assert not profile_unavailable(prep, np.array([early, late]), dyn_spec).any()  # dynamic model never gated
+
+    for a in p.profile:
+        if a["name"] == "fasting_insulin":
+            a.update(value=9.0, available_at="2000-01-03T00:00:00+00:00", status="available")
+        if a["name"] == "hba1c":
+            a["available_at"] = "2000-01-05T00:00:00+00:00"  # result arrives later in the record
+    prep = prepare(p)
+    assert profile_unavailable(prep, np.array([early, late]), prof_spec).tolist() == [True, False]
+    # the gate is a serving rule; offline feature quality is unchanged by it
+    assert "profile_unavailable" not in build_features(prep, np.array([early]), prof_spec).reasons[0]
 
 
 def test_one_minute_interpolated_rows_do_not_inflate_observations():

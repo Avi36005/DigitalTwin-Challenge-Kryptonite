@@ -355,6 +355,14 @@ def _merge(base: dict, over: dict) -> dict:
     return out
 
 
+def _profile_complete_in_training(ctx: Ctx, feature_set_id: str) -> bool:
+    spec = FEATURE_SETS[feature_set_id]
+    if not spec.use_profile:
+        return False
+    cols = [c for c in spec.columns() if c.startswith("p_")]
+    return bool(ctx.table.loc[ctx.seg("training"), cols].notna().all().all())
+
+
 def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Path | None = None,
         artifacts_dir: Path | None = None, register: bool = True, overrides: dict | None = None,
         experiment_id: str | None = None) -> dict[str, Any]:
@@ -391,8 +399,14 @@ def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Pa
                           **{f"selection_mae_{h}": v for h, v in per_h.items()},
                           "selection_score": float(np.mean(list(per_h.values())))})
     cand = pd.DataFrame(cand_rows)
-    best = cand["selection_score"].min()
-    tied = cand[cand["selection_score"] <= best + float(sel_cfg["tie_margin_mg_dl"])].copy()
+    # Optional eligibility constraint (protocols that declare it): only these feature sets may serve. Every candidate
+    # is still fitted and reported; the score, margin and tie-break are applied unchanged to the eligible ones.
+    eligible_fs = sel_cfg.get("eligible_feature_sets")
+    pool = cand[cand["feature_set_id"].isin(eligible_fs)] if eligible_fs else cand
+    if pool.empty:
+        raise ValueError(f"no candidate uses an eligible feature set {eligible_fs}")
+    best = pool["selection_score"].min()
+    tied = pool[pool["selection_score"] <= best + float(sel_cfg["tie_margin_mg_dl"])].copy()
     tied["c"] = tied["family"].map(sel_cfg["complexity_order"].index)
     tied["fs_size"] = tied["feature_set_id"].map(lambda f: len(FEATURE_SETS[f].columns()))
     chosen = tied.sort_values(["c", "fs_size", "selection_score"]).iloc[0]
@@ -400,6 +414,8 @@ def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Pa
     rationale = (f"{chosen['label']} had validation-selection score {chosen['selection_score']:.2f} mg/dL "
                  f"(best {best:.2f}); {len(tied)} candidate(s) within the "
                  f"{sel_cfg['tie_margin_mg_dl']} mg/dL tie margin; tie-break by declared complexity order.")
+    if eligible_fs:
+        rationale += f" Eligibility restricted to feature sets {list(eligible_fs)} by the protocol."
     print("selected", chosen["label"], rationale, flush=True)
 
     # ---------------- step 3: adaptation selection per tree bundle (and the serving bundle)
@@ -480,6 +496,8 @@ def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Pa
                    "episode_merge_minutes": float(exp["alerts"]["episode_merge_minutes"])},
         "event_definition": exp["event"], "frozen_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "synthetic_fitted": False,
+        # A profile model that never saw a missing profile value in training must abstain when one is missing.
+        "profile_gate": _profile_complete_in_training(ctx, serving.feature_set_id),
     }
     if stop_before_test:
         val = {b.label: {mode: {h: macro(per_patient_mae(ctx, ctx.eval_mask("validation", h), p[h], h))
@@ -640,6 +658,7 @@ def run(include_lopo: bool = True, stop_before_test: bool = False, store_dir: Pa
         "candidates": cand.to_dict(orient="records"), "selected_label": serving.label,
         "selected_family": serving.family, "selected_feature_set": serving.feature_set_id,
         "rationale": rationale, "adaptation": adapt_summary, "serving_personalization": serving_mode,
+        "eligible_feature_sets": list(eligible_fs) if eligible_fs else None,
     }
     metrics = {
         "experiment_id": exp_id, "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
