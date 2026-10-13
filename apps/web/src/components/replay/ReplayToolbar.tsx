@@ -78,7 +78,7 @@ export function ReplayToolbar({ session, segments, onAnnounce }: {
 
       <div className="replay-bar__end">
         {test && (
-          <Button size="sm" variant="ghost" icon={Target} disabled={busy} onClick={() => commitSeek(ms(test.start_at))}
+          <Button size="sm" variant={clock < ms(test.start_at) ? "secondary" : "ghost"} icon={Target} disabled={busy} onClick={() => commitSeek(ms(test.start_at))}
             title={`Jump to the start of the held-out test period (${replayTime(test.start_at)})`}>Test period</Button>
         )}
         <label className="visually-hidden" htmlFor={`${sliderId}-speed`}>Replay speed</label>

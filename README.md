@@ -93,11 +93,12 @@ not been established (§7).
 
 **Clinician workflow in the working dashboard**
 
-1. **Open the workspace** from the landing page and **choose a participant** (Participants page or ⌘K/Ctrl+K search),
-   then start a **New replay** — recorded data or the synthetic demonstration; the data mode stays visible.
+1. **Open the workspace** from the landing page and click **Open recorded demo** (Participant 01 from the held-out test
+   period), or **choose a participant** (Participants page or ⌘K/Ctrl+K search) and start a **New replay** — recorded
+   data or the synthetic demonstration; the data mode stays visible.
 2. **Read the twin at the replay time:** baseline profile as known at that moment, current glucose, 30/60-minute
    forecasts with a prediction range (target coverage 80 %), and data freshness. An unavailable forecast says why.
-3. **Review research warnings:** each shows its forecast margin and threshold, stays *pending* until the outcome is
+3. **Review research warnings:** each names the forecast that fired it and the trigger level, stays *pending* until the outcome is
    knowable, then reports detected (with its forecast lead) or false alarm. *Mark as reviewed* records a local note only.
 4. **Inspect a forecast:** information cutoff, model version, population forecast vs patient correction, factual
    explanations (associations, not causes).
@@ -115,10 +116,10 @@ show de-identified CGMacros 1.0.0 data (CC BY-NC-SA 4.0); synthetic screens show
 
 | | |
 |---|---|
-| ![Landing page](reports/ui/10-landing-desktop.png) **Landing page** — what GlucoTwin does, with a synthetic preview | ![Workspace overview](reports/ui/12-overview.png) **Overview** — resume a replay or choose a participant |
-| ![Research warning pending](reports/ui/08-recording-1920-warning-pending.png) **Recorded replay, Day 9 · 09:24** — 30/60-min forecasts with ranges; research warning issued, outcome pending | ![Forecast details](reports/ui/04-forecast-evidence-dialog.png) **Forecast details** — information cutoff, model version, population forecast vs patient correction |
+| ![Landing page](reports/ui/10-landing-desktop.png) **Landing page** — what GlucoTwin does, with a synthetic preview | ![Workspace overview](reports/ui/12-overview.png) **Overview** — open the recorded demo, resume a replay or choose a participant |
+| ![Research warning pending](reports/ui/08-recording-1920-warning-pending.png) **Recorded replay, Day 9 · 09:24** — 30/60-min forecasts with ranges; research warning issued, outcome pending; the panel names the forecast that fired it | ![Forecast details](reports/ui/04-forecast-evidence-dialog.png) **Forecast details** — information cutoff, model version, population forecast vs patient correction |
 | ![Missing and stale data](reports/ui/02-missing-and-stale-data.png) **Sensor gap (synthetic)** — reading and forecast marked out of date | ![Twin abstains](reports/ui/13-insufficient-history-recorded.png) **Abstention** — readings resumed, but too few in the last hour to forecast |
-| ![Model evidence with the fusion disclosures](reports/ui/18-model-evidence-fusion-disclosures.png) **Model evidence** — the serving model named, with the fusion constraint's disclosures read from the experiment | ![Data quality](reports/ui/06-data-quality.png) **Data quality** — sources, model-input limits and coverage |
+| ![Model evidence with the fusion disclosures](reports/ui/18-model-evidence-fusion-disclosures.png) **Model evidence** — the serving model named, results at a glance, and the fusion constraint's disclosures read from the experiment | ![Data quality](reports/ui/06-data-quality.png) **Data quality** — sources, model-input limits and coverage |
 | ![Research evidence](reports/ui/14-research-evidence.png) **Research evidence** — results on people held out entirely, kept apart from the demo model | ![External cohort](reports/ui/15-research-portable-external.png) **External cohort** — separate 15-minute model on ShanghaiT2DM |
 | ![Data sources](reports/ui/16-data-sources.png) **Data sources and scale** — dataset inventory and access status | ![Synthetic workspace](reports/ui/01-twin-workspace-synthetic.png) **Synthetic demonstration** — a warning acknowledged after stepping the replay |
 

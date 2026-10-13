@@ -58,8 +58,7 @@ export function EvidencePage() {
             </select>
           </div>
         ) : undefined}>
-        How far the forecasts were from what was later observed, measured on held-out data and read directly from the saved
-        experiment artifacts.
+        Forecast error and warnings on held-out data, read from the saved experiment artifacts.
       </PageHeader>
       <ServingLine selected={chosen} regime={meta ? REGIME[meta.regime] : undefined} />
       {list.isLoading || (!research && ev.isLoading) || (research && rs.isLoading) ? <Skeleton h={300} /> : research ? (
@@ -105,13 +104,16 @@ function Evidence({ r }: { r: EvaluationReport }) {
   const p60 = persistence?.h60?.mae_mg_dl.value;
   const l30 = pctLower(m30, p30);
   const l60 = pctLower(m60, p60);
+  const disclosures = r.selection_disclosures ?? [];
+  const ev = servingEvent(r);
+  const cov = servingCoverage(r).filter((x) => x.split === "test");
 
   return (
     <div className="evidence">
-      {(r.selection_disclosures ?? []).length > 0 ? (
+      {disclosures.length > 0 ? (
         <InlineNotice tone="attention" role="note">
-          <strong>Fusion-constrained result.</strong> {r.status_message}
-          <ul className="limits">{(r.selection_disclosures ?? []).map((d, i) => <li key={i}>{d}</li>)}</ul>
+          <strong>Fusion-constrained result.</strong> {r.status_message}{" "}
+          <a href="#disclosures-title" className="text-link">What this does and does not show</a>
         </InlineNotice>
       ) : r.corrects_experiment_id && (
         <InlineNotice tone="attention" role="note">
@@ -128,25 +130,59 @@ function Evidence({ r }: { r: EvaluationReport }) {
         <div><dt>Serving model</dt><dd>{serving ? `${FAMILY[serving.family] ?? serving.family} · ${serving.feature} · ${serving.pers === "adaptive" ? "adaptive" : serving.pers}` : "—"}</dd></div>
       </dl>
 
-      <Section title="Selected pipeline" divider>
+      <Section title="Results at a glance" divider>
         {serving && m30 != null && m60 != null ? (
-          <div className="lede">
+          <>
             <p className="lede__main">
               {FAMILY[serving.family] ?? serving.family} ({featureLabel(serving.feature)}){" "}
-              {serving.pers === "adaptive" ? "with patient adaptation " : ""}is the selected replay model. Its final-test mean absolute error was <strong className="num">{m30.toFixed(2)} mg/dL</strong> at 30 minutes
-              and <strong className="num">{m60.toFixed(2)} mg/dL</strong> at 60 minutes in this experiment.
+              {serving.pers === "adaptive" ? "with patient adaptation " : ""}is the selected replay model. Final-test results on
+              later recordings of the same {cohort.participants_included} participants, not new patients:
             </p>
-            {p30 != null && p60 != null && (
-              <p className="lede__sub">
-                Repeating the latest reading (persistence) gave <span className="num">{p30.toFixed(2)}</span> and{" "}
-                <span className="num">{p60.toFixed(2)} mg/dL</span>
-                {l30 != null && l60 != null && <> — the selected pipeline’s error is {l30.toFixed(1)}% and {l60.toFixed(1)}% lower</>}.
-              </p>
-            )}
-            <p className="helper">{LABELS.maeHelp} Mean absolute error is in mg/dL; it is not an accuracy percentage.</p>
-          </div>
+            <dl className="glance" aria-label="Final-test results of the serving pipeline">
+              {([[30, m30, p30, l30], [60, m60, p60, l60]] as const).map(([h, m, p, l]) => (
+                <div key={h}>
+                  <dt>{h}-min error (MAE)</dt>
+                  <dd className="glance__value num">{m.toFixed(2)}<span className="glance__unit">mg/dL</span></dd>
+                  {p != null && <dd className="glance__sub">Persistence <span className="num">{p.toFixed(2)}</span>{l != null && <> · {l.toFixed(1)}% lower</>}</dd>}
+                </div>
+              ))}
+              {ev && (
+                <div>
+                  <dt>High-glucose onsets warned</dt>
+                  <dd className="glance__value num">{ev.detected_onsets}<span className="glance__unit">of {ev.true_onsets}</span></dd>
+                  {ev.qualified_lead_minutes_median?.value != null && <dd className="glance__sub">Median forecast lead {ev.qualified_lead_minutes_median.value} min</dd>}
+                </div>
+              )}
+              {ev && (
+                <div>
+                  <dt>False alarms</dt>
+                  <dd className="glance__value num">{ev.false_alarm_episodes}<span className="glance__unit">of {ev.warning_episodes} warnings</span></dd>
+                  <dd className="glance__sub">
+                    {ev.false_alarms_per_observed_patient_day?.value != null
+                      ? <><span className="num">{ev.false_alarms_per_observed_patient_day.value.toFixed(2)}</span> per observed participant-day</>
+                      : <><span className="num">{fmtNum(ev.false_alarms_per_patient_day.value, 2)}</span> per eligible participant-day</>}
+                  </dd>
+                </div>
+              )}
+              {cov.length > 0 && (
+                <div>
+                  <dt>Prediction-range coverage</dt>
+                  <dd className="glance__value num">{cov.map((x) => fmtPct(x.empirical_coverage.value, 1)).join(" / ")}</dd>
+                  <dd className="glance__sub">Target {Math.round(cov[0].interval_level * 100)}% · {cov.map((x) => `${x.horizon_minutes}`).join(" / ")} min</dd>
+                </div>
+              )}
+            </dl>
+            <p className="helper">{LABELS.maeHelp} Mean absolute error is in mg/dL; it is not an accuracy percentage. Details, intervals
+              and per-participant results are below.</p>
+          </>
         ) : <p className="muted">No serving pipeline is recorded in this report.</p>}
       </Section>
+
+      {disclosures.length > 0 && (
+        <Section title="What this result does and does not show" id="disclosures">
+          <ul className="limits">{disclosures.map((d, i) => <li key={i}>{d}</li>)}</ul>
+        </Section>
+      )}
 
       <Comparison r={r} />
 
@@ -260,6 +296,21 @@ function Comparison({ r }: { r: EvaluationReport }) {
   );
 }
 
+/** The serving pipeline's warning row and prediction-range rows (shared by the glance row and the disclosures). */
+function servingEvent(r: EvaluationReport): EventMetricsRow | undefined {
+  const rows = (r.event_results ?? []).filter((e) => e.split === "test");
+  const sel = (r.forecast_results ?? []).find((x) => x.selected_for_serving);
+  if (!sel || !rows.length) return undefined;
+  const H = Math.max(...rows.map((e) => e.horizon_minutes));
+  return rows.find((e) => e.horizon_minutes === H && e.model_label === `${sel.model_label} (${sel.personalization === "adaptive" ? "adaptive" : "population"})`);
+}
+
+function servingCoverage(r: EvaluationReport) {
+  const sel = (r.forecast_results ?? []).find((x) => x.selected_for_serving);
+  const label = sel ? `${sel.model_label} (${sel.personalization})` : "";
+  return (r.interval_results ?? []).filter((x) => x.model_label === label);
+}
+
 /* ---------------------------------------------------------------- disclosures */
 type Paired = { comparison: string; horizon: number; mean_diff_mae: number; ci95: [number, number]; n_patients: number };
 
@@ -293,9 +344,7 @@ function PairedDifferences({ r }: { r: EvaluationReport }) {
 
 function RangeCoverage({ r }: { r: EvaluationReport }) {
   const proto = r.protocol as { intervals?: { level?: number; method?: string } };
-  const sel = (r.forecast_results ?? []).find((x) => x.selected_for_serving);
-  const label = sel ? `${sel.model_label} (${sel.personalization})` : "";
-  const rows = (r.interval_results ?? []).filter((x) => x.model_label === label);
+  const rows = servingCoverage(r);
   const target = proto.intervals?.level ?? rows[0]?.interval_level ?? 0.8;
   const test = rows.filter((x) => x.split === "test");
   return (
@@ -332,9 +381,8 @@ function Warnings({ r }: { r: EvaluationReport }) {
   const days = rows[0].eligible_patient_days;
   const observed = rows[0].observed_patient_days;
   const corrected = rows.some((e) => e.qualified_lead_minutes_median != null);
-  const sel = (r.forecast_results ?? []).find((x) => x.selected_for_serving);
   const H = Math.max(...rows.map((e) => e.horizon_minutes));
-  const srv = sel && rows.find((e) => e.horizon_minutes === H && e.model_label === `${sel.model_label} (${sel.personalization === "adaptive" ? "adaptive" : "population"})`);
+  const srv = servingEvent(r);
   const lead = (v: { value: number | null } | null | undefined) => (v?.value != null ? `${v.value} min` : "—");
   return (
     <Disclosure title="Research warnings"

@@ -10,20 +10,20 @@ noted). All recorded-data screenshots were recaptured on 13 Oct 2026 after the s
 | `02-missing-and-stale-data.png` | Synthetic SYN-D inside a 150-minute sensor gap: stale reading and stale forecast |
 | `03-forecast-with-interval-recorded.png` | Recorded-data replay (CGMacros participant, held-out test period): forecasts with prediction ranges (target coverage 80 %) and the measured-coverage details |
 | `04-forecast-evidence-dialog.png` | Forecast details drawer (information cutoff, model version, evaluation period, population vs correction, explanations) |
-| `05-model-evidence.png` | Model evidence page with the fusion-constraint notice and its disclosures, selected pipeline and all configurations |
+| `05-model-evidence.png` | Model evidence page: the short fusion-constraint notice, results at a glance, the disclosures and all configurations |
 | `06-data-quality.png` | Data quality page (current replay, sources, model-input limits, coverage) |
-| `07-mobile-workspace.png` | 390 px phone layout of a replay |
-| `08-recording-1920-warning-pending.png` | 1920×1080 (video resolution): Participant 01, Day 9 · 09:24 — research warning issued 09:15, outcome pending |
+| `07-mobile-workspace.png` | 390 px phone layout of a replay; the review status sits directly under the forecast numbers |
+| `08-recording-1920-warning-pending.png` | 1920×1080 (video resolution): Participant 01, Day 9 · 09:24 — research warning issued 09:15, outcome pending; the review panel names the forecast that fired it and the 170 mg/dL trigger |
 | `09-recording-1920-recorded-gap-stale.png` | 1920×1080: Participant 12, Day 9 · 10:50 — genuine 70-minute Dexcom gap; reading and forecasts out of date |
 | `10-landing-desktop.png` | Landing page (desktop) with the synthetic-demonstration preview |
 | `11-landing-phone.png` | Landing page on a 390 px phone (full page) |
-| `12-overview.png` | Workspace overview: recent replays as divided rows |
+| `12-overview.png` | Workspace overview: *Open recorded demo* (Participant 01 from the held-out test period), then recent replays as divided rows |
 | `13-insufficient-history-recorded.png` | 1920×1080: Participant 12, Day 9 · 11:45 — readings resumed but the twin abstains (2 readings in the last hour) |
 | `14-research-evidence.png` | Model evidence switched to the nested research experiment `gt-nested-2026-10-12-v1`: results on held-out people, kept separate from the serving model |
 | `15-research-portable-external.png` | Same page, 15-minute portable track: external ShanghaiT2DM cohort results |
 | `16-data-sources.png` | Data quality page, "Data sources and scale": dataset inventory (CGMacros, ShanghaiT2DM, AI-READI access required) |
 | `17-research-evidence-mobile.png` | 390 px phone: research evidence tables scroll inside their region instead of clipping the page |
-| `18-model-evidence-fusion-disclosures.png` | Model evidence for the serving experiment `gt-primary-2026-10-13-fusion`: serving-model line, the fusion-constraint notice with its five disclosures (from the API) and the selected pipeline |
+| `18-model-evidence-fusion-disclosures.png` | Model evidence for the serving experiment `gt-primary-2026-10-13-fusion`: serving-model line, the short fusion-constraint notice, results at a glance and the start of its five disclosures (from the API) |
 
 Files 14–17 were numbered 07–10 before 13 Oct 2026 (duplicate numbers).
 

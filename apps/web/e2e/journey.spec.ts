@@ -20,6 +20,11 @@ async function session(page: Page, sid: string) {
   return (await page.request.get(`${API}/replay/sessions/${sid}`)).json();
 }
 
+async function byAlias(page: Page, alias: string) {
+  const pts = await (await page.request.get(`${API}/patients?mode=dataset_replay&limit=200`)).json();
+  return (pts.items ?? []).find((x: { display_alias: string }) => x.display_alias === alias);
+}
+
 test("clinician replay journey on a synthetic participant", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -110,7 +115,7 @@ test("missing-data, stale and abstention states are explicit", async ({ page }) 
   await startReplay(page, "synthetic_demo", "SYN-E");
   await page.getByRole("button", { name: "Step 5 min forward" }).click();
   await expect(page.getByRole("region", { name: "60-minute forecast" }).getByText("Not available")).toBeVisible();
-  await expect(page.getByText("Insufficient information")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Review and data quality" }).getByText("Insufficient information")).toBeVisible();
   // sensor-gap participant: seek into a long gap to see stale data
   await startReplay(page, "synthetic_demo", "SYN-D");
   const slider = page.getByLabel("Seek replay time");
@@ -151,10 +156,13 @@ test("model evidence and data quality pages render recorded results", async ({ p
     if (await page.getByText("Fusion-constrained result.").isVisible()) {
       await expect(page.getByText(/have not established that profile features improve forecasting for unseen patients/)).toBeVisible();
       await expect(page.getByText(/after the test segment had already been inspected/)).toBeVisible();
+      await expect(page.getByRole("link", { name: "What this does and does not show" })).toBeVisible();
+      await page.getByRole("heading", { name: "Results at a glance" }).scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${SHOTS}/18-model-evidence-fusion-disclosures.png` });
     }
     await expect(page.getByText("Serving pipeline").first()).toBeVisible();
-    await expect(page.getByText(/is the selected replay model\. Its final-test mean absolute error was/)).toBeVisible();
+    await expect(page.getByText(/is the selected replay model\. Final-test results on later recordings of the same \d+ participants, not new patients/)).toBeVisible();
+    await expect(page.getByLabel("Final-test results of the serving pipeline")).toBeVisible();
     await expect(page.getByText(/accuracy percentage/)).toBeVisible(); // MAE is explained, never called accuracy
     await page.getByRole("button", { name: "Show all configurations" }).click();
     await expect(page.getByRole("columnheader", { name: "Forecast availability" })).toBeVisible();
@@ -235,11 +243,6 @@ test("API failure is reported and never replaced with example data", async ({ pa
 test.describe("recording resolution (1920×1080) — demo sequence on recorded data", () => {
   test.use({ viewport: { width: 1920, height: 1080 } });
 
-  async function byAlias(page: Page, alias: string) {
-    const pts = await (await page.request.get(`${API}/patients?mode=dataset_replay&limit=200`)).json();
-    return (pts.items ?? []).find((x: { display_alias: string }) => x.display_alias === alias);
-  }
-
   async function seek(page: Page, sid: string, iso: string) {
     await page.request.post(`${API}/replay/sessions/${sid}/control`, { data: { action: "seek", seek_to: iso } });
     await page.reload();
@@ -255,6 +258,9 @@ test.describe("recording resolution (1920×1080) — demo sequence on recorded d
     await seek(page, sid, "2000-01-11T09:24:00Z");
     await expect(page.getByRole("region", { name: "Current glucose" })).toContainText("158"); // reports/demo_sequence.md
     await expect(page.getByText("Outcome pending").first()).toBeVisible();
+    // the warning names the forecast that fired it and the trigger level, not "above 180"
+    await expect(page.getByText(/Fired by the (30|60)-min forecast \d+ mg\/dL ≥ \d+ trigger/).first()).toBeVisible();
+    await expect(page.getByText(/forecasts a new sustained episode above 180/)).toHaveCount(0);
     // chart and control text stay legible at recording resolution
     const chart = page.getByRole("figure", { name: /Observed glucose/ });
     await expect(chart).toBeVisible();
@@ -280,7 +286,7 @@ test.describe("recording resolution (1920×1080) — demo sequence on recorded d
     await page.screenshot({ path: `${SHOTS}/09-recording-1920-recorded-gap-stale.png` });
     await seek(page, sid, "2000-01-11T11:45:00Z");
     await expect(page.getByRole("region", { name: "60-minute forecast" }).getByText("Not available")).toBeVisible();
-    await expect(page.getByText("Insufficient information")).toBeVisible();
+    await expect(page.getByRole("complementary", { name: "Review and data quality" }).getByText("Insufficient information")).toBeVisible();
     await expect(page.getByText(/readings? in the last hour; more recent history is required/)).toBeVisible();
     await expect(page.getByRole("region", { name: "Current glucose" })).toContainText("195"); // the reading stays visible
     await page.screenshot({ path: `${SHOTS}/13-insufficient-history-recorded.png` });
@@ -291,6 +297,18 @@ test.describe("recording resolution (1920×1080) — demo sequence on recorded d
 
 test.describe("mobile", () => {
   test.use({ viewport: { width: 390, height: 844 } });
+  test("the review status sits directly under the forecast numbers, above the chart", async ({ page }) => {
+    await page.goto("/app");
+    await startReplay(page, "synthetic_demo", "SYN-B");
+    await page.getByRole("button", { name: "Step 1 h forward" }).click();
+    const strip = page.locator(".review-strip");
+    await expect(strip).toBeVisible();
+    await expect(strip.getByRole("link", { name: "Details" })).toHaveAttribute("href", "#review-title");
+    const stripBox = await strip.boundingBox();
+    const chartBox = await page.getByRole("heading", { name: "Glucose trace" }).boundingBox();
+    expect(stripBox!.y).toBeLessThan(chartBox!.y);
+  });
+
   test("navigation drawer traps focus, closes on Escape and restores focus", async ({ page }) => {
     await page.goto("/app");
     const trigger = page.getByRole("button", { name: "Open navigation" });
@@ -378,5 +396,37 @@ test.describe("landing page and route compatibility", () => {
     await page.getByRole("link", { name: "Model evidence" }).first().click();
     await expect(page.getByRole("heading", { level: 1, name: "Model evidence" })).toBeInViewport();
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+});
+
+// Last, so the sessions they create do not appear in the overview screenshot above.
+test.describe("first replay experience on recorded data", () => {
+  test("Open recorded demo starts Participant 01 at the held-out test period", async ({ page }) => {
+    const p = await byAlias(page, "Participant 01");
+    test.skip(!p, "CGMacros not imported on this machine");
+    const detail = await (await page.request.get(`${API}/patients/${p.patient_id}`)).json();
+    const testStart = detail.evaluation_segments.find((s: { name: string }) => s.name === "test").start_at;
+    await page.goto("/app");
+    const previous = new URL(page.url()).searchParams.get("session");
+    await page.getByRole("button", { name: "Open recorded demo" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("session")).not.toBe(previous);
+    const sid = new URL(page.url()).searchParams.get("session")!;
+    const s = await session(page, sid);
+    expect(s.patient_id).toBe(p.patient_id);
+    expect(Date.parse(s.clock_at)).toBe(Date.parse(testStart));
+    await expect(page.getByRole("region", { name: "Current glucose" })).not.toContainText("No reading yet");
+  });
+
+  test("a replay from the start of a recording offers the held-out test period", async ({ page }) => {
+    const p = await byAlias(page, "Participant 01");
+    test.skip(!p, "CGMacros not imported on this machine");
+    const detail = await (await page.request.get(`${API}/patients/${p.patient_id}`)).json();
+    const testStart = detail.evaluation_segments.find((s: { name: string }) => s.name === "test").start_at;
+    await page.goto("/app");
+    const sid = await startReplay(page, "dataset_replay", p.patient_id);
+    await expect(page.getByText("No readings released yet.")).toBeVisible();
+    await page.getByRole("button", { name: "Go to held-out test period" }).click();
+    await expect.poll(async () => Date.parse((await session(page, sid)).clock_at)).toBe(Date.parse(testStart));
+    await expect(page.getByText("No readings released yet.")).toBeHidden();
   });
 });

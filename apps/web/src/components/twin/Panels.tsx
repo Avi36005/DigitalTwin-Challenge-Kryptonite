@@ -219,31 +219,75 @@ function RangeNote({ f, report }: { f: Forecast; report?: EvaluationReport }) {
 }
 
 /* ================================================================ Review status (inspector) */
-export function ReviewStatus({ latest, alerts }: { latest?: LatestForecast; alerts?: AlertList }) {
+const EPISODE_MG_DL = 180;
+
+/** The warning rule watches the highest forecast within its horizon; the trigger level is 180 mg/dL plus the margin
+ *  chosen on validation data (e.g. −10 → 170 mg/dL), so a warning can fire before any forecast reaches 180. */
+function warningRule(f: Forecast) {
+  const maxH = Math.max(...f.event_risk.map((r) => r.horizon_minutes));
+  const risk = f.event_risk.find((r) => r.alert_threshold != null) ?? f.event_risk.find((r) => r.horizon_minutes === maxH);
+  if (!risk) return null;
+  const top = f.estimates
+    .filter((e) => e.horizon_minutes <= risk.horizon_minutes && e.predicted_mg_dl !== null)
+    .reduce<HorizonEstimate | undefined>((a, e) => (!a || (e.predicted_mg_dl as number) > (a.predicted_mg_dl as number) ? e : a), undefined);
+  return {
+    risk, horizon: risk.horizon_minutes, top,
+    trigger: risk.alert_threshold != null ? EPISODE_MG_DL + risk.alert_threshold : null,
+  };
+}
+
+/** "10 mg/dL below the 180 mg/dL episode threshold" — the offset of a trigger level, in words. */
+function triggerOffset(trigger: number): string {
+  const d = trigger - EPISODE_MG_DL;
+  return d === 0 ? `at the ${EPISODE_MG_DL} mg/dL episode threshold`
+    : `${Math.abs(d)} mg/dL ${d < 0 ? "below" : "above"} the ${EPISODE_MG_DL} mg/dL episode threshold`;
+}
+
+type Review = { tone: "attention" | "neutral"; icon: typeof Info; title: string; text: string; short: string };
+
+function reviewState(latest?: LatestForecast, alerts?: AlertList): Review {
   const f = latest?.forecast;
-  const maxH = Math.max(...(f?.event_risk.map((r) => r.horizon_minutes) ?? [60]));
-  const risk = f?.event_risk.find((r) => r.horizon_minutes === maxH);
+  const rule = f ? warningRule(f) : null;
   const openAlert = alerts?.items.find((a) => a.state === "open");
-  const modelMissing = latest?.reasons.some((r) => r.code === "model_unavailable");
-  let state: { tone: "attention" | "neutral"; icon: typeof Info; title: string; text: string };
-  if (modelMissing) {
-    state = { tone: "neutral", icon: TriangleAlert, title: "Model unavailable",
+  if (latest?.reasons.some((r) => r.code === "model_unavailable")) {
+    return { tone: "neutral", icon: TriangleAlert, title: "Model unavailable", short: "no warning can be assessed",
       text: "No verified forecasting model is loaded for this data mode, so no warning can be assessed." };
-  } else if (!latest || latest.availability === "not_ready" || !f || f.quality.status === "insufficient") {
-    state = { tone: "neutral", icon: CircleDashed, title: "Insufficient information",
+  }
+  if (!latest || latest.availability === "not_ready" || !f || f.quality.status === "insufficient") {
+    return { tone: "neutral", icon: CircleDashed, title: "Insufficient information", short: "no warning can be assessed",
       text: "The twin is not issuing a usable forecast right now, so no warning can be assessed." };
-  } else if (["pending_high", "in_episode", "recovering"].includes(f.episode_state)) {
-    state = { tone: "attention", icon: Gauge, title: "Already-high glucose state",
+  }
+  if (["pending_high", "in_episode", "recovering"].includes(f.episode_state)) {
+    return { tone: "attention", icon: Gauge, title: "Already-high glucose state", short: "an observation, not a forecast",
       text: f.episode_state === "recovering"
         ? "A recent high-glucose episode has not yet met the 15-minute recovery rule. This is an observation, not a prediction."
-        : "Current readings are above the 180 mg/dL research threshold. This is an observation, not a forecast." };
-  } else if (openAlert || risk?.alert_fired) {
-    state = { tone: "attention", icon: BellRing, title: "Warning issued",
-      text: `Research warning: the twin forecasts a new sustained episode above 180 mg/dL within ${risk?.horizon_minutes ?? 60} minutes. Not a diagnosis.` };
-  } else {
-    state = { tone: "neutral", icon: CircleCheck, title: "No warning issued",
-      text: "The warning rule did not fire at the latest forecast. This does not mean glucose will stay below the threshold." };
+        : `Current readings are above the ${EPISODE_MG_DL} mg/dL research threshold. This is an observation, not a forecast.` };
   }
+  const top = rule?.top;
+  const topText = top ? `the ${top.horizon_minutes}-minute forecast, ${fmtGlucose(top.predicted_mg_dl)} mg/dL` : "a forecast";
+  if (rule?.risk.alert_fired && rule.trigger != null) {
+    return { tone: "attention", icon: BellRing, title: "Warning issued",
+      short: `${top ? `${top.horizon_minutes}-min forecast ${fmtGlucose(top.predicted_mg_dl)}` : "a forecast"} ≥ ${fmtGlucose(rule.trigger)} mg/dL trigger`,
+      text: `Research warning: ${topText}, reached the ${fmtGlucose(rule.trigger)} mg/dL warning trigger. The rule watches the highest `
+        + `forecast within ${rule.horizon} minutes and fires ${triggerOffset(rule.trigger)}`
+        + (f.mode === "synthetic_demo" ? "" : " (chosen on validation data)")
+        + (rule.trigger < EPISODE_MG_DL ? ", so warnings come earlier" : "")
+        + ". Not a diagnosis." };
+  }
+  if (openAlert) {
+    return { tone: "attention", icon: BellRing, title: "Warning awaiting outcome",
+      short: `issued ${replayTime(openAlert.issued_at, { day: false })}, outcome pending`,
+      text: `A research warning issued at ${replayTime(openAlert.issued_at, { day: false })} is waiting for its outcome. `
+        + `The latest forecast${rule?.trigger != null ? ` is below the ${fmtGlucose(rule.trigger)} mg/dL trigger` : " did not fire the rule"}.` };
+  }
+  return { tone: "neutral", icon: CircleCheck, title: "No warning issued", short: "the rule did not fire",
+    text: "The warning rule did not fire at the latest forecast. This does not mean glucose will stay below the threshold." };
+}
+
+export function ReviewStatus({ latest, alerts }: { latest?: LatestForecast; alerts?: AlertList }) {
+  const f = latest?.forecast;
+  const rule = f ? warningRule(f) : null;
+  const state = reviewState(latest, alerts);
   const Icon = state.icon;
   return (
     <section className="inspector__block" aria-labelledby="review-title">
@@ -255,14 +299,31 @@ export function ReviewStatus({ latest, alerts }: { latest?: LatestForecast; aler
           <p className="review__text">{state.text}</p>
         </div>
       </div>
-      {risk && risk.score != null && (
+      {rule && rule.risk.score != null && (
         <p className="review__score">
-          Forecast margin <strong className="num">{risk.score > 0 ? "+" : ""}{risk.score.toFixed(0)} mg/dL</strong>
-          {risk.alert_threshold != null && <> · warning fires at ≥ {risk.alert_threshold} mg/dL</>}. A margin, not a probability.
+          Highest forecast within {rule.horizon} min <strong className="num">{fmtGlucose(EPISODE_MG_DL + rule.risk.score)} mg/dL</strong>
+          {rule.top && <> ({rule.top.horizon_minutes}-min)</>}
+          {rule.trigger != null && <> · warning trigger <span className="num">{fmtGlucose(rule.trigger)} mg/dL</span></>}.
+          A forecast level, not a probability.
         </p>
       )}
       {alerts?.rule_available === false && <p className="inspector__muted">No validated warning rule is loaded for this mode.</p>}
     </section>
+  );
+}
+
+/** One-line review status shown under the forecast numbers when the inspector sits below the chart (narrow screens). */
+export function ReviewStrip({ latest, alerts }: { latest?: LatestForecast; alerts?: AlertList }) {
+  const state = reviewState(latest, alerts);
+  const Icon = state.icon;
+  return (
+    <p className={`review-strip review-strip--${state.tone}`}>
+      <Icon size={16} aria-hidden strokeWidth={1.9} className="review-strip__icon" />
+      <span className="review-strip__text">
+        <strong className="review-strip__title">{state.title}</strong> · {state.short}{" "}
+        <a href="#review-title" className="text-link review-strip__link">Details</a>
+      </span>
+    </p>
   );
 }
 
@@ -319,8 +380,8 @@ export function WarningHistory({ alerts, onAck, ackPending }: { alerts?: AlertLi
                 </div>
                 <p className="warn__meta">
                   First warning {replayTime(a.issued_at, { day: false })} · last supporting forecast {replayTime(a.last_supported_at, { day: false })}
-                  {a.evidence.predicted_mg_dl["60"] != null && <> · 60-min forecast {fmtGlucose(a.evidence.predicted_mg_dl["60"])} mg/dL</>}
                 </p>
+                <WarningTrigger a={a} />
                 <div className="warn__ack">
                   {a.acknowledgement.acknowledged ? (
                     <span className="warn__acked"><CircleCheck size={13} aria-hidden /> Marked as reviewed</span>
@@ -343,6 +404,25 @@ export function WarningHistory({ alerts, onAck, ackPending }: { alerts?: AlertLi
         </>
       )}
     </section>
+  );
+}
+
+/** Which forecast fired the warning: the highest forecast within its horizon, against the trigger level. */
+function WarningTrigger({ a }: { a: Alert }) {
+  const preds = Object.entries(a.evidence.predicted_mg_dl)
+    .map(([h, v]) => ({ h: Number(h), v }))
+    .filter((p): p is { h: number; v: number } => p.v != null && p.h <= a.horizon_minutes)
+    .sort((x, y) => x.h - y.h);
+  if (!preds.length) return null;
+  const top = preds.reduce((m, p) => (p.v > m.v ? p : m));
+  const trigger = a.evidence.threshold != null ? EPISODE_MG_DL + a.evidence.threshold : null;
+  const others = preds.filter((p) => p !== top);
+  return (
+    <p className="warn__meta">
+      Fired by the {top.h}-min forecast <span className="num">{fmtGlucose(top.v)} mg/dL</span>
+      {trigger != null && <> ≥ <span className="num">{fmtGlucose(trigger)}</span> trigger</>}
+      {others.map((p) => <span key={p.h}> · {p.h}-min <span className="num">{fmtGlucose(p.v)}</span></span>)}
+    </p>
   );
 }
 

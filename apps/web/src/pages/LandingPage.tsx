@@ -28,8 +28,10 @@ export function LandingPage() {
             <p className="eyebrow">Glucose forecasting research</p>
             <h1 id="hero-title" className="hero__title">See the next chapter of a glucose&nbsp;trace.</h1>
             <p className="hero__desc">
-              Explore a patient-specific research twin that uses recent glucose and activity history to estimate glucose
-              30 and 60 minutes ahead. Replay a recording, inspect each forecast and review the evidence behind it.
+              Explore a patient-specific research twin that reads recent glucose and wearable activity together with a
+              baseline health profile (age, sex, BMI, HbA1c and other baseline labs) to estimate glucose 30 and 60 minutes
+              ahead. Replay a recording, inspect each forecast and review the evidence behind it, including what the profile
+              does and does not add.
             </p>
             <div className="hero__actions">
               <Link to={paths.overview()} className="btn btn--primary btn--lg">Open workspace</Link>

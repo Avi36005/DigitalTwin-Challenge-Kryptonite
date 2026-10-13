@@ -326,8 +326,9 @@ export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => vo
           coverage on the test period was lower and varies by participant). Faint blue circles are earlier forecasts; they
           stay fixed so you can compare them with what was later observed. The amber dashed line is a research threshold
           (180 mg/dL), not a triage rule.</p>
-        <p><strong>Warnings.</strong> A warning fires when the twin forecasts a new sustained high episode. Its score is an
-          uncalibrated margin in mg/dL, not a probability. “Mark as reviewed” only records a local acknowledgement — no
+        <p><strong>Warnings.</strong> A warning fires when the highest forecast within 60 minutes reaches the warning trigger
+          (the 180 mg/dL episode threshold plus a margin chosen on validation data; the Review panel shows the level) and
+          glucose is not already high. The panel names the forecast that fired it. It is a forecast level in mg/dL, not a probability. “Mark as reviewed” only records a local acknowledgement — no
           message is sent to anyone.</p>
         <p><strong>Evidence.</strong> Model evidence shows the measured comparison (persistence, linear trend, ridge,
           LightGBM, CatBoost) on a held-out test period. Mean absolute error is an average error in mg/dL, not an accuracy

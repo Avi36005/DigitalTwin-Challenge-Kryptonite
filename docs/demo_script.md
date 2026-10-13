@@ -117,7 +117,8 @@ only a timed rehearsal and the rendered file establish the real duration. YouTub
 > the workspace, the left sidebar holds New replay, search, five destinations and our recent replays, and the top bar
 > always says whether we are watching recorded data or the synthetic demonstration.
 
-*Action:* **New replay** → *Recorded-data replay* → **Participant 01** → *Held-out test period* → **Start replay**.
+*Action:* **Open recorded demo** on the Overview (the same as **New replay** → *Recorded-data replay* →
+**Participant 01** → *Held-out test period* → **Start replay**).
 The clock shows **Day 9 · 08:14**; current glucose **115** (08:10); 30-min forecast **119**, range **103–136**; 60-min
 **129**, range **102–155**; patient adaptation **active**.
 
@@ -133,9 +134,10 @@ The clock shows **Day 9 · 08:14**; current glucose **115** (08:10); 30-min fore
 *Action:* **Step 1 h** → **Day 9 · 09:14**: glucose **149**; forecasts **168** (151–184) and **161** (134–187).
 
 **08:55 — A warning and an honest outcome.** *Action:* **Step 5 min** twice → **Day 9 · 09:24**.
-> Glucose is rising. At 09:15 the twin issued a research warning: a forecast within the hour reached the threshold
-> chosen on validation data. The review panel shows the forecast margin and its threshold — not a probability — and
-> the Warnings list says *pending*, because at this replay time the outcome cannot be known yet. Mark as reviewed only
+> Glucose is rising. At 09:15 the twin issued a research warning: its thirty-minute forecast, 172, reached the warning
+> trigger of 170 — ten below the 180 threshold, a margin chosen on validation data so warnings come earlier. The review
+> panel and the Warnings list name the forecast that fired and the trigger — a forecast level, not a probability — and
+> the list says *pending*, because at this replay time the outcome cannot be known yet. Mark as reviewed only
 > records a local note; no one is messaged.
 
 *Action:* **Mark as reviewed**; then **Step 1 h** twice → **Day 9 · 11:24**.

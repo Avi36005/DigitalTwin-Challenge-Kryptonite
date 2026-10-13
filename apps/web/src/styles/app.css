@@ -1451,6 +1451,37 @@ th[aria-sort="descending"] .th-sort {
   font-size: var(--gt-fs-meta);
   color: var(--gt-text-2);
 }
+/* one-line review status under the forecast numbers; only when the inspector drops below the chart */
+.review-strip {
+  display: none;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: var(--gt-text-2);
+}
+.review-strip__icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--gt-text-2);
+}
+.review-strip__text {
+  min-width: 0;
+}
+.review-strip--attention .review-strip__icon {
+  color: var(--gt-attention-mark);
+}
+.review-strip__title {
+  font-weight: 600;
+  color: var(--gt-text);
+}
+.review-strip--attention .review-strip__title {
+  color: var(--gt-attention);
+}
+.review-strip__link {
+  display: inline;
+  font-size: 13px;
+}
 
 .chart__head {
   display: flex;
@@ -1821,6 +1852,47 @@ th[aria-sort="descending"] .th-sort {
 }
 .lede__sub {
   margin-top: 6px;
+  color: var(--gt-text-2);
+}
+/* results at a glance: flat columns divided by hairlines, like the replay summary */
+.glance {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px 0;
+  margin: 16px 0 4px;
+  max-width: 1120px;
+}
+.glance > div {
+  min-width: 0;
+  padding: 0 20px;
+  border-left: 1px solid var(--gt-divider);
+}
+.glance > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.glance dt {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gt-text-2);
+}
+.glance__value {
+  margin-top: 2px;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.glance__unit {
+  margin-left: 5px;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--gt-text-2);
+}
+.glance__sub {
+  margin-top: 2px;
+  font-size: 13px;
   color: var(--gt-text-2);
 }
 .disclosures {
@@ -2445,6 +2517,16 @@ fieldset.field {
 
 /* ================================================================== responsive */
 @media (max-width: 1180px) {
+  .review-strip {
+    display: flex;
+  }
+  .glance {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .glance > div:nth-child(4) {
+    padding-left: 0;
+    border-left: 0;
+  }
   .workspace {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2514,6 +2596,13 @@ fieldset.field {
   .workspace__inspector,
   .lower {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .glance {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .glance > div {
+    padding: 0 12px 0 0;
+    border-left: 0;
   }
   .chart__plot {
     height: 280px;

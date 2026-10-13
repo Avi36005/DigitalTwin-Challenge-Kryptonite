@@ -1,10 +1,11 @@
-import { ArrowRight, History } from "lucide-react";
+import { ArrowRight, History, Play } from "lucide-react";
 import { Link } from "react-router";
-import type { ReplaySession } from "@/api/types";
+import type { PatientSummary, ReplaySession } from "@/api/types";
 import { modeLabel } from "@/lib/format";
 import { paths } from "@/lib/routes";
 import { replayTime, wallTime } from "@/lib/time";
-import { usePatients, useSessions } from "@/state/replay";
+import { useCreateReplay } from "@/state/open";
+import { usePatient, usePatients, useSessions } from "@/state/replay";
 import { useShell } from "@/components/shell/ShellContext";
 import { statusWord } from "@/components/shell/Sidebar";
 import { Button, EmptyState, InlineNotice, PageHeader, Section, Skeleton } from "@/components/ui";
@@ -18,12 +19,15 @@ export function OverviewPage() {
   const recorded = all.filter((p) => p.mode === "dataset_replay");
   const primary = recorded.filter((p) => p.eligible_for_primary_analysis).length;
   const synthetic = all.filter((p) => p.mode === "synthetic_demo").length;
+  const demo = recorded.find((p) => p.eligible_for_primary_analysis);
 
   return (
     <>
-      <PageHeader title="Overview">Resume a replay or choose a participant.</PageHeader>
+      <PageHeader title="Overview">Open the recorded demo, resume a replay or choose a participant.</PageHeader>
 
-      <Section title="Recent replays" divider={false}
+      {demo && <RecordedDemo demo={demo} />}
+
+      <Section title="Recent replays" divider={!!demo}
         actions={recent.length > 0 ? <Link to={paths.sessions()} className="text-link">View all<ArrowRight size={15} aria-hidden /></Link> : undefined}>
         {sessions.isLoading ? <Skeleton h={180} /> : sessions.isError ? (
           <InlineNotice tone="danger" role="alert">Replay sessions could not be loaded: {(sessions.error as Error).message}</InlineNotice>
@@ -55,6 +59,31 @@ export function OverviewPage() {
         )}
       </Section>
     </>
+  );
+}
+
+/** One click to the walkthrough: the first primary-analysis participant, starting at the held-out test period, so the
+ *  first screen shows forecasts on data the model never trained on instead of an empty chart. */
+function RecordedDemo({ demo }: { demo: PatientSummary }) {
+  const detail = usePatient(demo.patient_id);
+  const test = detail.data?.evaluation_segments?.find((s) => s.name === "test");
+  const create = useCreateReplay();
+  return (
+    <Section title="Recorded demo" divider={false}>
+      <div className="start-row">
+        <p className="start-row__text">
+          {demo.display_alias}, starting at the held-out test period
+          {test ? <> (<span className="num">{replayTime(test.start_at)}</span>)</> : null}: forecasts, warnings and their outcomes
+          on data the model never trained on. Each click starts a new replay session.
+        </p>
+        <div className="start-row__actions">
+          <Button variant="primary" icon={Play} disabled={!test} busy={create.isPending}
+            onClick={() => test && create.mutate({ patientId: demo.patient_id, mode: "dataset_replay", startAt: test.start_at })}>
+            Open recorded demo
+          </Button>
+        </div>
+      </div>
+    </Section>
   );
 }
 

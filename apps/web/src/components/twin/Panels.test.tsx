@@ -90,6 +90,40 @@ describe("review status", () => {
     expect(screen.getByText("Insufficient information")).toBeInTheDocument();
   });
 
+  const fired = (mode: "dataset_replay" | "synthetic_demo", margin: number, fire = true) => forecast({
+    mode,
+    estimates: [[30, 172], [60, 164]].map(([h, v]) => ({ horizon_minutes: h, target_at: "2000-01-03T10:57:00Z", predicted_mg_dl: v,
+      lower_mg_dl: null, upper_mg_dl: null, interval_level: null, interval_status: "unavailable", components: null })),
+    event_risk: [30, 60].map((h) => ({ horizon_minutes: h, probability: null, score: -8, score_kind: "forecast_margin_mg_dl",
+      score_description: "", state: "eligible", alert_threshold: h === 60 ? margin : null, alert_fired: fire && h === 60 })),
+  } as never);
+
+  it("names the forecast that fired a warning and the trigger level, not 'above 180'", () => {
+    render(<ReviewStatus latest={latest(fired("dataset_replay", -10))} />);
+    expect(screen.getByText("Warning issued")).toBeInTheDocument();
+    const text = screen.getByText(/reached the 170 mg\/dL warning trigger/).textContent ?? "";
+    expect(text).toContain("the 30-minute forecast, 172 mg/dL");
+    expect(text).toContain("10 mg/dL below the 180 mg/dL episode threshold (chosen on validation data)");
+    expect(text).toContain("so warnings come earlier");
+    expect(screen.queryByText(/sustained episode above 180/)).toBeNull();
+    expect(screen.getByText(/Highest forecast within 60 min/)).toHaveTextContent("172 mg/dL (30-min) · warning trigger 170 mg/dL");
+  });
+
+  it("does not claim a validation-chosen or early trigger for the synthetic model", () => {
+    render(<ReviewStatus latest={latest(fired("synthetic_demo", 0))} />);
+    const text = screen.getByText(/warning trigger\. The rule/).textContent ?? "";
+    expect(text).toContain("at the 180 mg/dL episode threshold");
+    expect(text).not.toContain("validation");
+    expect(text).not.toContain("earlier");
+  });
+
+  it("keeps an earlier warning visible as awaiting its outcome when the latest forecast does not fire", () => {
+    const alerts = { items: [{ state: "open", issued_at: "2000-01-03T09:15:00Z" }], rule_available: true } as never;
+    render(<ReviewStatus latest={latest(fired("dataset_replay", -10, false))} alerts={alerts} />);
+    expect(screen.getByText("Warning awaiting outcome")).toBeInTheDocument();
+    expect(screen.getByText(/is below the 170 mg\/dL trigger/)).toBeInTheDocument();
+  });
+
   it("reports a missing model separately from abstention", () => {
     render(<ReviewStatus latest={latest(null, { reasons: [{ code: "model_unavailable", message: "x" }] })} />);
     expect(screen.getByText("Model unavailable")).toBeInTheDocument();
@@ -117,5 +151,15 @@ describe("warning history", () => {
     render(<WarningHistory alerts={list as never} onAck={() => {}} ackPending={false} />);
     expect(screen.getByText(/forecast lead 55 min/)).toBeInTheDocument();
     expect(screen.getByText(/first warning 155 min before/)).toBeInTheDocument();
+  });
+
+  it("shows which forecast fired each warning against the trigger", async () => {
+    const { WarningHistory } = await import("./Panels");
+    const a = alert({ status: "pending" });
+    const list = { schema_version: "1.0", session_id: "s1", session_revision: 1, clock_at: "2000-01-03T11:00:00Z",
+      rule_available: true, rule_description: null,
+      items: [{ ...a, evidence: { ...a.evidence, threshold: -10, score: -8, predicted_mg_dl: { "30": 172, "60": 164 } } }] };
+    render(<WarningHistory alerts={list as never} onAck={() => {}} ackPending={false} />);
+    expect(screen.getByText(/Fired by the 30-min forecast/)).toHaveTextContent("Fired by the 30-min forecast 172 mg/dL ≥ 170 trigger · 60-min 164");
   });
 });

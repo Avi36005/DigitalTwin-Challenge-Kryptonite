@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight, Info, Target } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import { useClient } from "@/api/client";
 import { ApiError } from "@/api/transport";
-import type { Alert, Forecast } from "@/api/types";
-import { forecastUsable } from "@/lib/chart";
+import type { Alert, EvaluationSegment, Forecast, ObservationEvent, ReplaySession } from "@/api/types";
+import { forecastUsable, latestGlucose } from "@/lib/chart";
 import { modeLabel } from "@/lib/format";
 import { paths } from "@/lib/routes";
 import { ms, replayTime } from "@/lib/time";
@@ -14,6 +14,7 @@ import { useOpenTwin } from "@/state/open";
 import { usePreferences } from "@/state/preferences";
 import {
   useAlerts,
+  useControl,
   useForecastHistory,
   useLatestForecast,
   usePatient,
@@ -35,9 +36,10 @@ import {
   ModelDetails,
   RecentObservations,
   ReviewStatus,
+  ReviewStrip,
   WarningHistory,
 } from "@/components/twin/Panels";
-import { EmptyState, InlineNotice, MetadataLine, PageHeader, Skeleton } from "@/components/ui";
+import { Button, EmptyState, InlineNotice, MetadataLine, PageHeader, Skeleton } from "@/components/ui";
 
 export function ReplayPage({ sid }: { sid: string }) {
   const client = useClient();
@@ -133,6 +135,10 @@ export function ReplayPage({ sid }: { sid: string }) {
 
       <GlucoseSummary session={session} events={events} latest={latest.data} twin={twin.data} loading={latest.isLoading}
         eventsLoaded={eventsLoaded} report={evaluation.data} />
+      <ReviewStrip latest={latest.data} alerts={alerts.data} />
+
+      <StartNotice session={session} events={events} eventsLoaded={eventsLoaded} segments={patient.data?.evaluation_segments}
+        onAnnounce={setAnnounce} />
 
       {latestF?.split_segment === "training" && (
         <InlineNotice tone="neutral" icon={Info} role="note">
@@ -168,6 +174,31 @@ export function ReplayPage({ sid }: { sid: string }) {
       <ForecastDetail f={selected ?? latestF} patient={patient.data} report={evaluation.data} open={detailOpen} onClose={() => setDetailOpen(false)} />
       <div className="visually-hidden" aria-live="polite">{announce}</div>
     </>
+  );
+}
+
+/** At the start of a recording nothing has been released yet, so the chart is empty: say so, and offer the held-out test
+ *  period — where the twin is shown on data it never trained on — as the first stop. */
+function StartNotice({ session, events, eventsLoaded, segments, onAnnounce }: {
+  session: ReplaySession; events: ObservationEvent[]; eventsLoaded: boolean; segments?: EvaluationSegment[] | null;
+  onAnnounce: (msg: string) => void;
+}) {
+  const control = useControl(session.id);
+  const toast = useToast();
+  const clock = ms(session.clock_at);
+  if (!eventsLoaded || latestGlucose(events, clock) || session.status === "playing") return null;
+  const test = segments?.find((s) => s.name === "test");
+  const go = () => test && control.mutate({ action: "seek", seek_to: test.start_at }, {
+    onSuccess: (s) => onAnnounce(`Moved to the held-out test period. Replay time ${replayTime(s.clock_at)}.`),
+    onError: (e) => toast(`Replay control failed: ${(e as Error).message}`, "error"),
+  });
+  return (
+    <InlineNotice tone="neutral" icon={Info} role="note"
+      action={test ? <Button variant="primary" size="sm" icon={Target} busy={control.isPending} onClick={go}>Go to held-out test period</Button> : undefined}>
+      <strong>No readings released yet.</strong> The replay clock is at the start of the recording.{" "}
+      {test ? <>Jump to the held-out test period (from {replayTime(test.start_at)}) to see forecasts on data the model never trained on, or press Play.</>
+        : <>Press Play to release readings as they would have arrived.</>}
+    </InlineNotice>
   );
 }
 

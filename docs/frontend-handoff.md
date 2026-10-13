@@ -109,22 +109,26 @@ episode.
 
 ## Model evidence (`pages/EvidencePage.tsx`)
 
-1. Correction notice when `corrects_experiment_id` is set.
+1. A one-paragraph notice: the fusion constraint (when `selection_disclosures` is non-empty, with a link to the full
+   disclosures) or the correction notice (when `corrects_experiment_id` is set).
 2. Flat context row: dataset, evaluated participants, final-test segment, serving model.
-3. "Selected pipeline" sentence, built from the report.
-4. Comparison table (serving, persistence, linear trend, ridge, closest comparable candidate), chosen by rule, never
+3. "Results at a glance": one sentence naming the serving pipeline and that the test covers later recordings of the
+   same participants, then a flat row — 30- and 60-minute MAE against persistence, onsets warned, false alarms (per
+   observed participant-day) and measured range coverage against its target. All from the report.
+4. "What this result does and does not show": every `selection_disclosures` statement, shown in full (never folded).
+5. Comparison table (serving, persistence, linear trend, ridge, closest comparable candidate), chosen by rule, never
    by score, with *Show all configurations*. The full table adds RMSE, participants, **Forecast availability** and
    batch inference time (shown as "<0.1 ms" when below 0.1).
    - Rule-ordered until a heading is sorted; sortable headings set `aria-sort`.
    - A sentence explains the validation-based selection.
-5. Disclosures:
+6. Disclosures:
    - uncertainty (paired differences with participant-cluster intervals);
    - prediction ranges (target vs measured coverage, widths, per-participant range);
    - research warnings (raw counts, both time bases, qualified lead and episode-start-to-onset);
    - per-participant variation;
    - secondary analyses (leave-one-out labelled secondary; Chronos-Bolt "Not run");
    - protocol.
-6. A limitations summary with its full list.
+7. A limitations summary with its full list.
 
 Metric labels and their meaning are unit-tested in `src/lib/evidence.test.ts`.
 
