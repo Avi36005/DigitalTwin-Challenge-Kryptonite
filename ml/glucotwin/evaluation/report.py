@@ -40,6 +40,76 @@ def latest_metrics_path() -> Path | None:
     return None
 
 
+NESTED_EVIDENCE_ID = "gt-nested-2026-10-12-v1"  # the people-held-out experiment that tested the profile inputs
+
+
+def _serving_event(m: dict[str, Any], split: str = "test") -> dict[str, Any] | None:
+    sel = m["selection"]
+    name = f"{sel['selected_label']} ({'adaptive' if sel['serving_personalization'] == 'adaptive' else 'population'})"
+    H = int(m.get("serving_alert_horizon", 60))
+    return next((e for e in m["events"] if e["model"] == name and e["split"] == split and e["horizon"] == H), None)
+
+
+def profile_benefit_on_new_people() -> list[dict[str, Any]]:
+    p = paths().artifacts / "research" / NESTED_EVIDENCE_ID / "report.json"
+    rep = json.loads(p.read_text()) if p.exists() else {}
+    if rep.get("status") != "completed":
+        return []
+    cmp = rep.get("tracks", {}).get("multimodal_5min", {}).get("comparisons", [])
+    return sorted((c for c in cmp if c["comparison"].startswith("Profile inputs")), key=lambda c: c["horizon"])
+
+
+def selection_disclosures(m: dict[str, Any]) -> list[str]:
+    """Statements that must accompany a serving model chosen under an eligibility constraint (empty otherwise).
+    Every number is read from saved artifacts."""
+    eligible = m["selection"].get("eligible_feature_sets")
+    if not eligible:
+        return []
+    exp = load_experiment_config(m["experiment_id"])
+    inspected = [x for x in (m.get("corrects_experiment_id"), exp.get("derived_from")) if x]
+    out = [f"Eligibility was restricted to models that read both the baseline profile and the dynamic streams "
+           f"({', '.join(eligible)}) by protocol {m['experiment_id']}, declared on {exp.get('declared_on')} after the "
+           f"test segment had already been inspected{' in ' + ' and '.join(inspected) if inspected else ''}. The "
+           "validation score, tie margin and tie-break are unchanged."]
+    rows = profile_benefit_on_new_people()
+    if rows:
+        parts = "; ".join(f"{r['mean_diff']:+.2f} [{r['ci95'][0]:+.2f}, {r['ci95'][1]:+.2f}] mg/dL at {r['horizon']} min"
+                          for r in rows)
+        verdict = ("Every interval includes zero: no reliable benefit was shown."
+                   if all(r["ci95"][0] <= 0 <= r["ci95"][1] for r in rows) else "See the nested report for details.")
+        out.append(f"On people held out entirely ({NESTED_EVIDENCE_ID}), adding the profile to LightGBM changed mean "
+                   f"absolute error by {parts} (negative = better; participant-cluster bootstrap). {verdict}")
+    else:
+        out.append("Whether the profile improves forecasts for people outside the training cohort has not been "
+                   "assessed on this machine.")
+    n = m["cohort"].get("participants", "the same")
+    out.append(f"Profile values are constant within a person and the model is trained and tested on the same {n} "
+               "people, so the profile can act as a participant identifier. A better score here does not show that "
+               "the profile helps unseen patients.")
+    out.append("This model was selected to implement the required fusion of static and dynamic data, not because it "
+               "was more accurate. We have not established that profile features improve forecasting for unseen "
+               "patients.")
+    base = exp.get("derived_from")
+    own = _serving_event(m)
+    bp = paths().artifacts / "experiments" / str(base) / "metrics.json"
+    theirs = _serving_event(json.loads(bp.read_text())) if base and bp.exists() else None
+    H = int(m.get("serving_alert_horizon", 60))
+    key = f"{m['selection']['selected_label']} ({'adaptive' if m['selection']['serving_personalization'] == 'adaptive' else 'population'})|{H}"
+    log = m.get("alert_threshold_selection", {}).get(key, [])
+    if own and theirs and log:
+        best = max((r["f1"] or 0) for r in log)
+        near = [r["threshold"] for r in log if (r["f1"] or 0) >= best - 0.03]
+        out.append(f"The warning margin ({own['threshold']:+.0f} mg/dL; {base}: {theirs['threshold']:+.0f}) was "
+                   f"re-derived by the same event-level F1 rule, and margins {', '.join(f'{t:+.0f}' for t in near)} "
+                   f"were within 0.03 F1 of the best on validation. Because the model and its margin changed "
+                   f"together, the change in false alarms per observed day "
+                   f"({theirs['false_alarms_per_observed_patient_day']:.2f} to "
+                   f"{own['false_alarms_per_observed_patient_day']:.2f}) and in detected onsets "
+                   f"({theirs['detected_onsets']} to {own['detected_onsets']} of {own['true_onsets']}) is not evidence "
+                   "that the profile improves warnings.")
+    return out
+
+
 def _mv(v, reason: str = "not computed") -> dict[str, Any]:
     if v is None:
         return {"value": None, "reason_if_null": reason}
@@ -149,9 +219,14 @@ def build_report(experiment_id: str | None = None) -> dict[str, Any]:
          "results": m.get("comparisons", [])},
     ]
     corrects = m.get("corrects_experiment_id")
+    base = exp.get("derived_from")
     status_message = (
         "Completed real-data evaluation on the held-out final test segment (evaluated once after the protocol was frozen)."
         if not corrects else
+        f"Retrospective evaluation: the protocol of {base} re-run with serving eligibility restricted to models that "
+        f"read the baseline profile and the dynamic streams. The test segment had already been inspected in {corrects} "
+        f"and {base}, so these are not untouched test results."
+        if base and m["selection"].get("eligible_feature_sets") else
         f"Corrected retrospective evaluation: the declared protocol of {corrects} re-run after code corrections. "
         f"The test segment had already been inspected in {corrects}, so these are not untouched test results.")
     limitations = LIMITATIONS + ([
@@ -162,6 +237,7 @@ def build_report(experiment_id: str | None = None) -> dict[str, Any]:
         "status_message": status_message,
         "experiment_id": m["experiment_id"], "created_at": m["created_at"], "mode": "dataset_replay",
         "corrects_experiment_id": corrects, "correction_note": m.get("correction_note"),
+        "selection_disclosures": selection_disclosures(m),
         "dataset": {"name": data_cfg["name"], "version": data_cfg["version"], "license": data_cfg["license"],
                     "citation_url": data_cfg["doi"], "synthetic": False},
         "fingerprints": m["fingerprints"],

@@ -4,6 +4,7 @@ import type { EvaluationReport, EventMetricsRow } from "@/api/types";
 import {
   defaultComparison,
   FAMILY,
+  featureLabel,
   fmtLatency,
   LABELS,
   pctLower,
@@ -107,7 +108,12 @@ function Evidence({ r }: { r: EvaluationReport }) {
 
   return (
     <div className="evidence">
-      {r.corrects_experiment_id && (
+      {(r.selection_disclosures ?? []).length > 0 ? (
+        <InlineNotice tone="attention" role="note">
+          <strong>Fusion-constrained result.</strong> {r.status_message}
+          <ul className="limits">{(r.selection_disclosures ?? []).map((d, i) => <li key={i}>{d}</li>)}</ul>
+        </InlineNotice>
+      ) : r.corrects_experiment_id && (
         <InlineNotice tone="attention" role="note">
           <strong>Corrected retrospective result.</strong> This experiment re-runs the declared protocol of{" "}
           <span className="nowrap">{r.corrects_experiment_id}</span> after fixing two code defects (activity-window features and
@@ -126,8 +132,8 @@ function Evidence({ r }: { r: EvaluationReport }) {
         {serving && m30 != null && m60 != null ? (
           <div className="lede">
             <p className="lede__main">
-              {FAMILY[serving.family] ?? serving.family} {serving.pers === "adaptive" ? "with patient adaptation " : ""}is the selected replay
-              model. Its final-test mean absolute error was <strong className="num">{m30.toFixed(2)} mg/dL</strong> at 30 minutes
+              {FAMILY[serving.family] ?? serving.family} ({featureLabel(serving.feature)}){" "}
+              {serving.pers === "adaptive" ? "with patient adaptation " : ""}is the selected replay model. Its final-test mean absolute error was <strong className="num">{m30.toFixed(2)} mg/dL</strong> at 30 minutes
               and <strong className="num">{m60.toFixed(2)} mg/dL</strong> at 60 minutes in this experiment.
             </p>
             {p30 != null && p60 != null && (

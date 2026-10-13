@@ -1,12 +1,16 @@
-# Model card — `lightgbm.dyn-v2.gt-primary-2026-10-11-v2`
+# Model card — `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`
 
-All numbers below are copied from `artifacts/experiments/gt-primary-2026-10-11-v2/metrics.json`. To regenerate the
-full tables, run `glucotwin experiment report`, which writes `reports/evaluation_report.md`.
+All numbers below are copied from `artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json` (and, where
+stated, from the nested research report). To regenerate the full tables, run `glucotwin experiment report`, which
+writes `reports/evaluation_report.md`.
 
-> **Corrected retrospective result.** This model comes from re-running the declared protocol of
-> `gt-primary-2026-10-11-v1` after two code corrections: activity-window features, and warning accounting in replay
-> (`reports/repair_report.md`). The final-test segment had already been inspected in v1, so these are not untouched
-> test results. The original v1 model, metrics and report are preserved (see *History* below).
+> **Retrospective, fusion-constrained result.** This model comes from re-running the protocol of
+> `gt-primary-2026-10-11-v2` with one change: the serving model must read both the static baseline profile and the
+> dynamic glucose and wearable streams, as the challenge brief requires. The constraint was declared on 13 October
+> 2026, **after** the final-test segment had been inspected in v1 and v2, so these are not untouched test results.
+> **We selected a model that implements the required fusion; we have not established that profile features improve
+> forecasting for unseen patients** (see *What the profile does and does not show*). The previous dynamic-only model
+> (v2) stays registered for rollback; v1 and v2 metrics and reports are preserved (see *History*).
 
 ## Intended use
 
@@ -22,48 +26,58 @@ diagnosis, screening, or use with real-time patient data.
 
 ## Model
 
-* **Family / feature set:** LightGBM direct regressors, one per horizon, on `dyn-v2`.
-  - 38 trailing features: native CGM history (levels, lags, changes, slopes, variability, coverage, gaps) and wearable
-    activity (heart rate, METs, activity energy).
-  - Each 5-minute wearable summary counts only the part of its interval inside the lookback window
-    (`activity_policy = overlap-v2`).
-  - No profile features, no meals, no time of day, no participant ID.
+* **Family / feature set:** LightGBM direct regressors, one per horizon, on `dyn-prof-v2` (46 inputs in one model).
+  - 38 dynamic features: native CGM history (levels, lags, changes, slopes, variability, coverage, gaps) and wearable
+    activity (heart rate, METs, activity energy). Each 5-minute wearable summary counts only the part of its interval
+    inside the lookback window (`activity_policy = overlap-v2`).
+  - 8 static baseline profile values: age, sex, BMI, HbA1c, fasting glucose, fasting insulin, triglycerides and HDL,
+    from the screening visit and treated as known from the start of the record (`docs/feature_availability.md`).
+  - No meals, no time of day, no participant ID.
+* **Profile gate:** the model was trained only on complete profiles, so it abstains (`profile_unavailable`) whenever a
+  profile value it reads is missing or not yet available, instead of predicting from a gap it never saw. All 14
+  evaluated participants have complete profiles.
 * **Target:** glucose change from the latest reading at +30 and +60 minutes. The target is matched to a native
   reading within ±2.5 min and never interpolated.
-* **Patient adaptation (`shrunk-bias-v1`, adopted):** per horizon,
+* **Patient adaptation (`shrunk-bias-v1`, adopted on validation):** per horizon,
   - correction = clip(Σwᵢrᵢ / (Σwᵢ + k), ±25 mg/dL);
   - rᵢ = observed − frozen population forecast, using matured forecasts only;
   - wᵢ = 0.5^(age/240 min); k = 96; at least 6 matured residuals; reset after a 180-minute gap;
   - model weights are never refit.
-* **Prediction ranges:** split-conformal with a target coverage of 80 %. Quantiles are 16.8 mg/dL (30 min) and
-  28.1 mg/dL (60 min), calibrated on the calibration segment with the adaptive pipeline.
-* **Warning score:** max(forecast within 60 min) − 180 mg/dL. The alert threshold is a −30 mg/dL margin (the
-  declared validation-F1 rule), so a warning fires when a forecast within the hour reaches 150 mg/dL. The score is
-  uncalibrated and never shown as a probability.
+* **Prediction ranges:** split-conformal with a target coverage of 80 %. Quantiles are 16.7 mg/dL (30 min) and
+  26.4 mg/dL (60 min), calibrated on the calibration segment with the adaptive pipeline.
+* **Warning score:** max(forecast within 60 min) − 180 mg/dL. The alert threshold is a −10 mg/dL margin (the
+  declared validation-F1 rule, re-derived for this model), so a warning fires when a forecast within the hour reaches
+  170 mg/dL. The score is uncalibrated and never shown as a probability.
 * **Artifacts:**
   - LightGBM text models plus a JSON manifest with SHA-256 checksums, feature order and transformation fingerprint
-    `8e85d78d17122ef4`;
+    `38152f8846c88ed4`;
   - the loader refuses weights whose feature transformation differs;
   - no pickles.
+* **Online/offline parity:** replaying every test participant through the app's twin engine reproduced all 15,440
+  saved test forecasts within 0.05 mg/dL.
 
 ## Data and protocol
 
 * **Data:** CGMacros 1.0.0 (PhysioNet, CC BY-NC-SA 4.0). 14 participants in the dataset's Type 2 group
   (HbA1c > 6.4 %), one US site, about 10 days each, Dexcom G6 Pro native readings.
 * **Split:** chronological within each participant by elapsed span — 60 % training, 10 % validation-selection, 10 %
-  calibration, 20 % final test — with 82.5-minute purging of label support.
-* **Protocol:** `configs/experiment.yaml`. It is identical to the v1 protocol except for the corrected feature sets
-  (the differences are listed in its header).
+  calibration, 20 % final test — with 82.5-minute purging of label support. Split hash `b31e8d8c071eb425`, identical
+  to v2.
+* **Protocol:** `configs/experiments/gt-primary-2026-10-13-fusion.yaml` — v2's protocol (`configs/experiment.yaml`)
+  plus `models.selection.eligible_feature_sets: [dyn-prof-v2]`. Its header states the change, its reason and its
+  timing.
 
 ## Selection
 
 * **Candidates:** persistence, bounded linear trend, ridge (2 feature sets), LightGBM and CatBoost. The tree models had
   12 seeded random-search trials per family × horizon × feature set, with early stopping on validation-selection.
-* **Rule:** lowest mean of per-participant MAE over both horizons on validation-selection. Candidates within
-  0.5 mg/dL are tied and resolved by simpler family, then smaller feature set.
-* **Outcome:** four tree candidates fell within the margin (best 17.36 for `lightgbm:dyn-prof-v2`;
-  `lightgbm:dyn-v2` 17.75), so the rule selected `lightgbm:dyn-v2` — the same choice as in v1. We did not change it
-  after seeing test results.
+  Every candidate's test predictions are identical to v2's.
+* **Rule (unchanged):** lowest mean of per-participant MAE over both horizons on validation-selection. Candidates
+  within 0.5 mg/dL are tied and resolved by simpler family, then smaller feature set.
+* **Eligibility (the one change):** only `dyn-prof-v2` models may serve.
+* **Outcome:** `lightgbm:dyn-prof-v2` had the best validation score of all candidates (17.36); `catboost:dyn-prof-v2`
+  tied (17.44) and lost on the simpler-family tie-break. Without the eligibility constraint the same rule selects
+  `lightgbm:dyn-v2` (17.75), the previous serving model.
 
 ## Measured results (final test segment: 14 participants, 7,730 origins ≈ 644 h, 64 new high-glucose onsets)
 
@@ -71,77 +85,94 @@ diagnosis, screening, or use with real-time patient data.
 |---|---|---|---|---|
 | Persistence | 14.84 | 23.23 | 22.08 | 33.56 |
 | Linear trend | 14.03 | 23.23 | 21.03 | 33.96 |
-| Ridge (dynamic) | 14.37 | 23.11 | 20.96 | 32.13 |
-| LightGBM dynamic, population | 13.38 | 21.20 | 19.42 | 29.42 |
-| **LightGBM dynamic + adaptation (serving)** | **13.15** | **20.81** | **19.26** | **29.07** |
-| CatBoost dynamic + adaptation | 13.23 | 20.44 | 19.33 | 28.75 |
-| LightGBM + profile + adaptation (not selected) | 12.96 | 20.26 | 18.79 | 28.00 |
-| CatBoost + profile + adaptation (not selected) | 12.93 | 19.80 | 18.73 | 27.72 |
+| Ridge (dynamic + profile) | 14.61 | 22.96 | 21.25 | 31.83 |
+| LightGBM dynamic + adaptation (previous serving model, v2) | 13.15 | 20.81 | 19.26 | 29.07 |
+| LightGBM dynamic + profile, population | 13.14 | 20.59 | 18.86 | 28.14 |
+| **LightGBM dynamic + profile + adaptation (serving)** | **12.96** | **20.26** | **18.79** | **28.00** |
+| CatBoost dynamic + profile + adaptation (tied, not selected) | 12.93 | 19.80 | 18.73 | 27.72 |
 
 **Paired per-participant differences** (participant-cluster bootstrap, 95 % interval):
 
-* **Serving − persistence:** −1.69 mg/dL [−2.34, −1.11] at 30 min; −2.42 [−3.81, −1.11] at 60 min. Lower MAE than
-  persistence for 14/14 participants at 30 min and 12/14 at 60 min.
-* **Adaptation (LightGBM dynamic):** −0.24 [−0.43, −0.07] at 30 min; −0.39 [−0.79, −0.02] at 60 min. It improved 9/14
-  participants at each horizon. A frozen-state control (no test-time updates) gave 13.40 / 21.16, so the small gain
-  comes from updating during the test period.
-* **LightGBM − CatBoost (population, dynamic):** −0.13 [−0.34, 0.07] at 30 min; +0.18 [−0.29, 0.66] at 60 min — no
-  clear difference.
-* **Profile features (LightGBM, population):** −0.25 [−0.43, −0.04] at 30 min; −0.61 [−1.15, −0.09] at 60 min, within
-  participants. Caution: with 14 participants a profile vector is a quasi-identifier, so this gain may not transfer.
+* **Serving − persistence:** −1.88 mg/dL [−2.53, −1.32] at 30 min; −2.96 [−4.34, −1.77] at 60 min. Lower MAE than
+  persistence for 14/14 participants at 30 min and 13/14 at 60 min.
+* **Adaptation (LightGBM dynamic + profile):** −0.18 [−0.35, −0.01] at 30 min; −0.33 [−0.68, +0.02] at 60 min
+  (inconclusive). It improved 8/14 participants at 30 min and 9/14 at 60 min. A frozen-state control (no test-time
+  updates) gave 13.19 / 20.65, so the small gain comes from updating during the test period.
+* **LightGBM − CatBoost (population, dynamic + profile):** +0.02 [−0.15, +0.20] at 30 min; +0.46 [+0.05, +0.92] at
+  60 min — CatBoost slightly better at 60 min; the two tied on validation.
+* **Profile − dynamic-only (LightGBM, population):** −0.25 [−0.43, −0.04] at 30 min; −0.61 [−1.15, −0.09] at 60 min,
+  within the same participants. See the next section before reading this as a benefit of the profile.
 
 **Forecast availability:** 99.9 % of test origins with an observed target received a forecast. This is availability,
-not accuracy. Batch model inference took 3.5 ms per 1,000 forecasts (both horizons, Apple M4 CPU). The full
-experiment ran in 110 s.
+not accuracy. Batch model inference took 5.3 ms per 1,000 forecasts (both horizons, Apple M4 CPU). The full
+experiment ran in 128 s.
 
-**Prediction ranges (target coverage 80 %):** test coverage was 74.4 % at 30 min and 75.9 % at 60 min; per participant
-it was 60–82 % and 60–86 %. The under-coverage reflects drift between segments and time dependence; no guarantee is
+**Prediction ranges (target coverage 80 %):** test coverage was 74.2 % at 30 min and 74.0 % at 60 min; per participant
+it was 60–82 % and 51–88 %. The under-coverage reflects drift between segments and time dependence; no guarantee is
 claimed.
 
 **Early warning (60-minute rule, test):**
 
-| Measure | Serving rule (−30 mg/dL margin) | Persistence rule (glucose ≥ 150 mg/dL) |
-|---|---|---|
-| Onsets detected | 64 of 64 (recall 1.00) | 63 of 64 |
-| Warning episodes | 143 (precision 0.45, F1 0.62) | — |
-| False alarms | 79 | — |
-| False alarms per eligible day | 4.51 | 4.00 |
-| False alarms per observed day | 2.95 | — |
-| Warnings per observed day | 5.33 | — |
-| Qualified forecast lead, median (IQR) | 55 min (30–60) | 40 min |
-| Episode-start-to-onset, median | 67.5 min (33 episodes started > 60 min before onset) | — |
-| Origin-level PR-AUC (prevalence 0.13) | 0.45 | — |
+| Measure | Serving rule (−10 mg/dL margin) | Previous serving model (v2, −30 mg/dL) | Persistence rule (glucose ≥ 150 mg/dL) |
+|---|---|---|---|
+| Onsets detected | 61 of 64 (recall 0.95) | 64 of 64 (recall 1.00) | 63 of 64 |
+| Warning episodes | 101 (precision 0.60, F1 0.74) | 143 (precision 0.45, F1 0.62) | 133 (precision 0.47) |
+| False alarms | 40 | 79 | 70 |
+| False alarms per eligible day | 2.28 | 4.51 | 4.00 |
+| False alarms per observed day | 1.49 | 2.95 | 2.61 |
+| Warnings per observed day | 3.77 | 5.33 | 4.96 |
+| Qualified forecast lead, median (IQR) | 30 min (10–55) | 55 min (30–60) | 40 min |
+| Episode-start-to-onset, median | 30 min (16 episodes started > 60 min before onset) | 67.5 min (33) | — |
+| Origin-level PR-AUC (prevalence 0.13) | 0.48 | 0.45 | — |
 
-The declared F1 rule chose the lowest threshold in a nearly flat F1 curve. The serving rule is therefore sensitive but
-burdensome: about as noisy as a simple threshold on the current reading. Choosing the threshold under a workload-aware
-objective is proposed in `docs/next_experiment.md`.
+On validation, margins −10 and +0 mg/dL were within 0.03 F1 of the best. The model and its margin changed together,
+so fewer false alarms (and three missed onsets, and a shorter lead) are a threshold trade-off on a nearly flat F1
+curve, not evidence that the profile improves warnings. Choosing the threshold under a workload-aware objective is
+proposed in `docs/next_experiment.md`.
 
 **Secondary analyses:**
 
-* **Leave-one-participant-out cold start** (hyperparameters reused, so not a nested estimate): 14.92 / 25.47 mg/dL
-  without online adaptation and 14.07 / 23.12 with it. New participants are harder, and adaptation helps more for them.
-* **Optimistic meal logging** (assumes macronutrients known at the photo time; not selectable): 12.07 / 18.87, against
-  13.38 / 21.20 for the same family without meals.
+* **Leave-one-participant-out cold start** (hyperparameters reused, so not a nested estimate): 14.66 / 24.26 mg/dL
+  without online adaptation and 13.81 / 22.12 with it. The held-out person's own profile is still an input here, but
+  the model never saw that person in training.
+* **Optimistic meal logging** (assumes macronutrients known at the photo time; not selectable): 12.08 / 19.07, against
+  13.14 / 20.59 for the same family without meals.
+
+## What the profile does and does not show
+
+1. **The fusion requirement is met:** one model reads the static profile and the dynamic streams together.
+2. **Within the same 14 people the profile model scored better** (−0.25 / −0.61 mg/dL above). But profile values are
+   constant within a person and the test segment holds later days of the same people, so the profile can act as a
+   participant identifier.
+3. **On people held out entirely, no reliable benefit was shown.** In the nested experiment
+   (`gt-nested-2026-10-12-v1`, `reports/nested_benchmark_report.md`), LightGBM `dyn-prof-v2` minus `dyn-v2` was
+   +0.34 [−0.28, +0.89] mg/dL at 30 min and −0.75 [−2.19, +0.61] at 60 min.
+4. **The constraint came after the test segment had been inspected.** Score, tie margin and tie-break are unchanged,
+   but the decision to require the profile was made knowing that profile models had done well on test.
+5. **The model is chosen for compliance with the brief, not for accuracy.**
 
 ## History
 
 | Experiment | Status | Serving MAE 30 / 60 | Warning threshold, false alarms (test) |
 |---|---|---|---|
 | `gt-primary-2026-10-11-v1` (declared before fitting) | Superseded by the correction; artifacts and report preserved (`reports/archive/evaluation_report_gt-primary-2026-10-11-v1.md`) | 13.32 / 21.20 (`lightgbm.dyn-v1…`) | 0 mg/dL, 26 false alarms, episode-start median 10 min |
-| `gt-primary-2026-10-11-v2` (corrected re-run, same protocol) | Serving | 13.15 / 20.81 (`lightgbm.dyn-v2…`) | −30 mg/dL, 79 false alarms, qualified lead median 55 min |
+| `gt-primary-2026-10-11-v2` (corrected re-run, same protocol) | Served until 13 Oct 2026; registered for rollback; report preserved (`reports/archive/evaluation_report_gt-primary-2026-10-11-v2.md`) | 13.15 / 20.81 (`lightgbm.dyn-v2…`, dynamic only) | −30 mg/dL, 79 false alarms, qualified lead median 55 min |
+| `gt-primary-2026-10-13-fusion` (v2 + fusion eligibility, declared after test inspection) | **Serving** | 12.96 / 20.26 (`lightgbm.dyn-prof-v2…`) | −10 mg/dL, 40 false alarms, qualified lead median 30 min |
 
 v1's activity features counted up to 65 minutes in a 60-minute window (5,711 of 39,939 origins). Its replay screen could
-also credit one onset to two warnings; the offline metrics were not affected by that.
+also credit one onset to two warnings; the offline metrics were not affected by that. Rollback to v2:
+`uv run glucotwin research rollback --to lightgbm.dyn-v2.gt-primary-2026-10-11-v2`, then restart the API.
 
 ## Limitations
 
 * Small single-site US cohort (14 people), with no Indian participants.
+* With 14 people the profile can act as an identity code; no benefit for unseen patients has been shown.
 * Blinded research CGMs, replayed with an assumed zero latency; native timestamps known only to the minute.
 * Unknown medication use; meal-logging time not documented.
 * Prediction ranges under-cover their target.
 * The warning score is uncalibrated, and its threshold rule ignores review workload.
 * The research event threshold is not a triage rule.
-* The test segment had already been inspected before this corrected run.
+* The test segment had already been inspected before the corrected run and before the fusion constraint.
 * The optional Chronos-Bolt research track was not run.
 
 ## Ethics and licensing
@@ -163,6 +194,6 @@ Generated by `glucotwin research report` from saved predictions; see `reports/mo
 * Portable 15-minute track, same people: 14.06 / 22.21 mg/dL.
 * **External (ShanghaiT2DM, 98 people, 15-minute CGM only, opened once):** 11.15 / 20.11 mg/dL versus persistence 12.14 / 20.44; range coverage 87.06 % / 86.06 % (target 80 %).
 
-**Recommendation by the pre-specified rule:** Replace the serving recipe with the frozen candidate — rule met; promotion is a separate, explicit decision. The registry serves `lightgbm.dyn-v2.gt-primary-2026-10-11-v2`; no candidate of this experiment has been promoted.
+**Recommendation by the pre-specified rule:** Replace the serving recipe with the frozen candidate — rule met; promotion is a separate, explicit decision. The registry serves `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`; no candidate of this experiment has been promoted.
 
 <!-- research-candidates:end -->

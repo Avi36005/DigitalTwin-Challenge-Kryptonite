@@ -30,7 +30,7 @@ export function ResearchEvidence({ r }: { r: ResearchReport }) {
         <div><dt>Internal assessment</dt><dd>{internalPeople ?? "—"} CGMacros people <span className="muted">5 outer participant folds, each person once</span></dd></div>
         <div><dt>External assessment</dt><dd>{ext?.status === "completed" ? <>{ext.participants} ShanghaiT2DM people <span className="muted">separate 15-minute LightGBM, opened once</span></> : <>Not run <span className="muted">{ext?.reason ?? ""}</span></>}</dd></div>
         <div><dt>Protocol</dt><dd>Frozen {r.frozen_at?.slice(0, 10) ?? "—"} <span className="muted nowrap">hash {r.protocol_hash}</span></dd></div>
-        <div><dt>Deployment candidate</dt><dd>{cand.multimodal_5min ? "Frozen, not promoted" : "—"} <span className="muted">serving unchanged</span></dd></div>
+        <div><dt>Deployment candidate</dt><dd>{cand.multimodal_5min ? "Frozen, not promoted" : "—"} <span className="muted">not serving</span></dd></div>
       </dl>
 
       <Section title="Results on held-out people" divider

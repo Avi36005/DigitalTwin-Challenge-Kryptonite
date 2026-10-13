@@ -31,8 +31,8 @@ this page together — run `make contracts`.
 | `EventRisk` | `probability` is always `null` (no calibrated event model); `score` is the uncalibrated forecast margin in mg/dL with `score_kind = forecast_margin_mg_dl`; `state` ∈ eligible / already_high / in_episode / unknown / insufficient |
 | `LatestForecast` | `availability` ∈ available / stale / not_ready, `age_minutes`, reasons, forecast |
 | `Alert` | Research warning episode with evidence (pinned warning policy: `policy_id`, `rule_version`, `experiment_id`, score units, merge rule, applicability), supporting forecast IDs, outcome (pending / onset_observed / no_onset_observed / unknown; for onsets `qualified_lead_minutes` ≤ H, `episode_start_to_onset_minutes`, `last_supporting_forecast_at`; `lead_time_minutes` is a deprecated alias of the episode-start measure) and local acknowledgement |
-| `EvaluationReport` | `status` ∈ completed / not_run / unavailable / synthetic_only, `corrects_experiment_id` and `correction_note` for corrected re-runs, protocol, cohort accounting, selection record, forecast/event/interval rows (event rows carry both time bases, qualified lead and episode-start measures when available), optional experiments, limitations |
-| `EvaluationList` / `ServingList` | Experiment catalogue with regimes; serving model per mode with adaptation, range quantiles and warning margin |
+| `EvaluationReport` | `status` ∈ completed / not_run / unavailable / synthetic_only, `corrects_experiment_id` and `correction_note` for corrected re-runs, `selection_disclosures` when the serving model was chosen under an eligibility constraint, protocol, cohort accounting, selection record, forecast/event/interval rows (event rows carry both time bases, qualified lead and episode-start measures when available), optional experiments, limitations |
+| `EvaluationList` / `ServingList` | Experiment catalogue with regimes; serving model per mode with adaptation, range quantiles, warning margin and whether it requires a complete profile |
 | `ResearchReport` | Nested experiment: folds, per-track pipelines (macro MAE/RMSE, high-glucose MAE, availability, cold start, ranges), paired participant-bootstrap comparisons, warning policies with both workload denominators, external results, frozen candidates. Per-person values and raw lead lists are stripped before serving |
 | `DatasetInventory` | Per source: access status, publisher-reported people (external metadata), imported/eligible people, native readings, observed hours, cadence, inputs, user steps when access is blocked; a summary sentence only when assessed counts are verified |
 | `ErrorEnvelope` | `{schema_version, error: {code, message, request_id, details}}` — never a stack trace |
@@ -59,7 +59,7 @@ forecast quality `ok | degraded | insufficient`; control actions `play | pause |
 | `GET /replay/sessions/{id}/forecasts?cursor&limit&order` | Immutable issued forecasts of the current revision (≤ clock) |
 | `GET /replay/sessions/{id}/alerts` | Research warnings and review state |
 | `POST /replay/sessions/{id}/alerts/{alert_id}/acknowledgement` | Idempotent local acknowledgement; sends nothing |
-| `GET /evaluations` | Every saved experiment with its regime (`serving_retrospective`, `nested_research`, `superseded_original`); the serving one is flagged |
+| `GET /evaluations` | Every saved experiment with its regime (`serving_retrospective`, `nested_research`, `superseded_serving`, `superseded_original`); the serving one is flagged |
 | `GET /evaluations/latest` | Measured report of the experiment behind the serving model, or `not_run` |
 | `GET /evaluations/{experiment_id}` | Chronological-split report of another saved experiment (e.g. the original v1) |
 | `GET /research/{experiment_id}` | Nested participant-level research report (internal folds, reserved external cohort, frozen candidates) |

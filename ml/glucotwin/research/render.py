@@ -446,7 +446,7 @@ def render_review(rep: dict, figs: dict[str, str]) -> str:
          "typed in by hand.", "",
          "| Model | Role | Status |", "|---|---|---|",
          f"| LightGBM v2 (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`) | demo model before this experiment | "
-         f"{'serving' if _serving() == 'lightgbm.dyn-v2.gt-primary-2026-10-11-v2' else 'replaced by a promotion'} |",
+         f"{'serving' if _serving() == 'lightgbm.dyn-v2.gt-primary-2026-10-11-v2' else f'not serving (registry serves `{_serving()}`)'} |",
          f"| {_cand_name(rep, 'multimodal_5min')} | five-minute candidate | "
          f"{'promoted, serving' if _serving() in _cand_name(rep, 'multimodal_5min') else 'evaluated, not promoted'} |",
          f"| {_cand_name(rep, 'portable_15min')} | external check (separate 15-minute model) | evaluated once on ShanghaiT2DM |",
@@ -454,9 +454,10 @@ def render_review(rep: dict, figs: dict[str, str]) -> str:
     L += [f"* {r}" for r in reasons]
     L += ["", "## 1. Research question and current limitations", "",
           "Does a tuned LightGBM (L2 or L1 objective), CatBoost, or a different input set forecast glucose 30 and 60 "
-          "minutes ahead better than the current serving recipe for people the model has never seen — and does a "
+          "minutes ahead better than the v2 serving recipe for people the model has never seen — and does a "
           "portable CGM-only model trained on CGMacros transfer to an independent cohort recorded with a different "
-          "device, cadence and country? The serving model (LightGBM dyn-v2 + adaptation, experiment v2) was selected "
+          "device, cadence and country? The model serving when this experiment was declared (LightGBM dyn-v2 + "
+          "adaptation, experiment v2) was selected "
           "on the same 14 CGMacros people and its test segment was already inspected, so it could not answer either "
           "question.", "",
           "## 2. Provenance and inclusion", "", "```text",
@@ -557,8 +558,8 @@ def render_review(rep: dict, figs: dict[str, str]) -> str:
           "# Promotion is a separate explicit action (dry run without --yes):",
           "uv run glucotwin research promote --track multimodal_5min",
           "uv run glucotwin research promote --track multimodal_5min --yes",
-          "# Rollback to the current serving model:",
-          "uv run glucotwin research rollback --to lightgbm.dyn-v2.gt-primary-2026-10-11-v2", "```", "",
+          "# Rollback to the model served before a promotion:",
+          f"uv run glucotwin research rollback --to {_serving()}", "```", "",
           "### Limitations", ""] + [f"* {x}" for x in rep["limitations"] + protocol_notes(rep)] + [""]
     return "\n".join(L)
 

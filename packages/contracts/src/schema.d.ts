@@ -787,6 +787,11 @@ export interface components {
             corrects_experiment_id?: string | null;
             /** Correction Note */
             correction_note?: string | null;
+            /**
+             * Selection Disclosures
+             * @description Statements that qualify how the serving model was chosen, e.g. an eligibility constraint declared after the test segment had been inspected.
+             */
+            selection_disclosures?: string[];
             /** Created At */
             created_at?: string | null;
             /** Mode */
@@ -845,7 +850,7 @@ export interface components {
              * Regime
              * @enum {string}
              */
-            regime: "serving_retrospective" | "superseded_original" | "nested_research";
+            regime: "serving_retrospective" | "superseded_serving" | "superseded_original" | "nested_research";
             /** Title */
             title: string;
             /** Description */
@@ -1801,7 +1806,7 @@ export interface components {
             /** Experiment Id */
             experiment_id?: string | null;
             /** Evaluation Regime */
-            evaluation_regime?: ("serving_retrospective" | "superseded_original" | "nested_research") | null;
+            evaluation_regime?: ("serving_retrospective" | "superseded_serving" | "superseded_original" | "nested_research") | null;
             /** Adaptation */
             adaptation?: {
                 [key: string]: unknown;
@@ -1816,6 +1821,11 @@ export interface components {
             warning_threshold_margin_mg_dl?: number | null;
             /** Warning Horizon Minutes */
             warning_horizon_minutes?: number | null;
+            /**
+             * Requires Complete Profile
+             * @description True when the model abstains unless every baseline profile value it reads is available.
+             */
+            requires_complete_profile?: boolean | null;
         };
         /** SessionBrief */
         SessionBrief: {

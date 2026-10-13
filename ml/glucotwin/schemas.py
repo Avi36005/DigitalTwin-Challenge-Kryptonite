@@ -574,6 +574,9 @@ class EvaluationReport(Versioned):
     corrects_experiment_id: str | None = Field(
         default=None, description="Earlier experiment this one corrects; that test segment was already inspected.")
     correction_note: str | None = None
+    selection_disclosures: list[str] = Field(
+        default_factory=list, description="Statements that qualify how the serving model was chosen, e.g. an "
+                                          "eligibility constraint declared after the test segment had been inspected.")
     created_at: datetime | None = None
     mode: ReplayMode | None = None
     dataset: DatasetRef | None = None
@@ -593,7 +596,7 @@ class EvaluationReport(Versioned):
 # Experiment catalogue, research reports, serving summary and dataset inventory (additive, schema 1.0)
 # --------------------------------------------------------------------------------------------
 
-EvaluationRegime = Literal["serving_retrospective", "superseded_original", "nested_research"]
+EvaluationRegime = Literal["serving_retrospective", "superseded_serving", "superseded_original", "nested_research"]
 AccessStatus = Literal["planned", "access_required", "available_locally", "imported", "failed_validation",
                        "eligible_for_experiment"]
 
@@ -627,6 +630,8 @@ class ServingSummary(Versioned):
     interval_quantiles_mg_dl: dict[str, float | None] | None = None
     warning_threshold_margin_mg_dl: float | None = None
     warning_horizon_minutes: int | None = None
+    requires_complete_profile: bool | None = Field(
+        default=None, description="True when the model abstains unless every baseline profile value it reads is available.")
 
 
 class ServingList(Versioned):

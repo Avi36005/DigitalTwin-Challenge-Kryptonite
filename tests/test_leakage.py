@@ -128,3 +128,22 @@ def test_corrections_never_stack_on_corrected_predictions():
         out = st.step(float(t), obs, val, obs, {30: 140.0}, f"f{t}")  # population always 10 low
     # residuals are measured against the frozen population forecast, so the correction converges to +10, not +20
     assert abs(out[30] - 10.0) < 1e-9
+
+
+def test_fusion_constraint_carries_its_disclosures():
+    """A serving model chosen under an eligibility constraint is always reported with the constraint's timing, the
+    absence of evidence for unseen patients and the reason it was chosen; unconstrained experiments carry none."""
+    from glucotwin.evaluation.report import selection_disclosures
+
+    assert selection_disclosures({"experiment_id": "x", "selection": {"eligible_feature_sets": None}}) == []
+    m = {"experiment_id": "gt-primary-2026-10-13-fusion", "corrects_experiment_id": "gt-primary-2026-10-11-v1",
+         "selection": {"eligible_feature_sets": ["dyn-prof-v2"], "selected_label": "lightgbm:dyn-prof-v2",
+                       "serving_personalization": "adaptive"},
+         "cohort": {"participants": 14}, "events": [], "alert_threshold_selection": {}}
+    d = selection_disclosures(m)
+    text = " ".join(d)
+    assert len(d) >= 4
+    assert "declared on 2026-10-13 after the test segment had already been inspected" in d[0]
+    assert "gt-primary-2026-10-11-v2" in d[0]  # derived_from, read from the protocol file
+    assert "participant identifier" in text
+    assert "have not established that profile features improve forecasting for unseen patients" in text

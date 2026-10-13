@@ -23,6 +23,10 @@ corrections (Prompt 05), by inspecting code, running the application and the che
 2. **(Team decision) Static-profile fusion in the serving model.** The serving forecaster selected by the declared rule
    uses dynamic streams only; profile-augmented candidates scored better on test (CatBoost 12.93 / 19.80 mg/dL with
    adaptation). Switching after seeing test results would be test-informed selection.
+   **Resolved 2026-10-13 (D-038, D-039):** the team chose to serve `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`,
+   selected by the unchanged rule restricted to profile + dynamic models — a constraint declared after test inspection
+   and disclosed wherever the model is named, with no claim that the profile helps unseen patients. v2 stays
+   registered for rollback.
 3. **(Team) Supply the college/incubator; confirm the license holder wording.**
 4. **(Team) Record the 20:00 video** following `docs/demo_script.md` (updated for v2 and the new interface); upload as
    unlisted (with authorization); add the link.

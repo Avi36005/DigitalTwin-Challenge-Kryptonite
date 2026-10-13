@@ -147,6 +147,12 @@ test("model evidence and data quality pages render recorded results", async ({ p
   await expect(page.getByRole("heading", { name: "Comparison" }).or(page.getByText(/Evaluation not run|Evaluation unavailable/))).toBeVisible();
   const completed = await page.getByRole("heading", { name: "Comparison" }).isVisible();
   if (completed) {
+    // a serving model chosen under an eligibility constraint is shown with its disclosures (from the API, not typed in)
+    if (await page.getByText("Fusion-constrained result.").isVisible()) {
+      await expect(page.getByText(/have not established that profile features improve forecasting for unseen patients/)).toBeVisible();
+      await expect(page.getByText(/after the test segment had already been inspected/)).toBeVisible();
+      await page.screenshot({ path: `${SHOTS}/18-model-evidence-fusion-disclosures.png` });
+    }
     await expect(page.getByText("Serving pipeline").first()).toBeVisible();
     await expect(page.getByText(/is the selected replay model\. Its final-test mean absolute error was/)).toBeVisible();
     await expect(page.getByText(/accuracy percentage/)).toBeVisible(); // MAE is explained, never called accuracy
@@ -175,6 +181,7 @@ test("research evidence is separate from the serving model, and data scale is au
   await page.goto("/app/evidence");
   await expect(page.getByText(/Serving model:/)).toBeVisible();
   const select = page.getByLabel("Evidence");
+  await expect(select).toBeVisible(); // the experiment list has loaded before its options are counted
   const hasResearch = (await select.locator("option", { hasText: "Nested participant benchmark" }).count()) > 0;
   test.skip(!hasResearch, "no research experiment on this machine");
   await select.selectOption({ label: "Nested participant benchmark + external cohort" });

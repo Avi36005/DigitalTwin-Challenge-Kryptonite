@@ -14,13 +14,13 @@ the experiment), narrate what the screen shows — never the number written here
 | Video time | Segment | Duration | Shown | Narration (words) |
 |---|---|---|---|---|
 | 00:00–02:00 | Team, problem and healthcare use case | 2:00 | Slides 1–3 | 245 |
-| 02:00–04:30 | Data, provenance and information availability | 2:30 | Slides 5–6 | 290 |
-| 04:30–07:00 | Architecture, models and patient adaptation | 2:30 | Slides 4, 7–9 | 312 |
-| 07:00–14:00 | Working dashboard and replay, including missing-data and abstention cases | 7:00 | Live app | 603 + screen actions |
-| 14:00–18:00 | Measured comparison, baseline performance and limits of the evidence | 4:00 | Model evidence page, slides 12–15 | 490 + navigation |
-| 18:00–20:00 | Project outcomes, limitations, reproducibility and next steps | 2:00 | Slides 17–20 (16 optional: research evidence) | 216 |
+| 02:00–04:30 | Data, provenance and information availability | 2:30 | Slides 5–6 | 300 |
+| 04:30–07:15 | Architecture, models, fusion and patient adaptation | 2:45 | Slides 4, 7–10 | 365 |
+| 07:15–14:00 | Working dashboard and replay, including missing-data and abstention cases | 6:45 | Live app | 601 + screen actions |
+| 14:00–18:00 | Measured comparison, baseline performance and limits of the evidence | 4:00 | Model evidence page, slides 13–16 | 465 + navigation |
+| 18:00–20:00 | Project outcomes, limitations, reproducibility and next steps | 2:00 | Slides 18–21 (17 optional: research evidence) | 224 |
 
-Narration words are counted from this file (2,156 in total). At about 130 words per minute that is roughly 16.6
+Narration words are counted from this file (2,200 in total). At about 130 words per minute that is roughly 16.9
 minutes of speech; the remainder is slide transitions, clicks and waiting in Chapters 4 and 5. This is an estimate —
 only a timed rehearsal and the rendered file establish the real duration. YouTube chapters: paste the six start times above into the video description.
 
@@ -71,15 +71,16 @@ only a timed rehearsal and the rendered file establish the real duration. YouTub
 > row as an observation. Columns without
 > documentation are reported, not interpreted. Dates are shifted and the timezone is unknown, so we use a declared
 > synthetic clock — “Day N” — and no time-of-day features. Baseline labs are treated as known from the start of the
-> recording, and a missing lab stays missing; it is never filled with an average.
+> recording, and a missing lab stays missing; it is never filled with an average, and the model then abstains.
 >
 > *[Slide 6]* Every record carries two times: when it happened, and when the system could have known it. A forecast at
 > time t only uses records where both are at or before t. Meal logging time is undocumented, so meals are excluded
 > from the main model. Each participant's own timeline is split chronologically — sixty percent training, ten for
 > choosing models, ten for calibrating intervals, and the final twenty percent as a test — with purge gaps so no label
-> crosses a boundary. The protocol was frozen before any model was fitted, and the test period was evaluated once.
+> crosses a boundary. The protocol was frozen before any model was fitted; results from later re-runs on the same
+> test period are labelled retrospective.
 
-## Chapter 3 — Architecture, models and patient adaptation (04:30–07:00) · slides 4, 7–9
+## Chapter 3 — Architecture, models, fusion and patient adaptation (04:30–07:15) · slides 4, 7–10
 
 > *[Slide 4]* What makes it a twin? A versioned patient state, observations released over time, a forecasting model,
 > and measured updates. The patient state issues a forecast; later, when the real reading for that time arrives, the
@@ -89,66 +90,70 @@ only a timed rehearsal and the rendered file establish the real duration. YouTub
 > *[Slide 7]* Offline, a versioned adapter builds a canonical store, and a frozen experiment produces a checksummed
 > model artifact and a metrics file. Online, a FastAPI replay session owns the clock and releases only what would have
 > been available; the twin engine sees only those events. The same feature, adaptation and episode code runs offline
-> and online, and our tests confirm the served predictions equal the evaluated ones. The browser talks to the API
-> through one typed contract, generated from the same schema the backend validates.
+> and online, and our tests confirm the served predictions equal the evaluated ones.
 >
-> *[Slide 8]* We compared persistence, a linear trend and ridge regression with LightGBM and CatBoost. Both tree
-> families received the same inputs, the same forecast times and the same twelve-trial search. Personalization is one
+> *[Slide 8]* We compared persistence, a linear trend and ridge regression with LightGBM and CatBoost; both tree
+> families got identical inputs and searches. Personalization is one
 > policy for both: a small, shrunk and capped correction learned from this patient's forecast errors once their
 > targets are known. Intervals are split-conformal, calibrated on held-out data. The warning score is the highest
 > forecast in the next hour minus 180 — a score in milligrams per decilitre, not a probability.
 >
 > *[Slide 9]* The serving model was chosen on validation data only, by a rule we wrote down first: lowest average
-> error over both horizons, with anything within half a milligram counted as a tie that goes to the simpler model.
-> Four tree models tied, and the rule picked LightGBM with dynamic features. The models that also use the baseline
-> profile scored slightly better — we will show they were better on test too — but switching after seeing test
-> results would be test-informed selection, so we did not.
+> error, with near-ties going to the simpler model. The challenge asks for one model that fuses the static profile
+> with the wearable streams, so we applied that rule only to models that read both — a constraint we added after we
+> had already seen the test period. It picked LightGBM with the profile; the dynamic-only LightGBM we served before
+> stays registered as a fallback.
+>
+> *[Slide 10]* What does the profile add? On later days of the same fourteen people, error was a quarter of a
+> milligram lower at thirty minutes and six tenths lower at sixty. But a profile is constant for each person, so with
+> fourteen people it can act as an identity code. On people held out entirely, adding it made no reliable difference.
+> So our claim is narrow: this model implements the required fusion; we have not shown that the profile improves
+> forecasts for new patients.
 
-## Chapter 4 — Working dashboard and replay (07:00–14:00) · live app
+## Chapter 4 — Working dashboard and replay (07:15–14:00) · live app
 
-**07:00 — Orientation.** *Screen:* the landing page, then **Open workspace** → Overview.
+**07:15 — Orientation.** *Screen:* the landing page, then **Open workspace** → Overview.
 > This is the front door: a research prototype that replays recorded or synthetic data — never a live device. Inside
 > the workspace, the left sidebar holds New replay, search, five destinations and our recent replays, and the top bar
 > always says whether we are watching recorded data or the synthetic demonstration.
 
 *Action:* **New replay** → *Recorded-data replay* → **Participant 01** → *Held-out test period* → **Start replay**.
-The clock shows **Day 9 · 08:14**; current glucose **115** (08:10); 30-min forecast **119**, range **102–136**; 60-min
-**132**, range **104–160**; patient adaptation **active**.
+The clock shows **Day 9 · 08:14**; current glucose **115** (08:10); 30-min forecast **119**, range **103–136**; 60-min
+**129**, range **102–155**; patient adaptation **active**.
 
-**07:45 — Reading the twin.**
+**07:55 — Reading the twin.**
 > The participant's name heads the page, with the replay time. The line below shows baseline values as known at this
-> moment — context only; this model forecasts from recent glucose and activity. Then the current reading and the
+> moment; this model reads them as inputs, together with recent glucose and activity. Then the current reading and the
 > thirty- and sixty-minute forecasts, each with a prediction range whose target coverage is eighty percent; Details
-> shows that on the test period it actually covered about seventy-five percent. In the chart, the black line is
+> shows that on the test period it actually covered about seventy-four percent. In the chart, the black line is
 > observed glucose, the blue points with whiskers are the newest forecasts, and the faint circles are earlier forecasts
 > that were saved and never changed. The replay controls sit under the chart, with the training, validation,
 > calibration and test segments on the timeline.
 
-*Action:* **Step 1 h** → **Day 9 · 09:14**: glucose **149**; forecasts **169** (152–186) and **163** (135–191).
+*Action:* **Step 1 h** → **Day 9 · 09:14**: glucose **149**; forecasts **168** (151–184) and **161** (134–187).
 
-**08:45 — A warning and an honest outcome.** *Action:* **Step 5 min** twice → **Day 9 · 09:24**.
-> Glucose is rising. At 08:55 the twin issued a research warning: a forecast within the hour reached the threshold
+**08:55 — A warning and an honest outcome.** *Action:* **Step 5 min** twice → **Day 9 · 09:24**.
+> Glucose is rising. At 09:15 the twin issued a research warning: a forecast within the hour reached the threshold
 > chosen on validation data. The review panel shows the forecast margin and its threshold — not a probability — and
 > the Warnings list says *pending*, because at this replay time the outcome cannot be known yet. Mark as reviewed only
 > records a local note; no one is messaged.
 
 *Action:* **Mark as reviewed**; then **Step 1 h** twice → **Day 9 · 11:24**.
-> Now the outcome is known: no sustained episode followed. That was a false alarm, and the app says so. This warning
-> rule is sensitive: on the test period it caught every new episode, but raised about four and a half false alarms
-> per eligible patient-day.
+> Now the outcome is known: no sustained episode followed. That was a false alarm, and the app says so. On the test
+> period this rule caught 61 of 64 new episodes, with about one and a half false alarms per observed patient-day.
 
-**09:45 — Rewind and a true warning.** *Action:* drag the timeline to **Day 9 · 20:00** (the “Seek to…” preview
+**10:00 — Rewind and a true warning.** *Action:* drag the timeline to **Day 9 · 20:00** (the “Seek to…” preview
 appears), release; then step to **20:35**.
 > Seeking created a new revision of the session: the twin was rebuilt from earlier data only, and older responses are
-> discarded, so nothing from the future can leak in. At 20:25 the twin warned again; now glucose is 165 and the
-> thirty-minute forecast is 190.
+> discarded, so nothing from the future can leak in. At 20:30 the twin warned again; now glucose is 165 and the
+> thirty-minute forecast is 189.
 
 *Action:* step to **Day 9 · 21:10**.
-> This time a sustained episode began at 20:45 — twenty minutes after the warning. The Warnings list reports that as
+> This time a sustained episode began at 20:45 — fifteen minutes after the warning. The Warnings list reports that as
 > the forecast lead: time from a warning whose own sixty-minute forecast contained the onset, never more than the
 > horizon.
 
-**10:45 — Evidence behind one forecast.** *Action:* click an **earlier forecast point** near 20:30, then **View
+**10:50 — Evidence behind one forecast.** *Action:* click an **earlier forecast point** near 20:30, then **View
 forecast details**.
 > Selecting an earlier forecast marks when it was issued and compares it with readings observed later — only those
 > already available at the replay clock. Each forecast is an immutable record: its information cutoff, model version,
@@ -178,35 +183,34 @@ period* → seek to **Day 9 · 10:25**.
 > Here breakfast was eaten at 08:27 but logged ninety minutes later. At 09:30 the meal is invisible; at 10:00 it
 > appears, with its eating time and its logging time. The twin can only use what was known at the time.
 
-## Chapter 5 — Measured comparison and limits of the evidence (14:00–18:00) · Model evidence + slides 12–15
+## Chapter 5 — Measured comparison and limits of the evidence (14:00–18:00) · Model evidence + slides 13–16
 
 *Action:* sidebar → **Model evidence**.
-> Everything on this page is read from the saved experiment artifact — and the first line says something important.
-> An independent review of our code found two defects: activity features could count sixty-five minutes inside a
-> sixty-minute window, and the replay screen could credit one episode to two warnings. We reproduced both, fixed them,
-> and re-ran the same declared protocol. The original results are preserved; because that run had already looked at
-> the test period, these corrected numbers are retrospective, not untouched test evidence.
+> Everything on this page is read from the saved experiment artifact, and the notice at the top lists what qualifies
+> it. An independent review found two code defects, which we fixed before re-running the protocol; then we added the
+> fusion constraint. Both happened after the test period had been seen, so these numbers are retrospective, not
+> untouched test evidence. The earlier results are preserved.
 >
 > On the test period — fourteen participants, about 640 hours and 64 new high-glucose onsets — the serving model's mean
-> absolute error was 13.2 milligrams per decilitre at thirty minutes and 20.8 at sixty, against 14.8 and 23.2 for
+> absolute error was 13.0 milligrams per decilitre at thirty minutes and 20.3 at sixty, against 14.8 and 23.2 for
 > carrying the last reading forward. That is an average error, not an accuracy percentage. The paired differences are
-> minus 1.7 and minus 2.4, and the participant-level bootstrap intervals exclude zero.
+> minus 1.9 and minus 3.0, and the participant-level bootstrap intervals exclude zero.
 >
-> *[Slide 14]* Per participant, it beat persistence for all fourteen people at thirty minutes and twelve of fourteen at
-> sixty. The gains are uneven, and fourteen people cannot establish population-level performance.
+> *[Slide 15]* Per participant, it beat persistence for all fourteen people at thirty minutes and thirteen of fourteen
+> at sixty. The gains are uneven, and fourteen people cannot establish population-level performance.
 >
-> *[Slide 13]* Does personalization help? A little: about a quarter of a milligram at thirty minutes and four tenths at
-> sixty. A frozen-state control shows the gain comes from updating during the test period. For brand-new participants,
-> left out of training entirely, error rises to 14.9 and 25.5, and adaptation brings it down to 14.1 and 23.1. LightGBM
-> and CatBoost were statistically indistinguishable on dynamic features.
+> *[Slide 14]* Does personalization help? A little: about two tenths of a milligram at thirty minutes and three tenths
+> at sixty, where the interval touches zero. A frozen-state control shows the gain comes from updating during the test
+> period. For brand-new participants, left out of training entirely, error rises to 14.7 and 24.3, and adaptation
+> brings it down to 13.8 and 22.1. With the same inputs, CatBoost was slightly better at sixty minutes, but it tied on
+> validation, so the declared rule kept LightGBM.
 >
-> *[Slide 15]* For early warning, the sixty-minute rule detected all 64 onsets, but with precision 0.45: 79 false
-> alarms, four and a half per eligible patient-day — about as noisy as warning whenever glucose passes 150. Its forecast
-> lead had a median of 55 minutes. The threshold came from our declared F1 rule, which turned out almost flat, so we
-> report it as it is and propose a workload-aware rule next. Our prediction ranges covered about seventy-five percent
-> on test against an eighty-percent target, so we do not claim calibrated uncertainty. And if meals were known the
-> moment they were photographed, sixty-minute error would fall from 21.2 to 18.9 — optimistic, but a strong argument
-> for timely meal logging.
+> *[Slide 16]* For early warning, the sixty-minute rule detected 61 of 64 onsets with precision 0.60: 40 false alarms,
+> 2.3 per eligible patient-day, against 4.0 for warning whenever glucose passes 150. Its forecast lead had a median of
+> 30 minutes. Compared with the earlier model, fewer false alarms came with three missed onsets and a shorter lead: a
+> threshold trade-off, not a gain from the profile. Our prediction ranges covered about seventy-four percent against an
+> eighty-percent target, so we do not claim calibrated uncertainty. With meals known the moment they were photographed,
+> sixty-minute error would fall from 20.6 to 19.1 — optimistic, but an argument for timely meal logging.
 
 *Action:* sidebar → **Data quality**.
 > This page separates the current replay's data, the dataset's coverage and the limits of the model's inputs.
@@ -218,25 +222,24 @@ period* → seek to **Day 9 · 10:25**.
 > forecasts at 99.9 percent of test times — that is availability, not accuracy; when it abstains, those times are
 > excluded, not counted as correct.
 >
-> One judgement call: profile-augmented models, which use the baseline labs, did better on test — CatBoost reached
-> 12.9 and 19.8. Our pre-declared rule did not pick them, and we kept that rule.
+> One judgement call is stated on the page: the fusion constraint came after we had seen the test period.
 
-## Chapter 6 — Outcomes, limitations, reproducibility and next steps (18:00–20:00) · slides 17–20
+## Chapter 6 — Outcomes, limitations, reproducibility and next steps (18:00–20:00) · slides 18–21
 
-> *[Slide 17]* What did we deliver? A working digital twin and clinician workspace; a reproducible pipeline that found
-> and corrected interpolated sensor data; and an evaluation we were willing to correct in public: better than
-> persistence for every participant at thirty minutes, small gains from personalization, and a warning rule that catches
-> every episode but raises too many false alarms.
+> *[Slide 18]* What did we deliver? A working digital twin that fuses a baseline profile with glucose and wearable
+> streams; a clinician workspace; a pipeline that found interpolated sensor data; and an evaluation we were willing to
+> correct in public: better than persistence for every participant at thirty minutes, small gains from
+> personalization, and warnings that caught 61 of 64 episodes.
 >
-> *[Slide 18]* The limits are real: fourteen people from one US site, no Indian participants, blinded research sensors
-> replayed with assumed zero delay, unknown medication use, under-covering prediction ranges, and a corrected test
-> result on a segment we had already seen. Nothing here is clinical validation.
+> *[Slide 19]* The limits are real: fourteen people from one US site, no Indian participants, blinded research sensors
+> replayed with assumed zero delay, unknown medication use, under-covering prediction ranges, a profile that may act as
+> an identity code, and test results on a segment we had already seen. Nothing here is clinical validation.
 >
-> *[Slide 19]* Before use with Indian patients we would need a consented prospective cohort with real-time sensors,
+> *[Slide 20]* Before use with Indian patients we would need a consented prospective cohort with real-time sensors,
 > medications and meal-logging times; evaluation on held-out participants and sites; a warning policy with an alert
 > budget agreed with clinicians; a usability study; and a regulatory and data-protection review.
 >
-> *[Slide 20]* Everything is reproducible: the README runs the synthetic demonstration in three commands, and the
+> *[Slide 21]* Everything is reproducible: the README runs the synthetic demonstration in three commands, and the
 > recorded-data results with three more. A fresh copy of the repository, without the dataset, passes the automated
 > backend, frontend and browser tests, and every number in this video traces to a saved experiment file. The code is
 > MIT-licensed; the dataset keeps its own license and is downloaded by each user from PhysioNet. Thank you for
@@ -252,8 +255,8 @@ Fits inside Chapter 5 or replaces part of it. Every number is read from the scre
    AI-READI shows *Access required* with the steps only the team can complete; Glucose-ML is discovery only.
 2. **A real recorded replay** — *New replay → Participant 01* (Scene A in `reports/demo_sequence.md`): a forecast is
    issued before its outcome; step forward until the 60-minute target matures and compare it with the forecast.
-3. **One true and one false warning** — Scene A again: the Day 9 · 08:55 warning ends `no_onset_observed` (a false
-   alarm); the Day 9 · 20:25 warning ends `onset_observed`. Scene B (Participant 12) shows a censoring sensor gap.
+3. **One true and one false warning** — Scene A again: the Day 9 · 09:15 warning ends `no_onset_observed` (a false
+   alarm); the Day 9 · 20:30 warning ends `onset_observed`. Scene B (Participant 12) shows a censoring sensor gap.
 4. **Model comparison with participant and source counts** — *Model evidence → Evidence: “Nested participant benchmark
    + external cohort”.* The line under the header still names the serving model. Read: 14 CGMacros people, each
    assessed once in five outer folds; the declared rule's choice 13.88 / 22.30 mg/dL at 30 / 60 min versus the v2

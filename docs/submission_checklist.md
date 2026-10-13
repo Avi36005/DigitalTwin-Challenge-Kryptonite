@@ -48,8 +48,8 @@ path or app-hosting URL. Status: **not yet created** (publication requires the t
 | Rule | Evidence |
 |---|---|
 | Anonymised, open-source or synthetic data only | CGMacros (de-identified, open access) + fictional synthetic fixtures; [`data_card.md`](data_card.md) |
-| Fusion of static/historical (EHR-like) and dynamic (wearable) data | Baseline profile + native CGM + Fitbit summaries; [`feature_availability.md`](feature_availability.md). The serving forecaster uses dynamic streams (declared selection rule); the profile initialises and contextualises the twin, and profile-augmented models are evaluated and reported — an **open team decision** ([`decisions.md`](decisions.md) D-013) |
-| Working model ingesting both streams and predicting an adverse event | 30/60-min forecasts + new sustained high-glucose warning; [`../reports/evaluation_report.md`](../reports/evaluation_report.md) |
+| Fusion of static/historical (EHR-like) and dynamic (wearable) data | Baseline profile + native CGM + Fitbit summaries; [`feature_availability.md`](feature_availability.md). **Decided 13 Oct 2026 (D-038, D-039):** the serving forecaster `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion` reads 8 profile values and 38 dynamic features in one model. Disclosed everywhere it is named: the constraint was added after test inspection; no benefit on people held out entirely; the profile can act as an identity code with 14 people; chosen for the brief, not for accuracy ([`model_card.md`](model_card.md)) |
+| Working model ingesting both streams and predicting an adverse event | One profile + dynamic model; 30/60-min forecasts + new sustained high-glucose warning; [`../reports/evaluation_report.md`](../reports/evaluation_report.md) |
 | Conceptual UI dashboard for a doctor | Working React workspace; [`../reports/ui/`](../reports/ui/) |
 
 ## Final pre-submission steps (in order)

@@ -17,9 +17,14 @@ TITLES = {
     "gt-primary-2026-10-11-v1": ("superseded_original", "Original primary experiment (v1)",
                                  "Within-participant chronological split; superseded by the corrected v2 re-run "
                                  "(activity-window and warning-accounting defects)."),
-    "gt-primary-2026-10-11-v2": ("serving_retrospective", "Corrected retrospective experiment (v2)",
-                                 "The experiment behind the serving model. Its test segment had already been inspected "
-                                 "in v1, so it is a corrected retrospective result."),
+    "gt-primary-2026-10-11-v2": ("superseded_serving", "Corrected retrospective experiment (v2)",
+                                 "Its model reads the dynamic streams only (no baseline profile); it served replays until "
+                                 "13 Oct 2026 and stays registered for rollback. Its test segment had already been "
+                                 "inspected in v1, so it is a corrected retrospective result."),
+    "gt-primary-2026-10-13-fusion": ("serving_retrospective", "Fusion-constrained experiment (profile + wearable)",
+                                     "v2's protocol with one change: the selected model must read both the baseline "
+                                     "profile and the dynamic streams. Declared after the test segment had been "
+                                     "inspected, so it is a retrospective result."),
     "gt-nested-2026-10-12-v1": ("nested_research", "Nested participant benchmark + external cohort",
                                 "New people only: 5 outer participant folds on CGMacros (internal validation of an "
                                 "already-inspected cohort) and a reserved ShanghaiT2DM external assessment."),
@@ -40,6 +45,8 @@ def list_experiments() -> dict[str, Any]:
         regime, title, desc = TITLES.get(eid, ("superseded_original", eid, "Chronological-split experiment."))
         if eid == serving_id:
             regime = "serving_retrospective"
+        elif regime == "serving_retrospective":
+            regime = "superseded_serving"
         items.append({"experiment_id": eid, "regime": regime, "title": title, "description": desc,
                       "status": "completed", "created_at": m.get("created_at"), "is_serving_evidence": eid == serving_id})
     for eid in RESEARCH_EXPERIMENTS:
@@ -50,7 +57,7 @@ def list_experiments() -> dict[str, Any]:
                   "development_only" if (root / "splits.json").exists() else "not_run")
         items.append({"experiment_id": eid, "regime": regime, "title": title, "description": desc, "status": status,
                       "created_at": rep.get("created_at") if rep else None, "is_serving_evidence": False})
-    order = {"serving_retrospective": 0, "nested_research": 1, "superseded_original": 2}
+    order = {"serving_retrospective": 0, "nested_research": 1, "superseded_serving": 2, "superseded_original": 3}
     items.sort(key=lambda x: (order[x["regime"]], x["experiment_id"]))
     return {"schema_version": "1.0", "items": items, "serving_experiment_id": serving_id}
 
@@ -109,6 +116,7 @@ def serving_summaries(serving: dict[str, Any], errors: dict[str, str]) -> dict[s
             "interval_quantiles_mg_dl": (cfg.get("intervals") or {}).get("quantiles_mg_dl"),
             "warning_threshold_margin_mg_dl": s.alert.get("threshold_margin_mg_dl"),
             "warning_horizon_minutes": s.alert.get("horizon_minutes"),
+            "requires_complete_profile": s.profile_gate,
         })
     return {"schema_version": "1.0", "items": items}
 

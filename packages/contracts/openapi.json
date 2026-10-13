@@ -2572,6 +2572,14 @@
             ],
             "title": "Correction Note"
           },
+          "selection_disclosures": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Selection Disclosures",
+            "description": "Statements that qualify how the serving model was chosen, e.g. an eligibility constraint declared after the test segment had been inspected."
+          },
           "created_at": {
             "anyOf": [
               {
@@ -2737,6 +2745,7 @@
             "type": "string",
             "enum": [
               "serving_retrospective",
+              "superseded_serving",
               "superseded_original",
               "nested_research"
             ],
@@ -5509,6 +5518,7 @@
                 "type": "string",
                 "enum": [
                   "serving_retrospective",
+                  "superseded_serving",
                   "superseded_original",
                   "nested_research"
                 ]
@@ -5584,6 +5594,18 @@
               }
             ],
             "title": "Warning Horizon Minutes"
+          },
+          "requires_complete_profile": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires Complete Profile",
+            "description": "True when the model abstains unless every baseline profile value it reads is available."
           }
         },
         "additionalProperties": false,

@@ -51,6 +51,20 @@ corrections (Prompt 05, `reports/repair_report.md`).
 | `npm run e2e` | 0 | 15 passed (adds research evidence vs serving model, data sources and scale, mobile overflow check); screenshots 07–10 inspected and the data-sources table re-laid out until it fit at 1440 px |
 | `uv run python scripts/check_submission.py` | 0 | 48 links, 0 failures |
 
+## Serving-model switch to the fusion-constrained model (2026-10-13, main working copy)
+
+| Check | Exit | Result |
+|---|---|---|
+| Registry | — | `artifacts/registry.json` backed up, then the fusion entry registered with the run's own `update_registry`; `serving.dataset_replay` = `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`; v2 still registered; history entry records the switch; registry resolves to a loadable artifact whose `serving.json` matches |
+| Online/offline parity (fusion) | — | Every test participant replayed through `TwinEngine` one day per call: 15,440 of 15,440 saved test forecasts within 0.05 mg/dL; online MAE 12.96 / 20.26 |
+| Serving identity | — | `/api/v1/serving` (`dyn-prof-v2`, `requires_complete_profile` true, margin −10), `/api/v1/evaluations/latest` (experiment `gt-primary-2026-10-13-fusion`, 5 selection disclosures), the Model evidence page, the forecast-details drawer, `reports/demo_sequence.md`, the README, the model card and the deck all name `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion` |
+| `uv run pytest` | 0 | 102 passed, 1 skipped (the shared-split check runs once, from the fusion side); new: both v2 and fusion bundles reproduce their saved adaptive forecasts (max difference < 1e-9), every candidate prediction identical between v2 and fusion, disclosures always present for a constrained selection |
+| `make test-web` | 0 | Type check, 38 unit tests, production build |
+| `npm run e2e` | 0 | 15 passed; all screenshots recaptured; new `18-model-evidence-fusion-disclosures.png` asserts the disclosures are shown |
+| `uv run python scripts/demo_sequence.py` | 0 | 5 scenes, 0 skipped. Participant 01: first warning now 09:15 (was 08:55), second 20:30 (was 20:25), onset 20:45 (lead 15 min); Participant 12 gap and abstention scenes unchanged |
+| `uv run python scripts/check_submission.py` | 0 | 66 README links, 0 failures |
+| `uv run --group docs python scripts/build_submission_assets.py` | 0 | 21 slides (new slide 10: what the profile fusion does and does not show); architecture PDF names the 46-input model |
+
 ## Clean copy of the latest version (2026-10-12, `scripts/clean_copy_check.sh`)
 
 Only Git-publishable files (`git ls-files --cached --others --exclude-standard`, 203 files) copied into an empty

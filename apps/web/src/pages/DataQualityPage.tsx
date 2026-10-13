@@ -5,7 +5,7 @@ import { featureSetOf, modelUsesProfile } from "@/lib/forecast";
 import { fmtPct, modeLabel } from "@/lib/format";
 import { paths } from "@/lib/routes";
 import { durationLabel, replayTime } from "@/lib/time";
-import { useDatasets, useEvaluation } from "@/state/evaluation";
+import { useDatasets, useEvaluation, useServing } from "@/state/evaluation";
 import { Disclosure } from "@/components/evidence/Disclosure";
 import { useLatestForecast, usePatient, usePatients, useReadiness, useSessions, useTwin } from "@/state/replay";
 import { EmptyState, PageHeader, Section, Skeleton, StatusLabel } from "@/components/ui";
@@ -26,6 +26,7 @@ export function DataQualityPage() {
   }, [all]);
   const cohort = ev.data?.cohort;
   const servingVersion = (ev.data?.protocol as { model_version?: string } | undefined)?.model_version;
+  const servingRequiresProfile = useServing().data?.items.find((x) => x.mode === "dataset_replay")?.requires_complete_profile === true;
 
   return (
     <>
@@ -64,10 +65,12 @@ export function DataQualityPage() {
               <li>Activity: 5-minute wearable summaries (heart rate, METs). Missing coverage is treated as missing, not as inactivity.</li>
               <li>Meals: shown for context only and excluded from the primary model, because when meal logs became available in real time is undocumented.</li>
               <li>
-                Baseline profile (age, sex, BMI, HbA1c, fasting glucose):{" "}
+                Baseline profile (age, sex, BMI, HbA1c, fasting glucose, fasting insulin, triglycerides, HDL):{" "}
                 {modelUsesProfile(servingVersion) === false
                   ? `not used by the serving model (${featureSetOf(servingVersion)}), which forecasts from recent glucose and activity.`
-                  : modelUsesProfile(servingVersion) === true ? "included among the serving model’s inputs." : "use depends on the loaded model."}
+                  : modelUsesProfile(servingVersion) === true
+                    ? `included among the serving model’s inputs (${featureSetOf(servingVersion)}), alongside recent glucose and activity. The values are fixed for each participant’s record${servingRequiresProfile ? "; if any is missing, the model abstains instead of guessing" : ""}.`
+                    : "use depends on the loaded model."}
               </li>
               <li>Medication, insulin use and illness were not recorded and cannot be modelled.</li>
             </ul>

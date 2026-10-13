@@ -34,8 +34,10 @@ research:         ## nested research experiment (ISOLATED: writes artifacts/rese
 research-report:  ## regenerate research reports from saved predictions only
 	uv run glucotwin research report
 
-experiment:       ## run the frozen primary experiment (writes artifacts/ and the model registry)
+experiment:       ## run v2, then the fusion-constrained protocol it was derived from (the last run is the serving model)
 	uv run glucotwin experiment run
+	uv run glucotwin experiment build --experiment gt-primary-2026-10-13-fusion
+	uv run glucotwin experiment run --experiment gt-primary-2026-10-13-fusion
 	uv run glucotwin experiment report
 
 report:           ## regenerate reports from saved artifacts only

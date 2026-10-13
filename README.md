@@ -8,9 +8,14 @@ clinician exactly what was known at each moment.
 > Research demonstration only. Not a medical device; no treatment advice; replay of recorded or synthetic data — never a
 > live device connection. Results come from three separately labelled models, all reproducible with the commands below:
 >
-> * **Current demo model — LightGBM v2** (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`). It serves every replay in the app.
->   Its numbers come from the corrected experiment `gt-primary-2026-10-11-v2`, the frozen v1 protocol re-run after two
->   code fixes ([repair report](reports/repair_report.md)) on an already-inspected test segment; v1 is preserved.
+> * **Current demo model — fusion LightGBM** (`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`). It serves every
+>   replay in the app and reads the static baseline profile together with the glucose and wearable streams, as the
+>   brief requires. It was selected by the v2 rule restricted to models that read both, a constraint declared on
+>   13 Oct 2026 **after** the test segment had been inspected. We selected a model that implements the required fusion;
+>   we have **not** established that profile features improve forecasting for unseen patients
+>   ([why](#what-the-profile-fusion-does-and-does-not-show)). The previous demo model, LightGBM v2 on the dynamic
+>   streams only (`gt-primary-2026-10-11-v2`, the v1 protocol re-run after two code fixes —
+>   [repair report](reports/repair_report.md)), stays registered for rollback; v1 is preserved.
 > * **Five-minute candidate — Ridge on CGM-only features** (`ridge.cgm-only-v1.gt-nested-2026-10-12-v1`). Chosen by a
 >   frozen rule and evaluated on people it never saw (experiment `gt-nested-2026-10-12-v1`). Evaluated, **not promoted**.
 > * **External check — a separate 15-minute LightGBM** (`lightgbm.cgm15-v1.gt-nested-2026-10-12-v1`). Trained on
@@ -71,8 +76,9 @@ GlucoTwin addresses one prediction problem. The twin holds a static baseline pro
 screening labs) and dynamic streams (native CGM readings and wearable heart-rate/activity), using only data
 available **up to now**. From these it forecasts glucose **30 and 60 minutes ahead** and warns of a **new episode
 above 180 mg/dL sustained for at least 15 minutes** (a research definition, not triage). Each prediction is tied to
-the person's own recent forecast errors. The current demo forecaster uses the dynamic streams. Forecasters that also
-ingest the profile were built and evaluated under the same rules (§7).
+the person's own recent forecast errors. The demo forecaster ingests both streams in one model — eight baseline
+profile values and 38 glucose and wearable features. Whether the profile helps people outside the training cohort has
+not been established (§7).
 
 ## 5. Healthcare use case
 
@@ -110,7 +116,7 @@ show de-identified CGMacros 1.0.0 data (CC BY-NC-SA 4.0); synthetic screens show
 | ![Landing page](reports/ui/10-landing-desktop.png) **Landing page** — what GlucoTwin does, with a synthetic preview | ![Workspace overview](reports/ui/12-overview.png) **Overview** — resume a replay or choose a participant |
 | ![Research warning pending](reports/ui/08-recording-1920-warning-pending.png) **Recorded replay, Day 9 · 09:24** — 30/60-min forecasts with ranges; research warning issued, outcome pending | ![Forecast details](reports/ui/04-forecast-evidence-dialog.png) **Forecast details** — information cutoff, model version, population forecast vs patient correction |
 | ![Missing and stale data](reports/ui/02-missing-and-stale-data.png) **Sensor gap (synthetic)** — reading and forecast marked out of date | ![Twin abstains](reports/ui/13-insufficient-history-recorded.png) **Abstention** — readings resumed, but too few in the last hour to forecast |
-| ![Model evidence](reports/ui/05-model-evidence.png) **Model evidence** — the selected pipeline against baselines and every configuration | ![Data quality](reports/ui/06-data-quality.png) **Data quality** — sources, model-input limits and coverage |
+| ![Model evidence with the fusion disclosures](reports/ui/18-model-evidence-fusion-disclosures.png) **Model evidence** — the serving model named, with the fusion constraint's disclosures read from the experiment | ![Data quality](reports/ui/06-data-quality.png) **Data quality** — sources, model-input limits and coverage |
 | ![Research evidence](reports/ui/14-research-evidence.png) **Research evidence** — results on people held out entirely, kept apart from the demo model | ![External cohort](reports/ui/15-research-portable-external.png) **External cohort** — separate 15-minute model on ShanghaiT2DM |
 | ![Data sources](reports/ui/16-data-sources.png) **Data sources and scale** — dataset inventory and access status | ![Synthetic workspace](reports/ui/01-twin-workspace-synthetic.png) **Synthetic demonstration** — a warning acknowledged after stepping the replay |
 
@@ -133,47 +139,77 @@ CPU only; no cloud account, GPU, API key or LLM. Exact versions: `uv.lock`, `app
 
 | Aspect | What was actually done |
 |---|---|
-| Inputs | Trailing native CGM features (≤ 180 min), Fitbit heart-rate/activity summaries (each 5-minute summary counts only the part inside the lookback window); profile-augmented variants add baseline age, sex, BMI, HbA1c, fasting glucose and insulin, triglycerides and HDL (each only once available). Meals excluded from the primary model (logging time undocumented). Only records with `observed_at` and `available_at` ≤ forecast time |
+| Inputs | Trailing native CGM features (≤ 180 min) and Fitbit heart-rate/activity summaries (each 5-minute summary counts only the part inside the lookback window) — 38 dynamic features; the serving model also reads 8 baseline profile values: age, sex, BMI, HbA1c, fasting glucose and insulin, triglycerides and HDL (each only once available; the model abstains if one is missing). Meals excluded from the primary model (logging time undocumented). Only records with `observed_at` and `available_at` ≤ forecast time |
 | Horizons | 30 and 60 minutes (direct per-horizon models) |
 | Candidates | Persistence, bounded linear trend, ridge; **LightGBM** and **CatBoost** with identical inputs, origins and 12-trial seeded searches; each on dynamic-only (`dyn-v2`) and profile-augmented (`dyn-prof-v2`) features |
 | Personalization | The same causal policy for every tree model: a shrunk, capped, decaying bias learned from the person's own *matured* forecast errors; weights never refit online |
-| Protocol | Within-participant chronological split 60/10/10/20 (training / selection / calibration / test) with purge gaps; protocol frozen before fitting; selection, adaptation, split-conformal prediction ranges (target coverage 80 %) and alert threshold chosen without test data. v1 evaluated test once; **v2 re-runs the same protocol after code corrections, on the already-inspected test segment** |
-| Selected (serving) | **LightGBM `dyn-v2` + patient adaptation** (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`) — chosen on validation by a rule declared in advance (lowest mean error; candidates within 0.5 mg/dL tie → simpler model, then smaller feature set). Four tree models tied; the tie-break chose this one |
-| Warning | Max forecast within 60 min − 180 mg/dL; an uncalibrated score, never shown as a probability; threshold chosen on validation by event-level F1 |
+| Protocol | Within-participant chronological split 60/10/10/20 (training / selection / calibration / test) with purge gaps; protocol frozen before fitting; selection, adaptation, split-conformal prediction ranges (target coverage 80 %) and alert threshold chosen without test data. v1 evaluated test once; **v2 re-runs the same protocol after code corrections, on the already-inspected test segment; the fusion experiment re-runs v2 with one change — serving eligibility restricted to models that read the profile and the dynamic streams — declared after that segment had been inspected** |
+| Selected (serving) | **LightGBM `dyn-prof-v2` + patient adaptation** (`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`) — the rule declared in advance (lowest mean validation error; candidates within 0.5 mg/dL tie → simpler model, then smaller feature set), applied only to models that read both the profile and the dynamic streams. It had the lowest validation score (17.36; CatBoost `dyn-prof-v2` tied at 17.44). Without the constraint the rule picks LightGBM `dyn-v2`, the previous demo model |
+| Warning | Max forecast within 60 min − 180 mg/dL; an uncalibrated score, never shown as a probability; threshold chosen on validation by event-level F1 (−10 mg/dL for the serving model) |
 
-**Measured results — final test segment, corrected re-run `gt-primary-2026-10-11-v2`** (14 participants in CGMacros'
-Type 2 group, 7,730 forecast origins ≈ 644 h, 64 new high-glucose onsets; mean absolute error averaged equally over
-participants, in mg/dL — an average error, not an accuracy percentage; 95 % participant-cluster bootstrap):
+**Measured results — final test segment, fusion-constrained experiment `gt-primary-2026-10-13-fusion`** (14
+participants in CGMacros' Type 2 group, 7,730 forecast origins ≈ 644 h, 64 new high-glucose onsets; mean absolute error
+averaged equally over participants, in mg/dL — an average error, not an accuracy percentage; 95 % participant-cluster
+bootstrap). Every candidate's test predictions are identical to v2's; only the selection, and the adaptation, ranges and
+warning threshold derived for the selected model, differ:
 
 | Model | MAE 30 min | MAE 60 min |
 |---|---|---|
 | Persistence (last reading) | 14.84 | 23.23 |
-| Ridge (dynamic features) | 14.37 | 23.11 |
-| LightGBM, population | 13.38 | 21.20 |
-| **LightGBM + patient adaptation (serving)** | **13.15** | **20.81** |
-| CatBoost + patient adaptation | 13.23 | 20.44 |
-| CatBoost + profile + adaptation (evaluated, not selected) | 12.93 | 19.80 |
+| Ridge (dynamic + profile) | 14.61 | 22.96 |
+| LightGBM dynamic-only + adaptation (previous demo model, v2) | 13.15 | 20.81 |
+| LightGBM + profile, population | 13.14 | 20.59 |
+| **LightGBM + profile + patient adaptation (serving)** | **12.96** | **20.26** |
+| CatBoost + profile + adaptation (tied on validation, not selected) | 12.93 | 19.80 |
 
-* Serving vs persistence: **−1.69 [−2.34, −1.11]** (30 min) and **−2.42 [−3.81, −1.11]** (60 min); better for 14/14
-  participants at 30 min and 12/14 at 60 min.
-* Patient adaptation: **−0.24 [−0.43, −0.07]** and **−0.39 [−0.79, −0.02]** mg/dL — small; a frozen-state control shows it
-  comes from online updating. New participants (leave-one-participant-out, secondary): 14.92 / 25.47 → 14.07 / 23.12.
-* LightGBM vs CatBoost: no clear difference on dynamic features. Profile-augmented models did better on test; we did not
-  switch after seeing test results (disclosed in [`docs/decisions.md`](docs/decisions.md)).
-* Early warning (60 min): 64/64 onsets detected but precision 0.45 — **79 false alarms, 4.51 per eligible patient-day**;
-  qualified forecast lead median **55 min**. The declared F1 rule picked the lowest threshold of a nearly flat curve, so
-  this rule is sensitive but burdensome ([next experiment](docs/next_experiment.md)).
-* Prediction ranges (target coverage 80 %) covered **74.4 % / 75.9 %** on test — under-coverage, reported as such.
+* Serving vs persistence: **−1.88 [−2.53, −1.32]** (30 min) and **−2.96 [−4.34, −1.77]** (60 min); better for 14/14
+  participants at 30 min and 13/14 at 60 min.
+* Patient adaptation: **−0.18 [−0.35, −0.01]** and −0.33 [−0.68, +0.02] mg/dL — small, and inconclusive at 60 min; a
+  frozen-state control shows it comes from online updating. New participants (leave-one-participant-out, secondary):
+  14.66 / 24.26 → 13.81 / 22.12.
+* LightGBM vs CatBoost with the same inputs: no clear difference at 30 min; CatBoost better at 60 min (LightGBM minus
+  CatBoost +0.46 [+0.05, +0.92], population models). They tied on validation and the declared tie-break chose LightGBM.
+* Early warning (60 min, margin −10 mg/dL): **61/64 onsets detected, precision 0.60 — 40 false alarms, 2.28 per
+  eligible patient-day (1.49 per observed day)**; qualified forecast lead median **30 min**. The previous demo model
+  (margin −30) detected 64/64 with 79 false alarms (4.51 / 2.95) and a 55-minute lead: fewer false alarms came with three
+  missed onsets and 25 minutes of lead. Both margins come from the same nearly flat F1 curve
+  ([next experiment](docs/next_experiment.md)).
+* Prediction ranges (target coverage 80 %) covered **74.2 % / 74.0 %** on test — under-coverage, reported as such.
 * Correction history: v1 (`gt-primary-2026-10-11-v1`, declared before fitting) gave 13.32 / 21.20 mg/dL with 26 false
-  alarms; its activity features counted up to 65 minutes in a 60-minute window. v1 artifacts and report are preserved.
+  alarms; its activity features counted up to 65 minutes in a 60-minute window. v2 (13.15 / 20.81) fixed that. v1 and v2
+  artifacts and reports are preserved ([`reports/archive/`](reports/archive/)).
 * Not run: the optional Chronos-Bolt foundation-model track.
 
-**Limitations:** 14 participants from one US site; no Indian participants; blinded research CGMs replayed with assumed
-zero latency; medication use unknown; ranges under-cover; the warning rule trades many false alarms for recall; 180 mg/dL
-is a research threshold; v2 re-uses an already-inspected test segment. Nothing here is clinical validation.
+### What the profile fusion does and does not show
 
-**New-participant and external evidence (research experiment `gt-nested-2026-10-12-v1`; the demo model above is
-unchanged).** 145 participants imported (45 CGMacros, 100 ShanghaiT2DM); 14 evaluated internally and 98 evaluated
+The brief asks for a working model that ingests static EHR-like data and dynamic wearable data. The serving model does:
+one LightGBM per horizon reads the 8 profile values and the 38 glucose and wearable features together. What that
+establishes, and what it does not:
+
+1. **Within the same 14 people, the profile model scored better.** LightGBM with vs without the profile (population
+   models, test): −0.25 [−0.43, −0.04] mg/dL at 30 min and −0.61 [−1.15, −0.09] at 60 min.
+2. **That may be identity, not physiology.** Profile values are constant within a person, and the test segment holds
+   later days of the same 14 people, so the profile can act as a participant identifier.
+3. **On people held out entirely there was no reliable benefit.** Nested experiment, LightGBM `dyn-prof-v2` minus
+   `dyn-v2`: +0.34 [−0.28, +0.89] mg/dL at 30 min and −0.75 [−2.19, +0.61] at 60 min.
+4. **The constraint was added after the test segment had been inspected** (in v1 and v2), so these are retrospective
+   results. The validation score, tie margin and tie-break are unchanged
+   ([protocol](configs/experiments/gt-primary-2026-10-13-fusion.yaml), decisions D-038 and D-039 in
+   [`docs/decisions.md`](docs/decisions.md)).
+5. **Chosen for the brief, not for accuracy.** We selected a model that implements the required fusion; we have not
+   established that profile features improve forecasting for unseen patients. The lower false-alarm rate comes with a
+   different warning margin and is not evidence that the profile helps.
+
+The dynamic-only model stays registered: `uv run glucotwin research rollback --to
+lightgbm.dyn-v2.gt-primary-2026-10-11-v2`, then restart the API.
+
+**Limitations:** 14 participants from one US site; no Indian participants; blinded research CGMs replayed with assumed
+zero latency; medication use unknown; ranges under-cover; the warning rule still raises more than one false alarm per
+observed day; 180 mg/dL is a research threshold; with 14 people the profile may act as an identity code; v2 and the
+fusion constraint re-use an already-inspected test segment. Nothing here is clinical validation.
+
+**New-participant and external evidence (research experiment `gt-nested-2026-10-12-v1`, run on 12 Oct against the
+previous demo recipe, LightGBM v2).** 145 participants imported (45 CGMacros, 100 ShanghaiT2DM); 14 evaluated internally and 98 evaluated
 externally. A protocol frozen before fitting evaluated every pipeline on people it never saw: five outer participant
 folds over the 14 CGMacros Type 2 people (internal validation — that cohort was already inspected) and a reserved
 external cohort, ShanghaiT2DM (FreeStyle Libre H at 15-minute cadence, China), opened once.
@@ -181,7 +217,7 @@ external cohort, ShanghaiT2DM (FreeStyle Libre H at 15-minute cadence, China), o
 | Internal: 14 CGMacros people, each held out once (macro MAE, mg/dL) | 30 min | 60 min |
 |---|---|---|
 | Persistence | 15.34 | 24.47 |
-| Current demo recipe (LightGBM v2), refit per fold | 14.52 | 24.25 |
+| v2 recipe (previous demo model), refit per fold | 14.52 | 24.25 |
 | **Five-minute candidate procedure** — Ridge, CGM-only, v2 adaptation (the rule's choice in 4 of 5 folds; LightGBM L1 in 1) | **13.88** | **22.30** |
 
 | External: 98 ShanghaiT2DM people — separate 15-minute LightGBM vs persistence | 30 min | 60 min |
@@ -200,7 +236,8 @@ external cohort, ShanghaiT2DM (FreeStyle Libre H at 15-minute cadence, China), o
   frozen pipelines had lower external error (lowest: LightGBM L1, 10.81 / 19.00 mg/dL) — reported, not adopted, because
   choosing on the external cohort would make it a tuning set.
 * The pre-specified rule recommends switching to the Ridge candidate, but it is worse on large highs and its evidence
-  is internal; **nothing was promoted** and LightGBM v2 remains the demo model. Promotion criteria for the next
+  is internal; **nothing from this experiment was promoted** (the 13 Oct change of demo model is the separate fusion
+  constraint above). Promotion criteria for the next
   experiment now also bound high-glucose error, missed onsets and false warnings
   ([`configs/experiments/gt-nested-2026-10-12-v2.yaml`](configs/experiments/gt-nested-2026-10-12-v2.yaml), declared, not run) ([model upgrade review](reports/model_upgrade_review.md),
   [full research report](reports/nested_benchmark_report.md), [data expansion audit](reports/dataset_expansion_audit.md)).
@@ -276,7 +313,8 @@ The dataset (CC BY-NC-SA 4.0, ≈ 657 MB) is **not** included. Download it yours
 ```bash
 make data-download   # PhysioNet open-data mirror; verifies SHA256SUMS.txt (`uv run glucotwin data download --primary` uses physionet.org)
 make data            # verify + normalize + split manifest + reports/data_audit.md   (idempotent)
-make experiment      # current protocol (v2): search, selection, adaptation, calibration, test run (~2 min on a laptop CPU)
+make experiment      # v2, then the fusion-constrained protocol: search, selection, adaptation, calibration, test run;
+                     # the second run registers the serving model (~2 min each on a laptop CPU)
 make dev
 ```
 
@@ -286,8 +324,8 @@ fails verification. The published 1-minute CGM columns are linearly interpolated
 
 ### Larger-data research experiment (optional)
 
-Prerequisites: the CGMacros steps above (`make data-download`, `make data`, `make experiment` — the current recipe is
-the comparator).
+Prerequisites: the CGMacros steps above (`make data-download`, `make data`, `make experiment` — the v2 recipe is the
+comparator).
 
 ```bash
 make data-shanghai   # ShanghaiT2DM (3.7 MB, CC BY 4.0): download, verify publisher MD5, import
@@ -302,8 +340,8 @@ clean copy reproduced every headline number and the internal predictions bit for
 ([verification](reports/verification.md)).
 
 The research runner writes only `artifacts/research/` and never the model registry; a frozen candidate reaches the app
-only through `uv run glucotwin research promote --track multimodal_5min --yes` (rollback:
-`uv run glucotwin research rollback --to lightgbm.dyn-v2.gt-primary-2026-10-11-v2`). An assessment that was already
+only through `uv run glucotwin research promote --track multimodal_5min --yes` (rollback to the current demo model:
+`uv run glucotwin research rollback --to lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`). An assessment that was already
 opened refuses to run again without `--reopen-reason`. AI-READI needs steps only you can complete; they are listed in
 [`reports/dataset_expansion_audit.md`](reports/dataset_expansion_audit.md).
 
@@ -346,13 +384,12 @@ Latest results: [`reports/verification.md`](reports/verification.md) · integrat
 ├── configs/
 │   ├── data.yaml             availability and data policies
 │   ├── sources.yaml          dataset source registry (URLs, checksums, licences)
-│   ├── experiment.yaml       current serving protocol (gt-primary-2026-10-11-v2)
-│   ├── experiments/          archived and research protocols: v1, nested v1/v2, fusion-constrained (declared
-│   │                         13 Oct; candidate built, not serving)
+│   ├── experiment.yaml       v2 protocol (gt-primary-2026-10-11-v2), the base of the serving protocol
+│   ├── experiments/          v1; fusion-constrained gt-primary-2026-10-13-fusion (serving model); nested v1/v2
 │   └── submission.yaml       team, links and video metadata for the submission assets
 ├── docs/                     product, system, model/data and submission documents — index: docs/README.md
 │   └── submission/           presentation (PDF, PPTX) and architecture diagram (PDF)
-├── reports/                  generated reports, figures and UI screenshots (+ archived v1 report)
+├── reports/                  generated reports, figures and UI screenshots (+ archived v1 and v2 reports)
 ├── scripts/                  submission assets, demo-sequence recorder, landing preview, submission link check
 ├── tests/                    backend tests (leakage, splits, adaptation, warnings, replay, API, research)
 ├── artifacts/                models, experiment outputs, registry            (git-ignored; README kept)

@@ -13,8 +13,8 @@ Primary availability policy: `conservative-v1` (`configs/data.yaml`).
 | `Calories (Activity)` | Fitbit activity energy | kcal | Minute | End of 5-minute window | Sum over 60 min, wearable coverage fraction (`dyn-v2`: each summary contributes only its share inside `(t − 60, t]`, so coverage ≤ 100 %) | NaN / coverage 0 → quality `degraded` (`activity_unavailable`); energy NaN, not 0, when unrecorded | Primary (`dyn-*`) |
 | `Meal Type`, `Calories`, `Carbs`, `Protein`, `Fat`, `Fiber` | Meal start (photo) and study-estimated macronutrients | g, kcal | Photo timestamp | **Unknown** logging latency → excluded from the primary model | Sums over 60/180 min, minutes since meal, last-meal carbohydrate | 0 when no meal in window (explicit sums), NaN for time since meal | **Sensitivity only** (`dyn-prof-meal-v2`; `-v1` in experiment v1; optimistic: assumes availability at photo time) |
 | `Amount Consumed` | Share eaten (from after-photo) | % | After the meal | Not available at meal start | — | — | Not used |
-| `Age`, `Gender`, `BMI` | Baseline | years, –, kg/m² | Screening, day 1 | Available at twin initialisation (recording start) | Constant | NaN if missing | `dyn-prof-v2` candidate only (`dyn-prof-v1` in experiment v1) |
-| `A1c PDL (Lab)`, `Fasting GLU`, `Insulin`, `Triglycerides`, `HDL` | Screening labs | %, mg/dL, µU/mL | Screening, day 1 | Assumed available at initialisation; lab turnaround undocumented | Constant | NaN if missing | `dyn-prof-v2` candidate only (`dyn-prof-v1` in experiment v1) |
+| `Age`, `Gender`, `BMI` | Baseline | years, –, kg/m² | Screening, day 1 | Available at twin initialisation (recording start) | Constant | NaN if missing | `dyn-prof-v2` — the serving feature set since `gt-primary-2026-10-13-fusion` (`dyn-prof-v1` in experiment v1) |
+| `A1c PDL (Lab)`, `Fasting GLU`, `Insulin`, `Triglycerides`, `HDL` | Screening labs | %, mg/dL, µU/mL | Screening, day 1 | Assumed available at initialisation; lab turnaround undocumented | Constant | NaN if missing | `dyn-prof-v2` — the serving feature set since `gt-primary-2026-10-13-fusion` (`dyn-prof-v1` in experiment v1) |
 | `LDL (Cal)`, `VLDL (Cal)`, cholesterol, ethnicity, weight, height | Baseline | various | Screening | As above | — | Error codes excluded | Display only |
 | Fingerstick glucose, microbiome, gut-health scores | Day-1 measurements | — | Day 1 | — | — | — | Not used |
 | Participant ID | Grouping key | — | — | — | — | — | **Never** a model input |
@@ -22,7 +22,9 @@ Primary availability policy: `conservative-v1` (`configs/data.yaml`).
 Forecast quality rules (shared by evaluation and serving): `insufficient` when the latest reading is older than
 15 minutes, history spans < 60 minutes (−2.5 min tolerance), or fewer than half the expected readings exist in the
 last 60 minutes; `degraded` for < 80 % expected readings, a gap > 15 minutes in the last hour, a sensor-limit
-reading, or no wearable data in the last hour.
+reading, or no wearable data in the last hour. A profile model trained only on complete profiles (`profile_gate` in its
+`serving.json`) abstains with `profile_unavailable` when any profile value it reads is missing or not yet available;
+the offline evaluation never scores such origins because every evaluated participant has a complete profile.
 
 **Activity-window convention.** A 5-minute wearable summary observed at `e` covers `(e − 5, e]`. Feature sets `*-v2`
 (serving since `gt-primary-2026-10-11-v2`) count only the part of each released summary inside the lookback window

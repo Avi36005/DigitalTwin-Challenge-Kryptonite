@@ -4,11 +4,11 @@ Experiment `gt-nested-2026-10-12-v1` (nested participant-level benchmark + reser
 
 | Model | Role | Status |
 |---|---|---|
-| LightGBM v2 (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`) | demo model before this experiment | serving |
+| LightGBM v2 (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`) | demo model before this experiment | not serving (registry serves `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`) |
 | Ridge (`ridge.cgm-only-v1.gt-nested-2026-10-12-v1`) | five-minute candidate | evaluated, not promoted |
 | LightGBM (`lightgbm.cgm15-v1.gt-nested-2026-10-12-v1`) | external check (separate 15-minute model) | evaluated once on ShanghaiT2DM |
 
-**Recommendation by the pre-specified rule: Replace the serving recipe with the frozen candidate — rule met; promotion is a separate, explicit decision.** The registry serves `lightgbm.dyn-v2.gt-primary-2026-10-11-v2`; no candidate of this experiment has been promoted.
+**Recommendation by the pre-specified rule: Replace the serving recipe with the frozen candidate — rule met; promotion is a separate, explicit decision.** The registry serves `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`; no candidate of this experiment has been promoted.
 
 * 30 min, outer folds: selected minus refit v2 recipe -0.64 mg/dL, 95 % CI [-0.98, -0.32] (12 of 14 people improved).
 * 60 min, outer folds: selected minus refit v2 recipe -1.95 mg/dL, 95 % CI [-2.83, -1.04] (13 of 14 people improved).
@@ -19,7 +19,7 @@ Experiment `gt-nested-2026-10-12-v1` (nested participant-level benchmark + reser
 
 ## 1. Research question and current limitations
 
-Does a tuned LightGBM (L2 or L1 objective), CatBoost, or a different input set forecast glucose 30 and 60 minutes ahead better than the current serving recipe for people the model has never seen — and does a portable CGM-only model trained on CGMacros transfer to an independent cohort recorded with a different device, cadence and country? The serving model (LightGBM dyn-v2 + adaptation, experiment v2) was selected on the same 14 CGMacros people and its test segment was already inspected, so it could not answer either question.
+Does a tuned LightGBM (L2 or L1 objective), CatBoost, or a different input set forecast glucose 30 and 60 minutes ahead better than the v2 serving recipe for people the model has never seen — and does a portable CGM-only model trained on CGMacros transfer to an independent cohort recorded with a different device, cadence and country? The model serving when this experiment was declared (LightGBM dyn-v2 + adaptation, experiment v2) was selected on the same 14 CGMacros people and its test segment was already inspected, so it could not answer either question.
 
 ## 2. Provenance and inclusion
 
@@ -199,8 +199,8 @@ uv run glucotwin research report
 # Promotion is a separate explicit action (dry run without --yes):
 uv run glucotwin research promote --track multimodal_5min
 uv run glucotwin research promote --track multimodal_5min --yes
-# Rollback to the current serving model:
-uv run glucotwin research rollback --to lightgbm.dyn-v2.gt-primary-2026-10-11-v2
+# Rollback to the model served before a promotion:
+uv run glucotwin research rollback --to lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion
 ```
 
 ### Limitations

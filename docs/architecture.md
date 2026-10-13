@@ -53,7 +53,7 @@ observations**:
 |---|---|
 | Initialization | Baseline profile values available at twin initialization (screening labs, demographics) and an empty adaptation state |
 | Observations | Native CGM readings, 5-minute wearable summaries, meal records (context only), released by the replay clock |
-| Model | Population forecaster (serving: LightGBM, dynamic features) predicting 30- and 60-minute glucose change |
+| Model | Population forecaster (serving: LightGBM on the baseline profile plus dynamic features, `dyn-prof-v2`) predicting 30- and 60-minute glucose change; it abstains if a profile value is unavailable |
 | Patient state | Per-horizon shrunk, bounded, decaying bias correction learned only from matured forecast errors; episode state; issued-forecast history |
 | Outputs | Immutable forecasts with conformal prediction ranges (target coverage 80 %), uncalibrated warning score, factual explanations, research alerts |
 

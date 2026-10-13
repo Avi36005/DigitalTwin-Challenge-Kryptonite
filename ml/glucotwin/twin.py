@@ -47,6 +47,9 @@ FEATURE_LABELS = {
     "mets_mean_30": "average activity (METs, 30 min)", "mets_mean_60": "average activity (METs, 60 min)",
     "mets_max_60": "peak activity (METs, 60 min)", "kcal_sum_60": "activity energy (60 min)",
     "active_min_60": "active minutes (60 min)", "act_cov_60": "wearable coverage (60 min)",
+    "p_age": "age (profile)", "p_sex_male": "sex (profile)", "p_bmi": "BMI (profile)", "p_hba1c": "HbA1c (profile)",
+    "p_fasting_glucose": "fasting glucose (profile)", "p_fasting_insulin": "fasting insulin (profile)",
+    "p_triglycerides": "triglycerides (profile)", "p_hdl": "HDL cholesterol (profile)",
 }
 for _i in (5, 10, 15, 20, 30, 45, 60, 90, 120):
     FEATURE_LABELS[f"g_lag_{_i}"] = f"glucose {_i} minutes earlier"

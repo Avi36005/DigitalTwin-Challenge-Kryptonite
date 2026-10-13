@@ -11,7 +11,7 @@ import pandas as pd
 
 from glucotwin.config import load_config, load_experiment_config, paths
 from glucotwin.data.pipeline import dataset_store_dir
-from glucotwin.evaluation.report import LIMITATIONS, latest_metrics_path
+from glucotwin.evaluation.report import LIMITATIONS, latest_metrics_path, selection_disclosures
 
 
 def _fmt(x, nd=1) -> str:
@@ -252,7 +252,17 @@ def write_evaluation_report() -> str:
     else:
         serving_sentence = ""
     corrects = m.get("corrects_experiment_id")
-    if corrects:
+    base = load_experiment_config(m["experiment_id"]).get("derived_from")
+    disclosures = selection_disclosures(m)
+    if disclosures and base:
+        protocol_line = (
+            f"* **Retrospective, fusion-constrained result.** This experiment re-runs the protocol of `{base}` with one "
+            f"change: the serving model must read both the baseline profile and the dynamic streams. Protocol: "
+            f"`configs/experiments/{m['experiment_id']}.yaml` (the change and its timing are stated in its header). The "
+            f"test segment had already been inspected in `{corrects}` and `{base}`; nothing was tuned on it. The report "
+            f"of `{base}` is preserved at `reports/archive/evaluation_report_{base}.md`. See the selection disclosures "
+            "below.")
+    elif corrects:
         protocol_line = (
             f"* **Corrected retrospective result.** This experiment re-runs the declared protocol of `{corrects}` after code "
             f"corrections (activity-window features, warning accounting; `reports/repair_report.md`). Protocol: "
@@ -263,6 +273,8 @@ def write_evaluation_report() -> str:
         protocol_line = ("* Protocol declared in `configs/experiment.yaml` before fitting; test segment evaluated once after "
                          "freezing the serving model, adaptation settings, interval quantiles and alert thresholds.")
     best_cand = cand.sort_values("selection_score").iloc[0]
+    disclosure_block = ("\n### Selection disclosures\n\n" + "\n".join(f"* {d}" for d in disclosures) + "\n"
+                        if disclosures else "")
     grid = load_experiment_config(m["experiment_id"])["adaptation"]["grid"]
     k_sel, hl_sel = adapt.iloc[0]["shrinkage_k"], adapt.iloc[0]["half_life_minutes"]
     at_edge = (k_sel in (min(grid["shrinkage_k"]), max(grid["shrinkage_k"]))
@@ -296,7 +308,7 @@ Tie-break: {sel['tie_break']}
 **Selected:** `{serving}` — {sel['rationale']}
 The best validation score was `{best_cand['label']}` ({best_cand['selection_score']:.2f} mg/dL); candidates inside the
 declared tie margin are resolved by the declared complexity order, not by their scores.
-
+{disclosure_block}
 ### Patient adaptation (selected on validation-selection, same policy for both tree families)
 
 {_table(adapt)}

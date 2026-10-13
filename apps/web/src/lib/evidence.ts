@@ -117,7 +117,8 @@ export function fmtLatency(v: number | null | undefined): string {
 /* ------------------------------------------------------------------ research experiments (nested + external) */
 
 export const REGIME: Record<string, string> = {
-  serving_retrospective: "Corrected retrospective · serving evidence",
+  serving_retrospective: "Retrospective · serving evidence",
+  superseded_serving: "Corrected retrospective · previous serving model",
   nested_research: "New participants · internal nested + external",
   superseded_original: "Original · superseded",
 };

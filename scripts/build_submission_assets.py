@@ -15,6 +15,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+from glucotwin.config import load_experiment_config  # noqa: E402
+from glucotwin.evaluation.report import profile_benefit_on_new_people, selection_disclosures  # noqa: E402
+from glucotwin.features import FEATURE_SETS, PROFILE_FEATURES  # noqa: E402
 from matplotlib.patches import FancyBboxPatch  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,10 +48,11 @@ def labels(m: dict) -> dict:
     sl, sp, fam, fs = serving_ids(m)
     other = "catboost" if fam == "lightgbm" else "lightgbm"
     name = FAMILY.get(fam, fam)
+    prof = " + profile" if "prof" in fs else ""
     return {
-        (sl, sp): f"{name}{' + patient adaptation' if sp == 'adaptive' else ''}\n(serving)",
-        (sl, "off"): f"{name} (population)",
-        (f"{other}:{fs}", "off"): f"{FAMILY[other]} (population)",
+        (sl, sp): f"{name}{prof}{' + patient adaptation' if sp == 'adaptive' else ''}\n(serving)",
+        (sl, "off"): f"{name}{prof} (population)",
+        (f"{other}:{fs}", "off"): f"{FAMILY[other]}{prof} (population)",
         (f"ridge:{fs}", "off"): "Ridge",
         ("linear_trend:cgm-only-v1", "off"): "Linear trend",
         ("persistence:cgm-only-v1", "off"): "Persistence",
@@ -60,6 +64,25 @@ def load() -> dict:
     version = reg["serving"]["dataset_replay"]
     entry = next(x for x in reg["models"] if x["model_version"] == version)
     return json.loads((ROOT / entry["evaluation_reference"]).read_text())
+
+
+def serving_config() -> dict:
+    reg = json.loads(REGISTRY.read_text())
+    version = reg["serving"]["dataset_replay"]
+    entry = next(x for x in reg["models"] if x["model_version"] == version)
+    return json.loads((ROOT / entry["artifact_dir"] / "serving.json").read_text())
+
+
+def fusion_facts(m: dict) -> dict:
+    """Inputs of the serving feature set and, for a fusion-constrained experiment, the experiment it was derived from."""
+    fs = FEATURE_SETS[serving_ids(m)[3]]
+    n_prof = len(PROFILE_FEATURES) if fs.use_profile else 0
+    base = load_experiment_config(m["experiment_id"]).get("derived_from")
+    bp = ROOT / "artifacts/experiments" / str(base) / "metrics.json"
+    return {"n_prof": n_prof, "n_dyn": len(fs.columns()) - n_prof, "base": base,
+            "base_metrics": json.loads(bp.read_text()) if base and bp.exists() else None,
+            "declared_on": load_experiment_config(m["experiment_id"]).get("declared_on"),
+            "disclosures": selection_disclosures(m), "gate": bool(serving_config().get("profile_gate"))}
 
 
 def submission() -> dict:
@@ -208,7 +231,7 @@ def _arrow(ax, x1, y1, x2, y2, text=None, tx=None, ty=None, ha="left"):
                 color=INK if ha == "left" else INK2, va="center", ha=ha, style="italic")
 
 
-def fig_architecture() -> Path:
+def fig_architecture(fused: bool = False) -> Path:
     fig = plt.figure(figsize=(12, 6.6))
     ax = fig.add_axes([0, 0, 1, 1])
     ax.set_xlim(0, 1)
@@ -223,8 +246,8 @@ def fig_architecture() -> Path:
     cg = _box(ax, 0.02, T, 0.2, "CGMacros 1.0.0", ["PhysioNet, CC BY-NC-SA 4.0", "SHA-256 verified", "data/raw (not in Git)"], GRAY)
     sy = _box(ax, 0.02, cg[1] - 0.03, 0.2, "Synthetic generator", ["Fictional SYN-A…E (CC0)", "gaps, late meals,", "short history"], GRAY)
     ad = _box(ax, 0.27, T, 0.22, "Adapter + canonical store", ["native Dexcom recovery from", "the interpolated 1-min table",
-                                                              "5-min wearable summaries", "observed_at / available_at",
-                                                              "Parquet per patient + SQLite"])
+                                                              "5-min wearable summaries", "baseline labs (static profile)",
+                                                              "observed_at / available_at", "Parquet per patient + SQLite"])
     _arrow(ax, 0.22, cg[1] + cg[3] / 2, 0.27, ad[1] + ad[3] * 0.7)
     _arrow(ax, 0.22, sy[1] + sy[3] / 2, 0.27, ad[1] + ad[3] * 0.3)
     og = _box(ax, 0.02, 0.36, 0.22, "Origin table", ["causal features (≤ 180 min)", "quality ok / degraded / insufficient",
@@ -239,7 +262,8 @@ def fig_architecture() -> Path:
                                                    "seek/reset → new revision", "cursors per revision"], BLUE)
     _arrow(ax, 0.49, rp[1] + rp[3] / 2, 0.54, rp[1] + rp[3] / 2, "source", tx=0.515, ty=rp[1] + rp[3] / 2 + 0.035,
            ha="center")
-    tw = _box(ax, 0.54, rp[1] - 0.07, 0.2, "TwinEngine", ["build_features (same code)", "population model",
+    tw = _box(ax, 0.54, rp[1] - 0.07, 0.2, "TwinEngine", ["build_features (same code)",
+                                                         "model: profile + CGM + wearable" if fused else "population model",
                                                          "AdaptationState (same code)", "conformal interval",
                                                          "warning score − 180", "episode state machine",
                                                          "research alert rule", "immutable forecast record"], BLUE)
@@ -335,19 +359,57 @@ def research_slide() -> dict | None:
     f2 = lambda p, h: f"{p['horizons'][h]['mae']:.2f}"  # noqa: E731
     return {"kind": "bullets", "title": "New people and an independent cohort (research experiment)",
             "bullets": [
-                "Three models, kept separate: LightGBM v2 is the demo model (all results above); a Ridge model on CGM-only "
-                "features is the five-minute candidate; a separate 15-minute LightGBM is the external check.",
+                "Models kept separate: the v2 recipe (LightGBM, dynamic streams only; the demo model when this experiment "
+                "was declared), a Ridge five-minute candidate on CGM-only features, and a separate 15-minute LightGBM as "
+                "the external check.",
                 f"{imported} participants imported; {t['participants']} evaluated internally (five participant folds, each "
                 f"person held out once) and {ext['participants']} evaluated externally (ShanghaiT2DM, China, opened once).",
-                f"Held-out people, 30 / 60 min: candidate {f2(sel, '30')} / {f2(sel, '60')} vs demo recipe refit "
+                f"Held-out people, 30 / 60 min: candidate {f2(sel, '30')} / {f2(sel, '60')} vs v2 recipe refit "
                 f"{f2(v2, '30')} / {f2(v2, '60')} vs persistence {f2(per, '30')} / {f2(per, '60')} mg/dL — but worse on large "
                 f"highs ({ci(hg)} at 60 min when the target exceeded 180).",
                 f"Warnings chosen for ≤ 2 false alarms per day: {ws['detected_onsets']}/{ws['true_onsets']} onsets at "
-                f"{ws['false_alarms_per_observed_day']:.2f} false alarms per observed day (demo recipe: "
+                f"{ws['false_alarms_per_observed_day']:.2f} false alarms per observed day (v2 recipe: "
                 f"{wv['detected_onsets']}/{wv['true_onsets']} at {wv['false_alarms_per_observed_day']:.2f}).",
                 f"External 15-minute LightGBM vs persistence: {ci(e30)} at 30 min (clear); {ci(e60)} at 60 min (inconclusive).",
                 "Not promoted. CGMacros was already inspected, so its folds are internal validation; the next protocol also "
                 "bounds high-glucose error, missed onsets and false warnings (declared, not run)."]}
+
+
+def fusion_slide(m: dict, ff: dict, mae, c) -> dict:
+    """Why the serving model reads the profile, and what that does not show. Numbers from the two experiments' metrics
+    and the nested research report."""
+    sl, sp, fam, fs = serving_ids(m)
+    bm, base = ff["base_metrics"], ff["base"]
+    bl, bp = bm["selection"]["selected_label"], bm["selection"]["serving_personalization"]
+    name = FAMILY.get(fam, fam)
+
+    def ev(mm):
+        lab, pers = mm["selection"]["selected_label"], mm["selection"]["serving_personalization"]
+        return next(e for e in mm["events"] if e["model"] == f"{lab} ({'adaptive' if pers == 'adaptive' else 'population'})"
+                    and e["split"] == "test" and e["horizon"] == 60)
+    eo, eb = ev(m), ev(bm)
+    nested = profile_benefit_on_new_people()
+    nci = {r["horizon"]: f"{r['mean_diff']:+.2f} [{r['ci95'][0]:+.2f}, {r['ci95'][1]:+.2f}] mg/dL" for r in nested}
+    none = nested and all(r["ci95"][0] <= 0 <= r["ci95"][1] for r in nested)
+    within = f"{fam}: profile minus dynamic-only (population)"
+    return {"kind": "bullets", "title": "Fusion: what the profile adds, and what it does not show",
+            "bullets": [
+                f"The brief asks for a model that ingests static EHR-like data and dynamic wearable data. The demo model ({name}, {fs}) "
+                f"reads {ff['n_prof']} baseline profile values and {ff['n_dyn']} glucose and wearable features in one model.",
+                f"Same 14 people, later days (test): profile minus dynamic-only {c(within, 30)} at 30 min and {c(within, 60)} at 60 min "
+                "(negative = profile better). Profile values are constant per person, so here they can act as an identity code.",
+                (f"People held out entirely (nested experiment): {nci.get(30, '—')} at 30 min and {nci.get(60, '—')} at 60 min"
+                 + (" — no reliable benefit for new people." if none else ".")) if nested else
+                "Benefit for people held out entirely: not assessed on this machine.",
+                f"Selection: the v2 rule applied only to profile + wearable models — a constraint declared on {ff['declared_on']}, after the "
+                f"test segment had been inspected. Test MAE {mae(sl, sp, 30):.2f} / {mae(sl, sp, 60):.2f} mg/dL vs {mae(bl, bp, 30):.2f} / "
+                f"{mae(bl, bp, 60):.2f} for the dynamic-only model ({base}): retrospective, same people.",
+                f"Warnings: margin re-derived by the same F1 rule ({eo['threshold']:+.0f} vs {eb['threshold']:+.0f} mg/dL): "
+                f"{eo['false_alarms_per_observed_patient_day']:.2f} vs {eb['false_alarms_per_observed_patient_day']:.2f} false alarms per observed day, "
+                f"{eo['detected_onsets']}/{eo['true_onsets']} vs {eb['detected_onsets']}/{eb['true_onsets']} onsets, forecast lead median "
+                f"{eo['qualified_lead_median']:.0f} vs {eb['qualified_lead_median']:.0f} min. A threshold trade-off, not evidence that the profile helps.",
+                "Our claim: we selected a model that implements the required fusion; we have not established that profile features "
+                "improve forecasting for unseen patients."]}
 
 
 def slides(m: dict, sub: dict) -> list[dict]:
@@ -389,6 +451,9 @@ def slides(m: dict, sub: dict) -> list[dict]:
         b = pp[(pp["label"] == m["selection"]["selected_label"]) & (pp["personalization"] == m["selection"]["serving_personalization"])
                & (pp["horizon"] == h)].set_index("patient_id")["mae"]
         return int((b < a.reindex(b.index)).sum())
+    ff = fusion_facts(m)
+    disc, base, bm = ff["disclosures"], ff["base"], ff["base_metrics"]
+    eligible = m["selection"].get("eligible_feature_sets") or []
     sel_table = [["Candidate", "Val. MAE 30", "Val. MAE 60", "Score"]] + [
         [r.label, f"{r.selection_mae_30:.2f}", f"{r.selection_mae_60:.2f}", f"{r.selection_score:.2f}"] for r in cand.itertuples()]
     return [
@@ -423,19 +488,27 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      "Meals excluded from the primary model (logging time unknown); tested separately as an optimistic sensitivity.",
                      ("Protocol frozen before fitting; model, adaptation, intervals and alert threshold chosen on validation; test evaluated once."
                       if not corrects else
+                      f"Protocol frozen before fitting; model, adaptation, intervals and alert threshold chosen on validation. Results shown ({m['experiment_id']}) re-run {base}'s protocol with one change, declared after its test segment had been inspected: the serving model must read the baseline profile and the wearable streams."
+                      if disc and base else
                       f"Protocol frozen before fitting; model, adaptation, intervals and alert threshold chosen on validation. Results shown are a corrected re-run ({m['experiment_id']}) of {corrects} after two code fixes — same protocol, same test segment, already inspected."),
                      "Adaptation uses a residual only after its target reading was available; missing future data is censored, never negative."]},
         {"kind": "image", "title": "Architecture", "image": str(ASSETS / "fig_architecture.png")},
         {"kind": "bullets", "title": "Models and personalization",
-         "bullets": ["Baselines: persistence, bounded linear trend, ridge regression.",
+         "bullets": [*([f"Fusion: the serving model reads {ff['n_dyn']} dynamic features (CGM history, wearable heart rate and activity) and {ff['n_prof']} static baseline profile values (age, sex, BMI, HbA1c, fasting glucose and insulin, triglycerides, HDL) in one model."] if ff["n_prof"] else []),
+                     "Baselines: persistence, bounded linear trend, ridge regression.",
                      "Direct per-horizon gradient-boosted trees: LightGBM (starting point) and CatBoost (challenger), equal 12-trial seeded searches, identical inputs and origins.",
                      "Patient adaptation (same policy for both families): shrunk, bounded, decaying mean of matured residuals vs the frozen population forecast; weights never refit.",
                      "Prediction ranges: split-conformal, target coverage 80 %, calibrated on the calibration segment for the exact serving pipeline.",
                      "Warning: max forecast within 60 min − 180 mg/dL — an uncalibrated score, never shown as a probability."]},
         {"kind": "table", "title": "Why this learner: validation-only selection", "table": sel_table,
-         "note": f"Declared rule: lowest mean per-participant MAE over both horizons; candidates within 0.5 mg/dL tie → simpler family, then smaller feature set. "
-                 f"Selected: {m['selection']['selected_label']} with patient adaptation (adopted on validation). "
-                 f"Best validation score: {cand.iloc[0]['label']} ({cand.iloc[0]['selection_score']:.2f}). The declared tie-break chose the simpler configuration; we did not switch after seeing test results."},
+         "note": (f"Declared rule: lowest mean per-participant MAE over both horizons; candidates within 0.5 mg/dL tie → simpler family, then smaller feature set. "
+                  f"Eligible for serving: {', '.join(eligible)} only (profile + wearable), a constraint added on {ff['declared_on']} after the test segment had been inspected, to meet the fusion requirement. "
+                  f"Selected: {m['selection']['selected_label']} with patient adaptation. Without the constraint the same rule picks {bm['selection']['selected_label']} (the earlier model, {base})."
+                  if disc and bm else
+                  f"Declared rule: lowest mean per-participant MAE over both horizons; candidates within 0.5 mg/dL tie → simpler family, then smaller feature set. "
+                  f"Selected: {m['selection']['selected_label']} with patient adaptation (adopted on validation). "
+                  f"Best validation score: {cand.iloc[0]['label']} ({cand.iloc[0]['selection_score']:.2f}). The declared tie-break chose the simpler configuration; we did not switch after seeing test results.")},
+        *([fusion_slide(m, ff, mae, c)] if disc and bm else []),
         {"kind": "image", "title": "Clinician workflow: the twin workspace", "image": str(UI / "03-forecast-with-interval-recorded.png"),
          "caption": "Recorded-data replay in the held-out test period: current glucose, 30/60-minute forecasts with prediction ranges (target coverage 80 %), saved earlier forecasts, research warnings with outcomes, review status and data quality."},
         {"kind": "image", "title": "Demonstration: evidence behind a forecast", "image": str(UI / "04-forecast-evidence-dialog.png"),
@@ -460,11 +533,13 @@ def slides(m: dict, sub: dict) -> list[dict]:
         {"kind": "bullets", "title": "Project outcomes",
          "bullets": ["Built: a working personalized glucose twin — replay API with a backend-owned clock, immutable forecasts, research warnings with outcomes — and a clinician workspace (landing page, Overview, Participants, Replay sessions, Model evidence, Data quality).",
                      "Found and corrected a data-provenance problem: the published 1-minute CGM values are interpolated; only native 5-minute readings are used.",
-                     f"{'Measured on held-out test (corrected re-run)' if corrects else 'Measured once on held-out test'}: {better(30)}/{n_pt} participants improved over persistence at 30 min and {better(60)}/{n_pt} at 60 min; "
+                     f"{'Measured on held-out test (retrospective)' if disc else 'Measured on held-out test (corrected re-run)' if corrects else 'Measured once on held-out test'}: {better(30)}/{n_pt} participants improved over persistence at 30 min and {better(60)}/{n_pt} at 60 min; "
                      f"MAE {ss.loc[30, 'mae']:.2f} / {ss.loc[60, 'mae']:.2f} mg/dL vs {mae('persistence:cgm-only-v1', 'off', 30):.2f} / {mae('persistence:cgm-only-v1', 'off', 60):.2f}.",
                      f"Personalization: small gains ({c(f'{sl}: adaptive minus population', 30).split(' [')[0]} and {c(f'{sl}: adaptive minus population', 60).split(' [')[0]}). "
-                     f"Warnings: {int(e['detected_onsets'])}/{int(e['true_onsets'])} onsets detected with {int(e['false_alarm_episodes'])} false alarms — the F1 rule favours sensitivity over review workload.",
-                     ("Corrected after an independent review: an activity-window feature defect and an online warning double-credit were fixed and the protocol re-run "
+                     f"Warnings: {int(e['detected_onsets'])}/{int(e['true_onsets'])} onsets detected with {int(e['false_alarm_episodes'])} false alarms — the F1 threshold rule ignores review workload.",
+                     (f"Corrected after an independent review (activity-window defect, online warning double-credit; {corrects} preserved), then re-run with the fusion "
+                      f"constraint ({m['experiment_id']}); the dynamic-only model of {base} stays registered for rollback." if disc and base else
+                      "Corrected after an independent review: an activity-window feature defect and an online warning double-credit were fixed and the protocol re-run "
                       f"({m['experiment_id']}); the original {corrects} results are preserved." if corrects else
                       "Every result regenerates from saved artifacts."),
                      "Reproducible: synthetic mode needs no download; recorded-data results regenerate from versioned configs; a fresh copy passes the automated backend, frontend and browser tests."]},
@@ -473,6 +548,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      "No Indian participants — nothing here establishes performance for patients in India.",
                      "Blinded research CGMs replayed with assumed zero latency; native timestamps known to the minute.",
                      "Medication and insulin use unknown; meal logging time undocumented.",
+                     *(["Profile fusion: profile values are constant per person, so with 14 people they can act as an identity code; no benefit was shown on people held out entirely."] if disc else []),
                      "Prediction ranges under-cover; the warning score is uncalibrated and its threshold rule (F1) ignores review workload; 180 mg/dL is a research threshold, not triage.",
                      "Retrospective replay only: no clinician workflow, outcome or safety study. Optional Chronos-Bolt not run."]},
         {"kind": "bullets", "title": "Next steps: evidence needed before use with Indian patients",
@@ -680,7 +756,7 @@ def build_pdf(deck: list[dict], path: Path) -> None:
     cv.save()
 
 
-def build_architecture_pdf(path: Path) -> None:
+def build_architecture_pdf(path: Path, m: dict) -> None:
     from reportlab.lib.colors import HexColor
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.utils import ImageReader
@@ -699,9 +775,19 @@ def build_architecture_pdf(path: Path) -> None:
     cv.setFont("Helvetica-Bold", 22)
     cv.setFillColor(HexColor(INK))
     cv.drawString(40, H - 55, "Forecast lifecycle, availability boundary and state ownership")
+    ff = fusion_facts(m)
+    sfs = serving_ids(m)[3]
+    model_line = (
+        f"<b>2. Population model.</b> {FAMILY.get(serving_ids(m)[2], serving_ids(m)[2])} predicts glucose change at +30 and +60 minutes from "
+        f"{ff['n_dyn'] + ff['n_prof']} features in one model (feature set {sfs}): {ff['n_dyn']} trailing glucose and wearable features "
+        "(each 5-minute wearable summary counts only the part inside the lookback window)"
+        + (f" and {ff['n_prof']} static baseline profile values (age, sex, BMI, HbA1c, fasting glucose and insulin, triglycerides, "
+           "HDL), assumed known at the start of the record" + ("; the model abstains when any of them is unavailable" if ff["gate"] else "")
+           if ff["n_prof"] else "")
+        + ". Artifacts carry a transformation fingerprint; mismatched weights are refused.")
     items = [
         "<b>1. Origin.</b> A native glucose reading becomes available at time t. Features use only records with observed_at ≤ t and available_at ≤ t (glucotwin.features.build_features — the same code offline and online).",
-        "<b>2. Population model.</b> LightGBM predicts glucose change at +30 and +60 minutes from 38 trailing glucose and wearable features (feature set dyn-v2: each 5-minute wearable summary counts only the part inside the lookback window). Artifacts carry a transformation fingerprint; mismatched weights are refused.",
+        model_line,
         "<b>3. Patient adaptation.</b> AdaptationState adds a shrunk, bounded, decaying correction learned only from earlier forecasts whose target readings were already available. Model weights are never refit.",
         "<b>4. Uncertainty and warning.</b> Split-conformal prediction ranges (target coverage 80 %) calibrated for this exact pipeline; warning score = max forecast within 60 min − 180 mg/dL (uncalibrated, not a probability). Warning outcomes use one shared one-to-one onset matcher offline and in replay.",
         "<b>5. Immutable record.</b> Forecasts are stored once under uuid5(session, revision, origin, model version); outcomes are revealed only when the replay clock passes their availability.",
@@ -731,10 +817,10 @@ def main() -> None:
     SERVING_LABEL = serving_ids(m)[0]
     for f in (fig_mae, fig_paired, fig_per_patient):
         print(f(m))
-    print(fig_architecture())
+    print(fig_architecture(fusion_facts(m)["n_prof"] > 0))
     print(fig_split())
     print(fig_twin_loop())
-    build_architecture_pdf(OUT / "GlucoTwin_Architecture.pdf")
+    build_architecture_pdf(OUT / "GlucoTwin_Architecture.pdf", m)
     deck = slides(m, submission())
     build_pptx(deck, OUT / "GlucoTwin_Presentation.pptx")
     build_pdf(deck, OUT / "GlucoTwin_Presentation.pdf")

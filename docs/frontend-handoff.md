@@ -61,8 +61,8 @@ scroller on phones.
    at the replay time. The participant switcher resumes or creates that participant's own session and never resets
    the current one.
 2. **Baseline line.** Age, sex, BMI, HbA1c and fasting glucose, as known at the replay clock. *Profile details*
-   shows sources and availability. When the model version says so, a note states that the model does not use these
-   values. Missing values read "Not available", never 0.
+   shows sources and availability. When the model version says so, a note states whether the model uses these
+   values as inputs. Missing values read "Not available", never 0.
 3. **Summary group (flat, no boxes).**
    - Current glucose: black, with observation time, age and the observed 15-minute change.
    - 30- and 60-minute forecasts: blue, with "Range a–b mg/dL", target time and issue time.

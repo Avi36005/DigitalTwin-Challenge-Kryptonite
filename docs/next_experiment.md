@@ -17,7 +17,8 @@ The corrected experiment (`gt-primary-2026-10-11-v2`) re-used a test segment tha
 support a new selection claim. It also exposed three weak points:
 
 * the warning threshold rule (event-level F1) is nearly flat across margins −30 … 0 mg/dL and ignores review workload;
-* prediction ranges under-cover their 80 % target (74.4 % / 75.9 % on test);
+* prediction ranges under-cover their 80 % target (74.4 % / 75.9 % on test in v2; 74.2 % / 74.0 % for the
+  fusion-constrained serving model);
 * the adaptation settings sit on the edge of the declared grid (k = 96, half-life 240 min).
 
 A larger architecture is not the first priority.
@@ -64,6 +65,12 @@ honestly. A foundation model given future context must never be compared to a ca
 Only the declared selection rule applied to the new protocol's validation data. A candidate that merely looks better
 on the already-inspected test segment (for example, the profile-augmented models in v1 and v2) is not a reason to
 switch.
+
+Recorded exception (13 October 2026, decisions D-038 and D-039): the serving model was switched to the profile model
+of `gt-primary-2026-10-13-fusion` to meet the brief's requirement that one model ingest static and dynamic data. The
+eligibility constraint was declared after the test segment had been inspected, and the switch rests on compliance with
+the brief, not on test scores. This protocol must therefore test the profile on people held out entirely; the nested
+experiment found no reliable benefit (+0.34 [−0.28, +0.89] mg/dL at 30 min, −0.75 [−2.19, +0.61] at 60 min).
 
 LightGBM's L1/L2 objectives are documented in the
 [LightGBM parameter reference](https://lightgbm.readthedocs.io/en/latest/Parameters.html); leakage and test-set

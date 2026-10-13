@@ -267,7 +267,11 @@ def test_serving_model_is_reported_independently_of_any_research_report(client):
     assert set(modes) == {"dataset_replay", "synthetic_demo"}
     ev = client.get("/api/v1/evaluations").json()
     assert sum(1 for x in ev["items"] if x["is_serving_evidence"]) <= 1
-    assert all(x["regime"] in ("serving_retrospective", "superseded_original", "nested_research") for x in ev["items"])
+    assert all(x["regime"] in ("serving_retrospective", "superseded_serving", "superseded_original", "nested_research")
+               for x in ev["items"])
+    # only the experiment behind the serving model is labelled serving evidence
+    assert all((x["regime"] == "serving_retrospective") == x["is_serving_evidence"] for x in ev["items"]
+               if x["regime"] != "nested_research")
 
 
 def test_unknown_research_experiment_and_inventory_shapes(client):
