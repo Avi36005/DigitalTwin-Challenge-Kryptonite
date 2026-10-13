@@ -65,7 +65,43 @@ corrections (Prompt 05, `reports/repair_report.md`).
 | `uv run python scripts/check_submission.py` | 0 | 66 README links, 0 failures |
 | `uv run --group docs python scripts/build_submission_assets.py` | 0 | 21 slides (new slide 10: what the profile fusion does and does not show); architecture PDF names the 46-input model |
 
-## Clean copy of the latest version (2026-10-12, `scripts/clean_copy_check.sh`)
+## Clean copy of the latest version (2026-10-13, after the serving-model switch; `scripts/clean_copy_check.sh`)
+
+Only Git-publishable files (207) copied into an empty directory; no dataset, artifacts, caches or local state.
+
+**Full recorded-data path** (commit `5021ba5`; CGMacros files copied from this machine and verified against
+`SHA256SUMS.txt` by `make data`; the team's pseudonym salt copied):
+
+| Step | Exit | Outcome |
+|---|---|---|
+| `make setup` → `make synthetic` | 0 / 0 | Dependencies; fixtures and the synthetic demonstration model |
+| `make test` | 0 | 95 passed, 8 skipped (need local artifacts or a Git work tree) |
+| `make test-web` | 0 | Types, 38 unit tests, production build |
+| `make e2e` (before any data) | **2** | 10 passed, 4 skipped, **1 failed** — a defect introduced on 13 Oct, fixed below |
+| `make data-shanghai` → `make data` | 0 / 0 | ShanghaiT2DM MD5 verified; 45 CGMacros people imported |
+| `make experiment` | 0 | 283 s: v2, then the fusion-constrained protocol. Both `predictions.parquet` files are byte-identical to this working copy (488,384 rows each) with the same model fingerprints (`51761ec70966f3df`, `59d4c08960a2ff95`); the registry serves `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`. Metrics are identical apart from timings and the data fingerprint (known, below) |
+| `make manifest` → `make research` | 0 / 0 | 941 s. Every number in `nested_benchmark_report.md` and `model_upgrade_review.md` is identical; only candidate freeze hashes (timing-free version-2 hashes vs this copy's recorded ones) and one engine timing differ |
+| `make e2e` (with recorded data, fixed journey) | 0 | 15 passed, including the recorded-data journeys and the fusion-disclosure screenshot against the reproduced model |
+| `make research-report` (fixed target) | 0 | `evaluation_report.md` identical to the committed one except the data fingerprint; `docs/model_card.md` identical |
+
+**Synthetic-only path** (a second empty directory, working tree with both fixes): setup, synthetic, test (95 passed,
+8 skipped), test-web and data-shanghai exit 0; `make e2e` exit 0 with 10 passed and 5 skipped (recorded-data and
+research journeys need datasets).
+
+Found by these runs and fixed:
+
+* The research-evidence journey waited for the *Evidence* selector, which is not rendered when only one experiment
+  exists (no recorded data), so it failed instead of skipping. It now decides from the `/api/v1/evaluations` response
+  the page receives.
+* `make experiment` writes the serving report before `make research` exists, so a fresh copy's report said the
+  profile's effect on held-out people was "not assessed". `make research` and `make research-report` now regenerate
+  the serving report at the end.
+
+Known, unchanged: the data fingerprint hashes `provenance.json`, which records the retrieval time, so it differs between
+installations with identical files; v2 metrics written on 11 Oct lack the later `eligible_feature_sets` key (a fresh run
+writes it as `null`).
+
+## Clean copy (2026-10-12, before the serving-model switch; `scripts/clean_copy_check.sh`)
 
 Only Git-publishable files (`git ls-files --cached --others --exclude-standard`, 203 files) copied into an empty
 directory; no dataset, artifacts, caches or local state. Two runs.

@@ -178,12 +178,14 @@ test("model evidence and data quality pages render recorded results", async ({ p
 });
 
 test("research evidence is separate from the serving model, and data scale is audited", async ({ page }) => {
+  // decide from the experiment list the page itself receives, not from a render that may not have happened yet
+  const listed = page.waitForResponse((r) => /\/api\/v1\/evaluations(\?|$)/.test(r.url()));
   await page.goto("/app/evidence");
+  const list = (await (await listed).json()) as { items: { experiment_id: string; status: string }[] };
   await expect(page.getByText(/Serving model:/)).toBeVisible();
+  const hasResearch = list.items.some((x) => x.experiment_id === "gt-nested-2026-10-12-v1" && x.status === "completed");
+  test.skip(!hasResearch, "no assessed research experiment on this machine");
   const select = page.getByLabel("Evidence");
-  await expect(select).toBeVisible(); // the experiment list has loaded before its options are counted
-  const hasResearch = (await select.locator("option", { hasText: "Nested participant benchmark" }).count()) > 0;
-  test.skip(!hasResearch, "no research experiment on this machine");
   await select.selectOption({ label: "Nested participant benchmark + external cohort" });
   await expect(page).toHaveURL(/experiment=gt-nested-2026-10-12-v1/);
   await expect(page.getByText(/a different experiment .* did not change the serving model/)).toBeVisible();

@@ -30,9 +30,11 @@ research:         ## nested research experiment (ISOLATED: writes artifacts/rese
 	uv run glucotwin research assess
 	uv run glucotwin research external
 	uv run glucotwin research report
+	uv run glucotwin experiment report   # the serving report quotes the nested profile result in its disclosures
 
-research-report:  ## regenerate research reports from saved predictions only
+research-report:  ## regenerate research reports (and the serving report that quotes them) from saved predictions only
 	uv run glucotwin research report
+	uv run glucotwin experiment report
 
 experiment:       ## run v2, then the fusion-constrained protocol it was derived from (the last run is the serving model)
 	uv run glucotwin experiment run
