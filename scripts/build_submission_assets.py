@@ -371,8 +371,9 @@ def research_slide() -> dict | None:
                 f"{ws['false_alarms_per_observed_day']:.2f} false alarms per observed day (v2 recipe: "
                 f"{wv['detected_onsets']}/{wv['true_onsets']} at {wv['false_alarms_per_observed_day']:.2f}).",
                 f"External 15-minute LightGBM vs persistence: {ci(e30)} at 30 min (clear); {ci(e60)} at 60 min (inconclusive).",
-                "Not promoted. CGMacros was already inspected, so its folds are internal validation; the next protocol also "
-                "bounds high-glucose error, missed onsets and false warnings (declared, not run)."]}
+                "Not promoted, and not eligible as the demo model: the Ridge candidate reads CGM only. CGMacros was already "
+                "inspected, so its folds are internal validation; the next protocol also bounds high-glucose error, missed "
+                "onsets and false warnings (declared, not run)."]}
 
 
 def fusion_slide(m: dict, ff: dict, mae, c) -> dict:
@@ -524,9 +525,13 @@ def slides(m: dict, sub: dict) -> list[dict]:
          "caption": "Per-participant test MAE, persistence vs the serving pipeline. Gains are uneven: large for some participants, none for a few at 60 minutes. Fourteen people cannot establish population-level performance."},
         {"kind": "bullets", "title": "Measured evaluation: early warning and uncertainty",
          "bullets": [f"60-min warning (test, margin threshold {e['threshold']:+.0f} mg/dL chosen on validation by F1): {int(e['detected_onsets'])}/{int(e['true_onsets'])} new onsets detected, precision {e['precision']:.2f}, "
-                     f"{int(e['false_alarm_episodes'])} false alarms ({e['false_alarms_per_patient_day']:.2f} per eligible patient-day)"
+                     f"{int(e['false_alarm_episodes'])} false alarms ("
+                     + (f"{e['false_alarms_per_observed_patient_day']:.2f} per observed patient-day; " if corrected else "")
+                     + f"{e['false_alarms_per_patient_day']:.2f} per eligible day)"
                      + (f"; forecast lead median {e['qualified_lead_median']:.0f} min (episode start {e['lead_time_median']:.0f} min)." if corrected else f", median lead {e['lead_time_median']:.0f} min."),
-                     f"Same procedure on persistence (fires at glucose ≥ {180 + ep['threshold']:.0f}): {int(ep['detected_onsets'])}/{int(ep['true_onsets'])} detected, {int(ep['false_alarm_episodes'])} false alarms ({ep['false_alarms_per_patient_day']:.2f} per eligible day).",
+                     f"Same procedure on persistence (fires at glucose ≥ {180 + ep['threshold']:.0f}): {int(ep['detected_onsets'])}/{int(ep['true_onsets'])} detected, {int(ep['false_alarm_episodes'])} false alarms ("
+                     + (f"{ep['false_alarms_per_observed_patient_day']:.2f} per observed patient-day; " if corrected else "")
+                     + f"{ep['false_alarms_per_patient_day']:.2f} per eligible day).",
                      f"Prediction ranges (target coverage 80 %) covered {ivs[ivs['horizon'] == 30]['coverage'].iloc[0] * 100:.1f} % (30 min) and {ivs[ivs['horizon'] == 60]['coverage'].iloc[0] * 100:.1f} % (60 min) on test — under-covered; no guarantee claimed.",
                      f"Optimistic meal logging: {sens.loc[60, 'mae']:.2f} vs {sens.loc[60, 'serving_population_mae']:.2f} mg/dL at 60 min — timely meal data would likely help most."]},
         *([research_slide()] if research_slide() else []),

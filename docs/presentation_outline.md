@@ -24,7 +24,7 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 | 13 | Forecast accuracy | Test MAE chart + paired differences vs persistence |
 | 14 | Personalization | Forest plot of paired differences; frozen-state control; cold start |
 | 15 | Every participant | Per-participant chart (14/14 at 30 min, 13/14 at 60 min) |
-| 16 | Early warning and uncertainty | Detected onsets, false alarms per eligible day, qualified forecast lead vs a threshold rule; range coverage vs target; meal sensitivity |
+| 16 | Early warning and uncertainty | Detected onsets, false alarms per observed patient-day (per eligible day alongside), qualified forecast lead vs a threshold rule; range coverage vs target; meal sensitivity |
 | 17 | New people and an independent cohort | Research experiment `gt-nested-2026-10-12-v1` from its saved `report.json` (omitted until run): the three models kept separate (v2 recipe — the demo model when the experiment was declared; Ridge five-minute candidate; separate 15-minute LightGBM external check); 145 imported, 14 internal, 98 external; high-glucose trade-off; warning burden; external result with intervals; not promoted |
 | 18 | Project outcomes | What was built, the provenance finding, measured outcomes (computed from `metrics.json`), the corrected re-run and the fusion constraint, reproducibility |
 | 19 | Limitations | Cohort, population, blinded CGM, medication, profile as identity code, thresholds, intervals, retrospective |

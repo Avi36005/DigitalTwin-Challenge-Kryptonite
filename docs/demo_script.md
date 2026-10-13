@@ -16,11 +16,11 @@ the experiment), narrate what the screen shows — never the number written here
 | 00:00–02:00 | Team, problem and healthcare use case | 2:00 | Slides 1–3 | 245 |
 | 02:00–04:30 | Data, provenance and information availability | 2:30 | Slides 5–6 | 300 |
 | 04:30–07:15 | Architecture, models, fusion and patient adaptation | 2:45 | Slides 4, 7–10 | 365 |
-| 07:15–14:00 | Working dashboard and replay, including missing-data and abstention cases | 6:45 | Live app | 601 + screen actions |
+| 07:15–14:00 | Working dashboard and replay, including missing-data and abstention cases | 6:45 | Live app | 597 + screen actions |
 | 14:00–18:00 | Measured comparison, baseline performance and limits of the evidence | 4:00 | Model evidence page, slides 13–16 | 465 + navigation |
 | 18:00–20:00 | Project outcomes, limitations, reproducibility and next steps | 2:00 | Slides 18–21 (17 optional: research evidence) | 224 |
 
-Narration words are counted from this file (2,200 in total). At about 130 words per minute that is roughly 16.9
+Narration words are counted from this file (2,196 in total). At about 130 words per minute that is roughly 16.9
 minutes of speech; the remainder is slide transitions, clicks and waiting in Chapters 4 and 5. This is an estimate —
 only a timed rehearsal and the rendered file establish the real duration. YouTube chapters: paste the six start times above into the video description.
 
@@ -140,7 +140,7 @@ The clock shows **Day 9 · 08:14**; current glucose **115** (08:10); 30-min fore
 
 *Action:* **Mark as reviewed**; then **Step 1 h** twice → **Day 9 · 11:24**.
 > Now the outcome is known: no sustained episode followed. That was a false alarm, and the app says so. On the test
-> period this rule caught 61 of 64 new episodes, with about one and a half false alarms per observed patient-day.
+> period this rule caught 61 of 64 new episodes, with 1.49 false alarms per observed patient-day.
 
 **10:00 — Rewind and a true warning.** *Action:* drag the timeline to **Day 9 · 20:00** (the “Seek to…” preview
 appears), release; then step to **20:35**.
@@ -206,7 +206,7 @@ period* → seek to **Day 9 · 10:25**.
 > validation, so the declared rule kept LightGBM.
 >
 > *[Slide 16]* For early warning, the sixty-minute rule detected 61 of 64 onsets with precision 0.60: 40 false alarms,
-> 2.3 per eligible patient-day, against 4.0 for warning whenever glucose passes 150. Its forecast lead had a median of
+> 1.49 per observed patient-day, against 2.61 for warning whenever glucose passes 150. Its forecast lead had a median of
 > 30 minutes. Compared with the earlier model, fewer false alarms came with three missed onsets and a shorter lead: a
 > threshold trade-off, not a gain from the profile. Our prediction ranges covered about seventy-four percent against an
 > eighty-percent target, so we do not claim calibrated uncertainty. With meals known the moment they were photographed,

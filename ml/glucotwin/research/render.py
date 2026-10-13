@@ -150,7 +150,35 @@ def registry_status(rep: dict) -> str:
     cands = {c["candidate"]["model_version"] for c in (rep.get("candidates") or {}).values() if c.get("candidate")}
     if serving in cands:
         return f"The registry serves the promoted candidate `{serving}`."
-    return f"The registry serves `{serving}`; no candidate of this experiment has been promoted."
+    out = f"The registry serves `{serving}`; no candidate of this experiment has been promoted."
+    eid, elig = _serving_eligibility()
+    fs = _candidate_feature_set(rep, "multimodal_5min")
+    if elig and fs and fs not in elig:
+        out += (f" This recommendation belongs to `{rep['experiment_id']}`, declared before serving was required to read "
+                f"both the baseline profile and the dynamic streams. The serving model comes from `{eid}`, which allows "
+                f"only {', '.join(f'`{x}`' for x in elig)}; the five-minute candidate reads `{fs}` only, so it is not "
+                "eligible and is not the submission demo model.")
+    return out
+
+
+def _serving_eligibility() -> tuple[str | None, list[str]]:
+    """Experiment behind the registry's serving model and the feature sets its protocol allows to serve (empty: any)."""
+    import json as _json
+
+    reg = paths().artifacts / "registry.json"
+    r = _json.loads(reg.read_text()) if reg.exists() else {}
+    v = r.get("serving", {}).get("dataset_replay")
+    e = next((m for m in r.get("models", []) if m["model_version"] == v), None)
+    p = paths().root / e["evaluation_reference"] if e and e.get("evaluation_reference") else None
+    if p is None or not p.exists() or p.name != "metrics.json":
+        return None, []
+    m = _json.loads(p.read_text())
+    return m.get("experiment_id"), list(m.get("selection", {}).get("eligible_feature_sets") or [])
+
+
+def _candidate_feature_set(rep: dict, track: str) -> str | None:
+    c = (rep.get("candidates") or {}).get(track, {}).get("candidate")
+    return c["model_version"].split(".")[1] if c and c["model_version"].count(".") >= 2 else None
 
 
 def _cand_name(rep: dict, track: str) -> str:
@@ -448,7 +476,8 @@ def render_review(rep: dict, figs: dict[str, str]) -> str:
          f"| LightGBM v2 (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`) | demo model before this experiment | "
          f"{'serving' if _serving() == 'lightgbm.dyn-v2.gt-primary-2026-10-11-v2' else f'not serving (registry serves `{_serving()}`)'} |",
          f"| {_cand_name(rep, 'multimodal_5min')} | five-minute candidate | "
-         f"{'promoted, serving' if _serving() in _cand_name(rep, 'multimodal_5min') else 'evaluated, not promoted'} |",
+         f"{'promoted, serving' if _serving() in _cand_name(rep, 'multimodal_5min') else 'evaluated, not promoted'}"
+         f"{'; not eligible: reads CGM only, serving now requires profile + dynamic inputs' if _serving_eligibility()[1] and _candidate_feature_set(rep, 'multimodal_5min') not in _serving_eligibility()[1] else ''} |",
          f"| {_cand_name(rep, 'portable_15min')} | external check (separate 15-minute model) | evaluated once on ShanghaiT2DM |",
          "", f"**Recommendation by the pre-specified rule: {decision}.** {registry_status(rep)}", ""]
     L += [f"* {r}" for r in reasons]

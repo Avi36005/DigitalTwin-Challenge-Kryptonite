@@ -8,16 +8,18 @@ clinician exactly what was known at each moment.
 > Research demonstration only. Not a medical device; no treatment advice; replay of recorded or synthetic data — never a
 > live device connection. Results come from three separately labelled models, all reproducible with the commands below:
 >
-> * **Current demo model — fusion LightGBM** (`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`). It serves every
->   replay in the app and reads the static baseline profile together with the glucose and wearable streams, as the
->   brief requires. It was selected by the v2 rule restricted to models that read both, a constraint declared on
+> * **Current demo model — fusion LightGBM** (`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`). It serves
+>   recorded-data replays and reads the static baseline profile together with the glucose and wearable streams, as the
+>   brief requires. Synthetic replays use a separate, fixed demonstration model (dynamic inputs only, labelled
+>   synthetic in the app). It was selected by the v2 rule restricted to models that read both, a constraint declared on
 >   13 Oct 2026 **after** the test segment had been inspected. We selected a model that implements the required fusion;
 >   we have **not** established that profile features improve forecasting for unseen patients
 >   ([why](#what-the-profile-fusion-does-and-does-not-show)). The previous demo model, LightGBM v2 on the dynamic
 >   streams only (`gt-primary-2026-10-11-v2`, the v1 protocol re-run after two code fixes —
 >   [repair report](reports/repair_report.md)), stays registered for rollback; v1 is preserved.
 > * **Five-minute candidate — Ridge on CGM-only features** (`ridge.cgm-only-v1.gt-nested-2026-10-12-v1`). Chosen by a
->   frozen rule and evaluated on people it never saw (experiment `gt-nested-2026-10-12-v1`). Evaluated, **not promoted**.
+>   frozen rule and evaluated on people it never saw (experiment `gt-nested-2026-10-12-v1`). Evaluated, **not promoted**;
+>   it reads CGM only, so it does not meet the two-stream requirement and is not a replacement for the demo model.
 > * **External check — a separate 15-minute LightGBM** (`lightgbm.cgm15-v1.gt-nested-2026-10-12-v1`). Trained on
 >   CGMacros and evaluated once on an independent Chinese cohort; it is not the demo model and not the Ridge candidate.
 >
@@ -169,9 +171,9 @@ warning threshold derived for the selected model, differ:
   14.66 / 24.26 → 13.81 / 22.12.
 * LightGBM vs CatBoost with the same inputs: no clear difference at 30 min; CatBoost better at 60 min (LightGBM minus
   CatBoost +0.46 [+0.05, +0.92], population models). They tied on validation and the declared tie-break chose LightGBM.
-* Early warning (60 min, margin −10 mg/dL): **61/64 onsets detected, precision 0.60 — 40 false alarms, 2.28 per
-  eligible patient-day (1.49 per observed day)**; qualified forecast lead median **30 min**. The previous demo model
-  (margin −30) detected 64/64 with 79 false alarms (4.51 / 2.95) and a 55-minute lead: fewer false alarms came with three
+* Early warning (60 min, margin −10 mg/dL): **61/64 onsets detected, precision 0.60 — 40 false alarms, 1.49 per
+  observed patient-day** (2.28 per eligible day); qualified forecast lead median **30 min**. The previous demo model
+  (margin −30) detected 64/64 with 79 false alarms (2.95 per observed patient-day) and a 55-minute lead: fewer false alarms came with three
   missed onsets and 25 minutes of lead. Both margins come from the same nearly flat F1 curve
   ([next experiment](docs/next_experiment.md)).
 * Prediction ranges (target coverage 80 %) covered **74.2 % / 74.0 %** on test — under-coverage, reported as such.
@@ -235,9 +237,10 @@ external cohort, ShanghaiT2DM (FreeStyle Libre H at 15-minute cadence, China), o
   needed there). The external 30-minute improvement is clear; at 60 minutes it is not distinguishable from zero. Other
   frozen pipelines had lower external error (lowest: LightGBM L1, 10.81 / 19.00 mg/dL) — reported, not adopted, because
   choosing on the external cohort would make it a tuning set.
-* The pre-specified rule recommends switching to the Ridge candidate, but it is worse on large highs and its evidence
-  is internal; **nothing from this experiment was promoted** (the 13 Oct change of demo model is the separate fusion
-  constraint above). Promotion criteria for the next
+* The pre-specified rule of this research protocol recommends switching to the Ridge candidate, but it is worse on large
+  highs, its evidence is internal, and it reads CGM only, so it is not eligible under the two-stream requirement the
+  demo model now follows. **Nothing from this experiment was promoted** (the 13 Oct change of demo model is the
+  separate fusion constraint above). Promotion criteria for the next
   experiment now also bound high-glucose error, missed onsets and false warnings
   ([`configs/experiments/gt-nested-2026-10-12-v2.yaml`](configs/experiments/gt-nested-2026-10-12-v2.yaml), declared, not run) ([model upgrade review](reports/model_upgrade_review.md),
   [full research report](reports/nested_benchmark_report.md), [data expansion audit](reports/dataset_expansion_audit.md)).

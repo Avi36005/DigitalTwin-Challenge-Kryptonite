@@ -5,10 +5,10 @@ Experiment `gt-nested-2026-10-12-v1` (nested participant-level benchmark + reser
 | Model | Role | Status |
 |---|---|---|
 | LightGBM v2 (`lightgbm.dyn-v2.gt-primary-2026-10-11-v2`) | demo model before this experiment | not serving (registry serves `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`) |
-| Ridge (`ridge.cgm-only-v1.gt-nested-2026-10-12-v1`) | five-minute candidate | evaluated, not promoted |
+| Ridge (`ridge.cgm-only-v1.gt-nested-2026-10-12-v1`) | five-minute candidate | evaluated, not promoted; not eligible: reads CGM only, serving now requires profile + dynamic inputs |
 | LightGBM (`lightgbm.cgm15-v1.gt-nested-2026-10-12-v1`) | external check (separate 15-minute model) | evaluated once on ShanghaiT2DM |
 
-**Recommendation by the pre-specified rule: Replace the serving recipe with the frozen candidate — rule met; promotion is a separate, explicit decision.** The registry serves `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`; no candidate of this experiment has been promoted.
+**Recommendation by the pre-specified rule: Replace the serving recipe with the frozen candidate — rule met; promotion is a separate, explicit decision.** The registry serves `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`; no candidate of this experiment has been promoted. This recommendation belongs to `gt-nested-2026-10-12-v1`, declared before serving was required to read both the baseline profile and the dynamic streams. The serving model comes from `gt-primary-2026-10-13-fusion`, which allows only `dyn-prof-v2`; the five-minute candidate reads `cgm-only-v1` only, so it is not eligible and is not the submission demo model.
 
 * 30 min, outer folds: selected minus refit v2 recipe -0.64 mg/dL, 95 % CI [-0.98, -0.32] (12 of 14 people improved).
 * 60 min, outer folds: selected minus refit v2 recipe -1.95 mg/dL, 95 % CI [-2.83, -1.04] (13 of 14 people improved).

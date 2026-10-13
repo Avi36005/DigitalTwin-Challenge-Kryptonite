@@ -40,7 +40,7 @@ had already looked at the test segment, v2 is a corrected retrospective result, 
 13 October we then switched the demo model to the fusion-constrained experiment (next question).
 
 **How many alerts are false?** On test, the 60-minute rule (margin −10 mg/dL) raised 101 warning episodes and 40 were
-false alarms (2.28 per eligible patient-day, 1.49 per observed day). It detected 61 of 64 onsets (precision 0.60). Its
+false alarms (1.49 per observed patient-day; 2.28 per eligible day). It detected 61 of 64 onsets (precision 0.60). Its
 qualified forecast lead — from the earliest warning whose own 60-minute horizon contained the onset — had a median of
 30 minutes. The previous demo model (margin −30) caught all 64 with 79 false alarms and a 55-minute lead. Both margins
 come from the same declared F1 rule on a nearly flat curve, so the drop in false alarms is a threshold trade-off, not
