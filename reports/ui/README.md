@@ -18,6 +18,12 @@ using the serving model of experiment `gt-primary-2026-10-11-v2` (1440×900 unle
 | `11-landing-phone.png` | Landing page on a 390 px phone (full page) |
 | `12-overview.png` | Workspace overview: recent replays as divided rows |
 | `13-insufficient-history-recorded.png` | 1920×1080: Participant 12, Day 9 · 11:45 — readings resumed but the twin abstains (2 readings in the last hour) |
+| `14-research-evidence.png` | Model evidence switched to the nested research experiment `gt-nested-2026-10-12-v1`: results on held-out people, kept separate from the serving model |
+| `15-research-portable-external.png` | Same page, 15-minute portable track: external ShanghaiT2DM cohort results |
+| `16-data-sources.png` | Data quality page, "Data sources and scale": dataset inventory (CGMacros, ShanghaiT2DM, AI-READI access required) |
+| `17-research-evidence-mobile.png` | 390 px phone: research evidence tables scroll inside their region instead of clipping the page |
+
+Files 14–17 were numbered 07–10 before 13 Oct 2026 (duplicate numbers); they were renamed, not regenerated.
 
 Recorded-data screenshots visualise de-identified CGMacros 1.0.0 data (Gutierrez-Osuna et al., PhysioNet,
 doi:10.13026/3z8q-x658), licensed CC BY-NC-SA 4.0; they are shared under the same terms for non-commercial use.

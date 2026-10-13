@@ -183,13 +183,13 @@ test("research evidence is separate from the serving model, and data scale is au
   await expect(page.getByRole("heading", { name: "Results on held-out people" })).toBeVisible();
   await expect(page.getByText(/New-participant research evidence/)).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "Forecast availability" })).toBeVisible();
-  await page.screenshot({ path: `${SHOTS}/07-research-evidence.png`, fullPage: false });
+  await page.screenshot({ path: `${SHOTS}/14-research-evidence.png`, fullPage: false });
   await page.getByText("Research warnings").click();
   await expect(page.getByRole("columnheader", { name: /False alarms per observed forecastable day/ })).toBeVisible();
   await page.getByRole("tab", { name: "15-minute · portable" }).click();
   await expect(page.getByRole("tab", { name: "15-minute · portable" })).toHaveAttribute("aria-selected", "true");
   await page.getByText("External cohort (ShanghaiT2DM)").click();
-  await page.screenshot({ path: `${SHOTS}/08-research-portable-external.png`, fullPage: false });
+  await page.screenshot({ path: `${SHOTS}/15-research-portable-external.png`, fullPage: false });
   await page.goto("/app/data-quality");
   await expect(page.getByRole("heading", { name: "Data sources and scale" })).toBeVisible();
   const inv = page.getByRole("region", { name: "Dataset inventory" });
@@ -197,7 +197,7 @@ test("research evidence is separate from the serving model, and data scale is au
   await expect(inv.getByText("Access required")).toBeVisible();
   await expect(page.getByText(/never GlucoTwin\s+counts/)).toBeVisible();
   await inv.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: `${SHOTS}/09-data-sources.png`, fullPage: false });
+  await page.screenshot({ path: `${SHOTS}/16-data-sources.png`, fullPage: false });
 });
 
 test.describe("mobile research evidence", () => {
@@ -209,7 +209,7 @@ test.describe("mobile research evidence", () => {
     await expect(page.getByRole("heading", { name: "Results on held-out people" })).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    await page.screenshot({ path: `${SHOTS}/10-research-evidence-mobile.png`, fullPage: false });
+    await page.screenshot({ path: `${SHOTS}/17-research-evidence-mobile.png`, fullPage: false });
   });
 });
 

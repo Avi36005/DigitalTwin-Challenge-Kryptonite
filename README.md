@@ -67,10 +67,12 @@ appointments. Continuous glucose monitors can, but they produce about 288 readin
 clinician to review by hand. Population models also ignore that the same meal or activity affects each person
 differently.
 
-GlucoTwin addresses one prediction problem: from data available **up to now** — a static baseline profile (EHR-like
-demographics and screening labs) plus dynamic streams (native CGM readings and wearable heart-rate/activity) —
-forecast glucose **30 and 60 minutes ahead** and warn of a **new episode above 180 mg/dL sustained for at least 15
-minutes** (a research definition, not triage), with each prediction tied to the person's own recent forecast errors.
+GlucoTwin addresses one prediction problem. The twin holds a static baseline profile (EHR-like demographics and
+screening labs) and dynamic streams (native CGM readings and wearable heart-rate/activity), using only data
+available **up to now**. From these it forecasts glucose **30 and 60 minutes ahead** and warns of a **new episode
+above 180 mg/dL sustained for at least 15 minutes** (a research definition, not triage). Each prediction is tied to
+the person's own recent forecast errors. The current demo forecaster uses the dynamic streams. Forecasters that also
+ingest the profile were built and evaluated under the same rules (§7).
 
 ## 5. Healthcare use case
 
@@ -96,6 +98,21 @@ minutes** (a research definition, not triage), with each prediction tied to the 
 | Desktop (1920×1080) — recorded data, a real 70-minute sensor gap: reading and forecasts marked stale | Mobile (375 px) |
 |---|---|
 | ![Recorded-data sensor gap with stale reading and forecasts](reports/ui/09-recording-1920-recorded-gap-stale.png) | ![Mobile workspace](reports/ui/07-mobile-workspace.png) |
+
+### Screens from the working application
+
+Captured by the Playwright journeys (`make e2e`) against the running API — nothing is mocked. Recorded-data screens
+show de-identified CGMacros 1.0.0 data (CC BY-NC-SA 4.0); synthetic screens show fictional participants. Full list:
+[`reports/ui/README.md`](reports/ui/README.md).
+
+| | |
+|---|---|
+| ![Landing page](reports/ui/10-landing-desktop.png) **Landing page** — what GlucoTwin does, with a synthetic preview | ![Workspace overview](reports/ui/12-overview.png) **Overview** — resume a replay or choose a participant |
+| ![Research warning pending](reports/ui/08-recording-1920-warning-pending.png) **Recorded replay, Day 9 · 09:24** — 30/60-min forecasts with ranges; research warning issued, outcome pending | ![Forecast details](reports/ui/04-forecast-evidence-dialog.png) **Forecast details** — information cutoff, model version, population forecast vs patient correction |
+| ![Missing and stale data](reports/ui/02-missing-and-stale-data.png) **Sensor gap (synthetic)** — reading and forecast marked out of date | ![Twin abstains](reports/ui/13-insufficient-history-recorded.png) **Abstention** — readings resumed, but too few in the last hour to forecast |
+| ![Model evidence](reports/ui/05-model-evidence.png) **Model evidence** — the selected pipeline against baselines and every configuration | ![Data quality](reports/ui/06-data-quality.png) **Data quality** — sources, model-input limits and coverage |
+| ![Research evidence](reports/ui/14-research-evidence.png) **Research evidence** — results on people held out entirely, kept apart from the demo model | ![External cohort](reports/ui/15-research-portable-external.png) **External cohort** — separate 15-minute model on ShanghaiT2DM |
+| ![Data sources](reports/ui/16-data-sources.png) **Data sources and scale** — dataset inventory and access status | ![Synthetic workspace](reports/ui/01-twin-workspace-synthetic.png) **Synthetic demonstration** — a warning acknowledged after stepping the replay |
 
 Product details: [`docs/product.md`](docs/product.md) · interface handoff: [`docs/frontend-handoff.md`](docs/frontend-handoff.md).
 
@@ -314,27 +331,49 @@ Latest results: [`reports/verification.md`](reports/verification.md) · integrat
 ## Repository layout
 
 ```text
-apps/web/            React clinician workspace (+ e2e tests)
-services/api/        FastAPI service: catalogue, replay sessions, SQLite audit, contracts export
-packages/contracts/  OpenAPI, validated example payloads, generated TypeScript types
-ml/glucotwin/        adapter, features, events, splits, models, adaptation, evaluation, twin engine, CLI
-configs/             data.yaml (policies), sources.yaml (source registry), experiment.yaml (current protocol, v2), experiments/ (v1 protocol, nested research protocol), submission.yaml
-data/                raw/processed/private (git-ignored), synthetic (generated)
-artifacts/           model artifacts, experiment outputs, registry (git-ignored)
-reports/             data audit, evaluation report (+ archived v1), repair report, demo sequence, verification, UI screenshots
-docs/                product, architecture, contracts, model/data cards, decisions, submission materials
-scripts/             submission assets, demo sequence recorder, landing preview export, submission link check
-tests/               backend tests
+.
+├── apps/web/                 React clinician workspace
+│   ├── src/                  pages, twin components, API client, state
+│   └── e2e/                  Playwright journeys (also produce reports/ui/*.png)
+├── services/api/             FastAPI service: catalogue, replay sessions, SQLite audit, contracts export
+├── packages/contracts/       OpenAPI, validated example payloads, generated TypeScript types
+├── ml/glucotwin/             the Python package
+│   ├── data/                 dataset adapters (CGMacros, ShanghaiT2DM, AI-READI access), canonical store, inventory
+│   ├── models/               baselines, LightGBM/CatBoost population models, patient adaptation
+│   ├── evaluation/           primary experiment runner, metrics, warnings, reports
+│   ├── research/             nested participant benchmark and external evaluation
+│   └── features.py, twin.py  feature builder (offline = online) and the replay twin engine
+├── configs/
+│   ├── data.yaml             availability and data policies
+│   ├── sources.yaml          dataset source registry (URLs, checksums, licences)
+│   ├── experiment.yaml       current serving protocol (gt-primary-2026-10-11-v2)
+│   ├── experiments/          archived and research protocols: v1, nested v1/v2, fusion-constrained (declared
+│   │                         13 Oct; candidate built, not serving)
+│   └── submission.yaml       team, links and video metadata for the submission assets
+├── docs/                     product, system, model/data and submission documents — index: docs/README.md
+│   └── submission/           presentation (PDF, PPTX) and architecture diagram (PDF)
+├── reports/                  generated reports, figures and UI screenshots (+ archived v1 report)
+├── scripts/                  submission assets, demo-sequence recorder, landing preview, submission link check
+├── tests/                    backend tests (leakage, splits, adaptation, warnings, replay, API, research)
+├── artifacts/                models, experiment outputs, registry            (git-ignored; README kept)
+├── data/                     raw and processed datasets, synthetic fixtures   (git-ignored)
+└── var/                      local replay database and logs                  (git-ignored)
 ```
 
 ## Documentation index
 
-[Product](docs/product.md) · [Architecture](docs/architecture.md) · [Contracts](docs/contracts.md) ·
-[Decisions](docs/decisions.md) · [Data schema](docs/data_schema.md) · [Feature availability](docs/feature_availability.md) ·
-[Replay](docs/replay.md) · [Model card](docs/model_card.md) · [Data card](docs/data_card.md) ·
-[Frontend handoff](docs/frontend-handoff.md) · [Artifact manifest](docs/artifact_manifest.md) ·
-[Submission checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
-[Presentation outline](docs/presentation_outline.md) · [Demo script](docs/demo_script.md) ·
-[Jury questions](docs/jury_questions.md) · [Repair report](reports/repair_report.md) ·
-[Next experiment (executed)](docs/next_experiment.md) · [Dataset expansion audit](reports/dataset_expansion_audit.md) ·
-[Nested benchmark report](reports/nested_benchmark_report.md) · [Model upgrade review](reports/model_upgrade_review.md)
+Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**.
+
+* **Model and data:** [Model card](docs/model_card.md) · [Data card](docs/data_card.md) ·
+  [Feature availability](docs/feature_availability.md) · [Data schema](docs/data_schema.md) ·
+  [Decisions](docs/decisions.md) · [Next experiment](docs/next_experiment.md)
+* **System:** [Product](docs/product.md) · [Architecture](docs/architecture.md) · [Replay](docs/replay.md) ·
+  [Contracts](docs/contracts.md) · [Frontend handoff](docs/frontend-handoff.md) ·
+  [Artifact manifest](docs/artifact_manifest.md)
+* **Evidence:** [Evaluation report](reports/evaluation_report.md) · [Repair report](reports/repair_report.md) ·
+  [Nested benchmark report](reports/nested_benchmark_report.md) · [Model upgrade review](reports/model_upgrade_review.md) ·
+  [Dataset expansion audit](reports/dataset_expansion_audit.md) · [Verification](reports/verification.md) ·
+  [Integration audit](reports/integration_audit.md) · [Screenshots](reports/ui/README.md)
+* **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
+  [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·
+  [Presentation outline](docs/presentation_outline.md) · [Jury questions](docs/jury_questions.md)
