@@ -125,7 +125,7 @@ def fig_mae(m: dict) -> Path:
         ax.set_xlim(0, max(vals) * 1.18)
         ax.grid(axis="x", color="#EEF2F6")
         ax.set_axisbelow(True)
-    fig.suptitle("Held-out test: macro mean of per-participant MAE (14 participants)", x=0.01, ha="left",
+    fig.suptitle("Final test, later days of the same 14 participants: macro mean of per-participant MAE", x=0.01, ha="left",
                  fontsize=12, color=INK2)
     fig.tight_layout()
     p = FIGS / "fig_mae_test.png"
@@ -511,11 +511,12 @@ def slides(m: dict, sub: dict) -> list[dict]:
                   f"Best validation score: {cand.iloc[0]['label']} ({cand.iloc[0]['selection_score']:.2f}). The declared tie-break chose the simpler configuration; we did not switch after seeing test results.")},
         *([fusion_slide(m, ff, mae, c)] if disc and bm else []),
         {"kind": "image", "title": "Clinician workflow: the twin workspace", "image": str(UI / "03-forecast-with-interval-recorded.png"),
-         "caption": "Recorded-data replay in the held-out test period: current glucose, 30/60-minute forecasts with prediction ranges (target coverage 80 %), saved earlier forecasts, research warnings with outcomes, review status and data quality."},
+         "caption": "Recorded-data replay in the final test period (later recordings of participants the model was trained on): current glucose, 30/60-minute forecasts with prediction ranges (target coverage 80 %), saved earlier forecasts, research warnings with outcomes, review status and data quality."},
         {"kind": "image", "title": "Demonstration: evidence behind a forecast", "image": str(UI / "04-forecast-evidence-dialog.png"),
          "caption": "Each forecast is immutable and inspectable: information cutoff, model version, evaluation segment, population forecast vs patient correction, factual explanations."},
-        {"kind": "image", "title": "Measured evaluation: forecast accuracy (held-out test)", "image": str(FIGS / "fig_mae_test.png"),
-         "caption": f"Serving − persistence: {c('serving minus persistence', 30)} at 30 min, {c('serving minus persistence', 60)} at 60 min. "
+        {"kind": "image", "title": "Measured evaluation: forecast accuracy (later days)", "image": str(FIGS / "fig_mae_test.png"),
+         "caption": f"Later recordings of the same {n_pt} participants the model was trained on — not new patients. "
+                    f"Serving − persistence: {c('serving minus persistence', 30)} at 30 min, {c('serving minus persistence', 60)} at 60 min. "
                     f"Test origins {seg['test']['origins']:,} (≈ {seg['test']['covered_hours']:.0f} h); forecasts issued for {ss.loc[30, 'coverage'] * 100:.1f} % of origins with a target."},
         {"kind": "image", "title": "Measured evaluation: does personalization help?", "image": str(FIGS / "fig_paired_differences.png"),
          "caption": f"Adaptation ({sname}): {c(f'{sl}: adaptive minus population', 30)} at 30 min, {c(f'{sl}: adaptive minus population', 60)} at 60 min — small; "
@@ -532,16 +533,20 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      f"Same procedure on persistence (fires at glucose ≥ {180 + ep['threshold']:.0f}): {int(ep['detected_onsets'])}/{int(ep['true_onsets'])} detected, {int(ep['false_alarm_episodes'])} false alarms ("
                      + (f"{ep['false_alarms_per_observed_patient_day']:.2f} per observed patient-day; " if corrected else "")
                      + f"{ep['false_alarms_per_patient_day']:.2f} per eligible day).",
-                     f"Prediction ranges (target coverage 80 %) covered {ivs[ivs['horizon'] == 30]['coverage'].iloc[0] * 100:.1f} % (30 min) and {ivs[ivs['horizon'] == 60]['coverage'].iloc[0] * 100:.1f} % (60 min) on test — under-covered; no guarantee claimed.",
+                     f"Prediction ranges (target coverage 80 %) covered {ivs[ivs['horizon'] == 30]['coverage'].iloc[0] * 100:.1f} % (30 min) and {ivs[ivs['horizon'] == 60]['coverage'].iloc[0] * 100:.1f} % (60 min) on test, "
+                     f"{ivs[ivs['horizon'] == 30]['per_patient_min'].iloc[0] * 100:.0f}–{ivs[ivs['horizon'] == 30]['per_patient_max'].iloc[0] * 100:.0f} % and "
+                     f"{ivs[ivs['horizon'] == 60]['per_patient_min'].iloc[0] * 100:.0f}–{ivs[ivs['horizon'] == 60]['per_patient_max'].iloc[0] * 100:.0f} % per participant — under-covered; no guarantee claimed.",
                      f"Optimistic meal logging: {sens.loc[60, 'mae']:.2f} vs {sens.loc[60, 'serving_population_mae']:.2f} mg/dL at 60 min — timely meal data would likely help most."]},
         *([research_slide()] if research_slide() else []),
         {"kind": "bullets", "title": "Project outcomes",
          "bullets": ["Built: a working personalized glucose twin — replay API with a backend-owned clock, immutable forecasts, research warnings with outcomes — and a clinician workspace (landing page, Overview, Participants, Replay sessions, Model evidence, Data quality).",
                      "Found and corrected a data-provenance problem: the published 1-minute CGM values are interpolated; only native 5-minute readings are used.",
-                     f"{'Measured on held-out test (retrospective)' if disc else 'Measured on held-out test (corrected re-run)' if corrects else 'Measured once on held-out test'}: {better(30)}/{n_pt} participants improved over persistence at 30 min and {better(60)}/{n_pt} at 60 min; "
+                     f"{'Measured on later recordings of the same participants (retrospective)' if disc else 'Measured on later recordings of the same participants (corrected re-run)' if corrects else 'Measured once on later recordings of the same participants'}: {better(30)}/{n_pt} participants improved over persistence at 30 min and {better(60)}/{n_pt} at 60 min; "
                      f"MAE {ss.loc[30, 'mae']:.2f} / {ss.loc[60, 'mae']:.2f} mg/dL vs {mae('persistence:cgm-only-v1', 'off', 30):.2f} / {mae('persistence:cgm-only-v1', 'off', 60):.2f}.",
                      f"Personalization: small gains ({c(f'{sl}: adaptive minus population', 30).split(' [')[0]} and {c(f'{sl}: adaptive minus population', 60).split(' [')[0]}). "
-                     f"Warnings: {int(e['detected_onsets'])}/{int(e['true_onsets'])} onsets detected with {int(e['false_alarm_episodes'])} false alarms — the F1 threshold rule ignores review workload.",
+                     f"Warnings: {int(e['detected_onsets'])}/{int(e['true_onsets'])} onsets detected with {int(e['false_alarm_episodes'])} false alarms"
+                     + (f" ({e['false_alarms_per_observed_patient_day']:.2f} per observed patient-day)" if corrected else "")
+                     + " — the F1 threshold rule ignores review workload.",
                      (f"Corrected after an independent review (activity-window defect, online warning double-credit; {corrects} preserved), then re-run with the fusion "
                       f"constraint ({m['experiment_id']}); the dynamic-only model of {base} stays registered for rollback." if disc and base else
                       "Corrected after an independent review: an activity-window feature defect and an online warning double-credit were fixed and the protocol re-run "
@@ -565,7 +570,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
         {"kind": "bullets", "title": "Team, links, reproducibility and licenses",
          "bullets": [f"{team}. {inst}.",
                      f"Code: {repo} — MIT license (code only). Quick start: make setup · make synthetic · make dev.",
-                     f"Demo video (20:00): {video}. Architecture: docs/submission/GlucoTwin_Architecture.pdf.",
+                     f"Demo video (at least {sub['video']['minimum_duration'].split(':')[0]} minutes): {video}. Architecture: docs/submission/GlucoTwin_Architecture.pdf.",
                      "Data: CGMacros 1.0.0, Gutierrez-Osuna, Kerr, Mortazavi, Das (2025), PhysioNet, doi:10.13026/3z8q-x658, CC BY-NC-SA 4.0; "
                      "ShanghaiT2DM, Zhao, Zhu, Wang, Rao (2022), figshare, doi:10.6084/m9.figshare.21600933.v5, CC BY 4.0.",
                      f"All results: experiment {m['experiment_id']}, artifacts/experiments/…/metrics.json; reports/evaluation_report.md."]},

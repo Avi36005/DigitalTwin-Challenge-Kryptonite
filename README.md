@@ -11,7 +11,8 @@ clinician exactly what was known at each moment.
 > * **Current demo model — fusion LightGBM** (`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`). It serves
 >   recorded-data replays and reads the static baseline profile together with the glucose and wearable streams, as the
 >   brief requires. Synthetic replays use a separate, fixed demonstration model (dynamic inputs only, labelled
->   synthetic in the app). It was selected by the v2 rule restricted to models that read both, a constraint declared on
+>   synthetic in the app). Its test results come from **later recordings of the same 14 people it was trained on**, not
+>   from new patients. It was selected by the v2 rule restricted to models that read both, a constraint declared on
 >   13 Oct 2026 **after** the test segment had been inspected. We selected a model that implements the required fusion;
 >   we have **not** established that profile features improve forecasting for unseen patients
 >   ([why](#what-the-profile-fusion-does-and-does-not-show)). The previous demo model, LightGBM v2 on the dynamic
@@ -25,7 +26,7 @@ clinician exactly what was known at each moment.
 >
 > **145 participants imported; 14 evaluated internally and 98 evaluated externally.**
 
-![GlucoTwin workspace: recorded-data replay in the held-out test period](reports/ui/03-forecast-with-interval-recorded.png)
+![GlucoTwin workspace: recorded-data replay in the final test period (later recordings of a participant the model was trained on)](reports/ui/03-forecast-with-interval-recorded.png)
 
 ## Submission checklist (Unstop form)
 
@@ -41,7 +42,7 @@ only when the evidence exists; details and owners: [`docs/submission_checklist.m
 | 5 | Healthcare use case | [Healthcare use case](#5-healthcare-use-case) | Ready |
 | 6 | Technical stack | [Technical stack](#6-technical-stack) | Ready |
 | 7 | AI/ML model or framework details | [AI and ML model details](#7-ai-and-ml-model-details) | Ready |
-| 8 | Demo video (unlisted YouTube, 15–20 min) | [Demo video](#8-demo-video) | **Missing — not yet recorded or uploaded** |
+| 8 | Demo video (unlisted YouTube, minimum 20 min) | [Demo video](#8-demo-video) | **Missing — not yet recorded or uploaded** |
 | 9 | Open-source license details | [Open-source license](#9-open-source-license) | Ready (holder to be confirmed by the team) |
 | 10 | Architecture diagram (PDF/PPT) | [Architecture diagram](#10-architecture-diagram) | Ready |
 | 11 | Presentation with details and outcomes (PDF/PPT) | [Presentation](#11-presentation) | Ready (video link added after upload) |
@@ -93,8 +94,8 @@ not been established (§7).
 
 **Clinician workflow in the working dashboard**
 
-1. **Open the workspace** from the landing page and click **Open recorded demo** (Participant 01 from the held-out test
-   period), or **choose a participant** (Participants page or ⌘K/Ctrl+K search) and start a **New replay** — recorded
+1. **Open the workspace** from the landing page and click **Open recorded demo** (Participant 01 from the final test
+   period, later in that person's recording), or **choose a participant** (Participants page or ⌘K/Ctrl+K search) and start a **New replay** — recorded
    data or the synthetic demonstration; the data mode stays visible.
 2. **Read the twin at the replay time:** baseline profile as known at that moment, current glucose, 30/60-minute
    forecasts with a prediction range (target coverage 80 %), and data freshness. An unavailable forecast says why.
@@ -150,7 +151,8 @@ CPU only; no cloud account, GPU, API key or LLM. Exact versions: `uv.lock`, `app
 | Selected (serving) | **LightGBM `dyn-prof-v2` + patient adaptation** (`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`) — the rule declared in advance (lowest mean validation error; candidates within 0.5 mg/dL tie → simpler model, then smaller feature set), applied only to models that read both the profile and the dynamic streams. It had the lowest validation score (17.36; CatBoost `dyn-prof-v2` tied at 17.44). Without the constraint the rule picks LightGBM `dyn-v2`, the previous demo model |
 | Warning | Max forecast within 60 min − 180 mg/dL; an uncalibrated score, never shown as a probability; threshold chosen on validation by event-level F1 (−10 mg/dL for the serving model) |
 
-**Measured results — final test segment, fusion-constrained experiment `gt-primary-2026-10-13-fusion`** (14
+**Measured results — final test segment, fusion-constrained experiment `gt-primary-2026-10-13-fusion`** (the last
+20 % of each recording of the **same 14 people the model was trained on** — a test over time, not on new patients; 14
 participants in CGMacros' Type 2 group, 7,730 forecast origins ≈ 644 h, 64 new high-glucose onsets; mean absolute error
 averaged equally over participants, in mg/dL — an average error, not an accuracy percentage; 95 % participant-cluster
 bootstrap). Every candidate's test predictions are identical to v2's; only the selection, and the adaptation, ranges and
@@ -176,8 +178,11 @@ warning threshold derived for the selected model, differ:
   observed patient-day** (2.28 per eligible day); qualified forecast lead median **30 min**. The previous demo model
   (margin −30) detected 64/64 with 79 false alarms (2.95 per observed patient-day) and a 55-minute lead: fewer false alarms came with three
   missed onsets and 25 minutes of lead. Both margins come from the same nearly flat F1 curve
-  ([next experiment](docs/next_experiment.md)).
-* Prediction ranges (target coverage 80 %) covered **74.2 % / 74.0 %** on test — under-coverage, reported as such.
+  ([next experiment](docs/next_experiment.md)). The same procedure on persistence (fires when glucose reaches 150 mg/dL)
+  detected 63/64 with 70 false alarms (2.61 per observed patient-day). The 40 false alarms are 40 of 101 warning
+  episodes: a reviewer would still see more than one false alarm per observed patient-day.
+* Prediction ranges (target coverage 80 %) covered **74.2 % / 74.0 %** on test, and only 60–82 % (30 min) and
+  51–88 % (60 min) per participant — under-coverage, reported as such; the ranges are not calibrated for every person.
 * Correction history: v1 (`gt-primary-2026-10-11-v1`, declared before fitting) gave 13.32 / 21.20 mg/dL with 26 false
   alarms; its activity features counted up to 65 minutes in a 60-minute window. v2 (13.15 / 20.81) fixed that. v1 and v2
   artifacts and reports are preserved ([`reports/archive/`](reports/archive/)).
@@ -253,9 +258,10 @@ Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · 
 
 ## 8. Demo video
 
-* **Unlisted YouTube link: not yet available** — the 20:00 recording has not been made or uploaded.
-* Target duration **20:00** (the form allows 15–20 minutes). The actual rendered and YouTube-displayed durations will be
-  recorded here after upload.
+* **Unlisted YouTube link: not yet available** — the recording has not been made or uploaded.
+* The challenge page requires a **minimum 20-minute video** (rechecked 14 Oct 2026); target 20:15 so neither the
+  rendered file nor YouTube's displayed duration falls below 20:00. The actual rendered and YouTube-displayed durations
+  will be recorded here after upload.
 * Recording plan with chapter timestamps: [`docs/demo_script.md`](docs/demo_script.md); replay sequence verified
   against the running app: [`reports/demo_sequence.md`](reports/demo_sequence.md).
 

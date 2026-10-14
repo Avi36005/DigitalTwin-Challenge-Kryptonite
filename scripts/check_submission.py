@@ -139,7 +139,7 @@ def main() -> int:
         "Pending — same files pass locally; recheck on the published repository |",
         f"| Demo video plays signed out, visibility **Unlisted** | {sub['links']['video'] or 'unlisted YouTube URL (not yet uploaded)'} | "
         f"{'URL recorded — verify playback and visibility' if sub['links']['video'] else 'Pending — video not yet recorded or uploaded'} |",
-        f"| YouTube-displayed duration within 15:00–20:00 (target {sub['video']['target_duration']}) | — | "
+        f"| YouTube-displayed duration at least {sub['video']['minimum_duration']} (target {sub['video']['target_duration']}) | — | "
         f"{sub['video']['youtube_displayed_duration'] or 'Pending'} |",
         f"| Rendered video duration | — | {sub['video']['rendered_duration'] or 'Pending — not yet recorded'} |",
         "| Unstop form: repository URL field (≤ 500 characters, direct GitHub URL) | — | Pending — team leader submits |",

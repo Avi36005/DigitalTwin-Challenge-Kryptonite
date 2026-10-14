@@ -9,8 +9,8 @@ links:
   repository: null             # direct public GitHub URL, after the team publishes (form field: max 500 characters)
   video: null                  # unlisted YouTube URL, after the team uploads the recording
 video:
-  target_duration: "20:00"
-  allowed_range: "15:00–20:00" # submission form; the challenge webpage said "minimum 20 minutes"
+  minimum_duration: "20:00"    # challenge page, rechecked 14 Oct 2026: "Minimum 20-minute video" (this governs)
+  target_duration: "20:15"     # margin so neither the rendered file nor YouTube's display falls below 20:00
   rendered_duration: null      # measured from the exported file
   youtube_displayed_duration: null
 license:

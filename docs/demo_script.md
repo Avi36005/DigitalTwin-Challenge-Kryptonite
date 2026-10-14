@@ -1,9 +1,11 @@
-# GlucoTwin — demonstration video plan (target 20:00)
+# GlucoTwin — demonstration video plan (minimum 20 minutes)
 
-**Team Kryptonite.** The submission form asks for a 15–20-minute demonstration uploaded to YouTube as **unlisted**.
-This plan targets **exactly 20:00** including the opening and closing. It is a plan, not a recording: rehearse with a
-timer, edit the finished video to 20:00, then record the rendered and YouTube-displayed durations in
-`configs/submission.yaml` and the README. It supersedes the earlier 22-minute plan.
+**Team Kryptonite.** The challenge page (rechecked 14 Oct 2026) requires a **minimum 20-minute video** explaining and
+demonstrating the prototype, as a PowerPoint recording or an **unlisted** YouTube video; the form transcription said
+15–20 minutes, and the challenge page governs. The chapters below add up to 20:00 including the opening and closing;
+aim for about **20:15** so that neither the rendered file nor YouTube's displayed duration falls below 20:00. It is a
+plan, not a recording: rehearse with a timer, check the finished video is at least 20:00, then record the rendered and
+YouTube-displayed durations in `configs/submission.yaml` and the README. It supersedes the earlier 22-minute plan.
 
 Every on-screen value in Chapter 4 was recorded from the running API by `scripts/demo_sequence.py`; see
 [`reports/demo_sequence.md`](../reports/demo_sequence.md). If a value on screen differs (for example after re-running
@@ -15,13 +17,13 @@ the experiment), narrate what the screen shows — never the number written here
 |---|---|---|---|---|
 | 00:00–02:00 | Team, problem and healthcare use case | 2:00 | Slides 1–3 | 245 |
 | 02:00–04:30 | Data, provenance and information availability | 2:30 | Slides 5–6 | 300 |
-| 04:30–07:15 | Architecture, models, fusion and patient adaptation | 2:45 | Slides 4, 7–10 | 365 |
-| 07:15–14:00 | Working dashboard and replay, including missing-data and abstention cases | 6:45 | Live app | 597 + screen actions |
-| 14:00–18:00 | Measured comparison, baseline performance and limits of the evidence | 4:00 | Model evidence page, slides 13–16 | 465 + navigation |
-| 18:00–20:00 | Project outcomes, limitations, reproducibility and next steps | 2:00 | Slides 18–21 (17 optional: research evidence) | 224 |
+| 04:30–07:15 | Architecture, models, fusion and patient adaptation | 2:45 | Slides 4, 7–10 | 369 |
+| 07:15–14:00 | Working dashboard and replay, including missing-data and abstention cases | 6:45 | Live app | 618 + screen actions |
+| 14:00–18:00 | Measured comparison, baseline performance and limits of the evidence | 4:00 | Model evidence page, slides 13–16 | 501 + navigation |
+| 18:00–20:00 | Project outcomes, limitations, reproducibility and next steps | 2:00 | Slides 18–21 (17 optional: research evidence) | 242 |
 
-Narration words are counted from this file (2,196 in total). At about 130 words per minute that is roughly 16.9
-minutes of speech; the remainder is slide transitions, clicks and waiting in Chapters 4 and 5. This is an estimate —
+Narration words are counted from this file (2,275 in total). At about 130 words per minute that is roughly 17.5
+minutes of speech; Chapters 5 and 6 are now close to their slots, so rehearse those first; the remainder is slide transitions, clicks and waiting in Chapters 4 and 5. This is an estimate —
 only a timed rehearsal and the rendered file establish the real duration. YouTube chapters: paste the six start times above into the video description.
 
 ## Recording setup (before 00:00)
@@ -95,7 +97,7 @@ only a timed rehearsal and the rendered file establish the real duration. YouTub
 > *[Slide 8]* We compared persistence, a linear trend and ridge regression with LightGBM and CatBoost; both tree
 > families got identical inputs and searches. Personalization is one
 > policy for both: a small, shrunk and capped correction learned from this patient's forecast errors once their
-> targets are known. Intervals are split-conformal, calibrated on held-out data. The warning score is the highest
+> targets are known. Intervals are split-conformal, calibrated on a separate segment of each recording. The warning score is the highest
 > forecast in the next hour minus 180 — a score in milligrams per decilitre, not a probability.
 >
 > *[Slide 9]* The serving model was chosen on validation data only, by a rule we wrote down first: lowest average
@@ -193,7 +195,8 @@ period* → seek to **Day 9 · 10:25**.
 > fusion constraint. Both happened after the test period had been seen, so these numbers are retrospective, not
 > untouched test evidence. The earlier results are preserved.
 >
-> On the test period — fourteen participants, about 640 hours and 64 new high-glucose onsets — the serving model's mean
+> On the test period — the later part of each recording from the same fourteen people the model was trained on, so a
+> test over time, not on new patients; about 640 hours and 64 new high-glucose onsets — the serving model's mean
 > absolute error was 13.0 milligrams per decilitre at thirty minutes and 20.3 at sixty, against 14.8 and 23.2 for
 > carrying the last reading forward. That is an average error, not an accuracy percentage. The paired differences are
 > minus 1.9 and minus 3.0, and the participant-level bootstrap intervals exclude zero.
@@ -208,10 +211,11 @@ period* → seek to **Day 9 · 10:25**.
 > validation, so the declared rule kept LightGBM.
 >
 > *[Slide 16]* For early warning, the sixty-minute rule detected 61 of 64 onsets with precision 0.60: 40 false alarms,
-> 1.49 per observed patient-day, against 2.61 for warning whenever glucose passes 150. Its forecast lead had a median of
+> 1.49 per observed patient-day, against 2.61 for warning whenever glucose passes 150, which caught 63. Its forecast lead had a median of
 > 30 minutes. Compared with the earlier model, fewer false alarms came with three missed onsets and a shorter lead: a
 > threshold trade-off, not a gain from the profile. Our prediction ranges covered about seventy-four percent against an
-> eighty-percent target, so we do not claim calibrated uncertainty. With meals known the moment they were photographed,
+> eighty-percent target, and for one participant only about half at sixty minutes, so we do not claim calibrated
+> uncertainty. With meals known the moment they were photographed,
 > sixty-minute error would fall from 20.6 to 19.1 — optimistic, but an argument for timely meal logging.
 
 *Action:* sidebar → **Data quality**.
@@ -230,8 +234,9 @@ period* → seek to **Day 9 · 10:25**.
 
 > *[Slide 18]* What did we deliver? A working digital twin that fuses a baseline profile with glucose and wearable
 > streams; a clinician workspace; a pipeline that found interpolated sensor data; and an evaluation we were willing to
-> correct in public: better than persistence for every participant at thirty minutes, small gains from
-> personalization, and warnings that caught 61 of 64 episodes.
+> correct in public: on later recordings of the same people, better than persistence for every participant at thirty
+> minutes, small gains from personalization, and warnings that caught 61 of 64 episodes at about one and a half false
+> alarms per observed patient-day.
 >
 > *[Slide 19]* The limits are real: fourteen people from one US site, no Indian participants, blinded research sensors
 > replayed with assumed zero delay, unknown medication use, under-covering prediction ranges, a profile that may act as

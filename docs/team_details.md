@@ -13,6 +13,6 @@ not in this repository.
 | Programme and year of study | — | Optional; not supplied |
 | Public contact for the jury | Through the Unstop submission | — |
 | Repository URL | — | Added after the team publishes the repository |
-| Demo video (unlisted YouTube, 15–20 min) | — | Added after recording and upload |
+| Demo video (unlisted YouTube, minimum 20 min) | — | Added after recording and upload |
 | Roles | — | Optional; not supplied |
 | Clinical advice received | None recorded | Team to confirm |

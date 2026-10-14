@@ -41,7 +41,7 @@ after it is frozen.
 | [`team_details.md`](team_details.md) | Team and institution details supplied for publication |
 | [`submission_checklist.md`](submission_checklist.md) | The twelve form items, their status and the remaining steps |
 | [`submission_access_audit.md`](submission_access_audit.md) | Link and file accessibility check (`scripts/check_submission.py`) |
-| [`demo_script.md`](demo_script.md) | The 20:00 video plan, chapter by chapter |
+| [`demo_script.md`](demo_script.md) | The video plan (minimum 20 minutes), chapter by chapter |
 | [`presentation_outline.md`](presentation_outline.md) | Slide-by-slide outline of the deck |
 | [`jury_questions.md`](jury_questions.md) | Anticipated jury questions with evidence-based answers |
 

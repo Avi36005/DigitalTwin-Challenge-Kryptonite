@@ -3,9 +3,13 @@
 **Source of requirements.** The one-page Unstop submission form supplied by the team (transcribed in prompt pack v3,
 inspected 11 October 2026): a **public GitHub repository link** whose root README contains **twelve mandatory items**.
 The broader challenge page (checked 11 October 2026) gives the prototype deadline **20 October 2026, 7:00 PM IST**;
-the form itself shows no deadline. Recheck both live pages before submitting and record any change below.
+the form itself shows no deadline. **Rechecked 14 October 2026:** the challenge page lists the deliverables as README
+items and requires a **"Minimum 20-minute video explaining and demonstrating your prototype"** (PowerPoint recording or
+unlisted YouTube); deadlines unchanged (registration 18 Oct, submission 20 Oct, both 7:00 PM IST). Where the form
+transcription and the challenge page differ, the challenge page governs. Recheck both live pages before submitting and
+record any change below.
 
-**Overall status (11 October 2026): ready for local review — not ready to submit.** Submission-ready requires every
+**Overall status (rechecked 14 October 2026): ready for local review — not ready to submit.** Submission-ready requires every
 row below to be *Ready*: today the college/incubator, the recorded and uploaded video, and the public-access checks are
 outstanding. Cloud deployment is not required by the form and is not part of this gate.
 
@@ -22,7 +26,7 @@ Verification date for every row: 11 October 2026 (local repository; `scripts/che
 | 5 | Healthcare use case | [`#5-healthcare-use-case`](../README.md#5-healthcare-use-case) | README (workflow + screenshots); [`product.md`](product.md) | Ready | — |
 | 6 | Technical stack | [`#6-technical-stack`](../README.md#6-technical-stack) | README; `uv.lock`; `apps/web/package-lock.json` | Ready | — |
 | 7 | AI/ML model or framework details | [`#7-ai-and-ml-model-details`](../README.md#7-ai-and-ml-model-details) | README; [`model_card.md`](model_card.md); [`../reports/evaluation_report.md`](../reports/evaluation_report.md) | Ready | — |
-| 8 | Demo video — unlisted YouTube, 15–20 min (target 20:00) | [`#8-demo-video`](../README.md#8-demo-video) | Plan: [`demo_script.md`](demo_script.md); sequence: [`../reports/demo_sequence.md`](../reports/demo_sequence.md); link: — | **Missing** — not recorded; not uploaded | Team (recording, upload needs authorization) |
+| 8 | Demo video — unlisted YouTube, **minimum 20 min** (target 20:15) | [`#8-demo-video`](../README.md#8-demo-video) | Plan: [`demo_script.md`](demo_script.md); sequence: [`../reports/demo_sequence.md`](../reports/demo_sequence.md); link: — | **Missing** — not recorded; not uploaded | Team (recording, upload needs authorization) |
 | 9 | Open-source license details | [`#9-open-source-license`](../README.md#9-open-source-license) | [`../LICENSE`](../LICENSE) (MIT, code); data terms in README and [`data_card.md`](data_card.md) | Ready — holder wording to be confirmed | Team |
 | 10 | Architecture diagram (PDF/PPT) | [`#10-architecture-diagram`](../README.md#10-architecture-diagram) | [`submission/GlucoTwin_Architecture.pdf`](submission/GlucoTwin_Architecture.pdf) (2 pages) | Ready | — |
 | 11 | Presentation with project details and outcomes (PDF/PPT) | [`#11-presentation`](../README.md#11-presentation) | [`submission/GlucoTwin_Presentation.pdf`](submission/GlucoTwin_Presentation.pdf) / `.pptx` (20 slides, incl. “Project outcomes” and the research-evidence slide) | Ready — regenerate after adding video/repository URLs | Team |
@@ -37,7 +41,7 @@ path or app-hosting URL. Status: **not yet created** (publication requires the t
 
 | Instruction | Source | Status / note |
 |---|---|---|
-| Video length | Form: 15–20 min, unlisted YouTube. Earlier challenge page: “minimum 20 minutes” | Target exactly **20:00**, which satisfies both. Recheck if organisers clarify |
+| Video length | Challenge page (rechecked 14 Oct 2026): “Minimum 20-minute video”. Form transcription (11 Oct): 15–20 min, unlisted YouTube | **At least 20:00** by both the rendered file and YouTube's displayed duration; target **20:15** so rounding or trimming cannot drop it below the minimum. The challenge page governs; recheck if organisers clarify (D-040) |
 | Folder name `Team Name_College Name` | Challenge page (not on the form) | **Outstanding** — e.g. `Kryptonite_<College>` once the college is supplied; team decides whether this is the repository name or a top-level folder |
 | Repository public; all files and links accessible | Form and challenge page | **Outstanding** (needs explicit approval). Before publishing: `context.md` stays git-ignored (personal email); `git ls-files data artifacts var` lists only `artifacts/README.md` |
 | Team leader submits name, phone, email and repository link | Challenge page / form | **Outstanding** — the team leader submits on Unstop; not automated |
@@ -56,8 +60,8 @@ path or app-hosting URL. Status: **not yet created** (publication requires the t
 
 - [ ] Supply the college/incubator → README §2, `configs/submission.yaml`, `team_details.md`; rebuild slides
 - [ ] Confirm the license holder wording in `LICENSE`
-- [ ] Record the video per [`demo_script.md`](demo_script.md); measure the rendered duration (≤ 20:00)
-- [ ] With authorization: upload to YouTube as **Unlisted**; record URL and displayed duration in `configs/submission.yaml` and README §8
+- [ ] Record the video per [`demo_script.md`](demo_script.md); measure the rendered duration (**at least 20:00**; target 20:15)
+- [ ] With authorization: upload to YouTube as **Unlisted**; confirm the displayed duration is at least 20:00; record URL and displayed duration in `configs/submission.yaml` and README §8
 - [ ] With authorization: publish the repository; record its URL; rebuild slides (`uv run --group docs python scripts/build_submission_assets.py`)
 - [ ] `uv run python scripts/check_submission.py --online`; open the repository, PDFs, PPTX and video from a signed-out browser; update README §12 and this table
 - [ ] `make check` on a fresh clone (synthetic mode)
