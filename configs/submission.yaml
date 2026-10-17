@@ -4,7 +4,7 @@ team:
   name: Kryptonite
   leader: Avinash Gehi
   members: [Avinash Gehi, Hardik Hinduja]
-  institution: null            # college or incubator — not yet supplied by the team
+  institution: "Vivekanand Education Society's Institute of Technology (VESIT), Mumbai"  # supplied by the team, 17 Oct 2026
 links:
   repository: null             # direct public GitHub URL, after the team publishes (form field: max 500 characters)
   video: null                  # unlisted YouTube URL, after the team uploads the recording

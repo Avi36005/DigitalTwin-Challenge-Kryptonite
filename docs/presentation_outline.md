@@ -9,7 +9,7 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 
 | # | Slide | Content and evidence |
 |---|---|---|
-| 1 | Title | GlucoTwin — personalized glucose forecasting between clinic visits; Team Kryptonite (Avinash Gehi, leader; Hardik Hinduja); college to be confirmed |
+| 1 | Title | GlucoTwin — personalized glucose forecasting between clinic visits; Team Kryptonite (Avinash Gehi, leader; Hardik Hinduja); VESIT, Mumbai |
 | 2 | The problem | HbA1c vs between-visit excursions; clinician question; target definition |
 | 3 | Use case and boundaries | Users, proposed workflow, what it never does, fit as proposal |
 | 4 | What makes it a twin | Operational definition + twin loop figure |

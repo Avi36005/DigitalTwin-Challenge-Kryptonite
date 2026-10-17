@@ -9,7 +9,7 @@ not in this repository.
 | Team name | Kryptonite | Supplied 11 Oct 2026 |
 | Team leader (as registered on Unstop) | Avinash Gehi | Supplied 11 Oct 2026 |
 | Members | Avinash Gehi (leader) · Hardik Hinduja | Supplied 11 Oct 2026 |
-| College / incubator | — | **Missing — team to supply** |
+| College / incubator | Vivekanand Education Society's Institute of Technology (VESIT), Mumbai | Supplied 17 Oct 2026 |
 | Programme and year of study | — | Optional; not supplied |
 | Public contact for the jury | Through the Unstop submission | — |
 | Repository URL | — | Added after the team publishes the repository |

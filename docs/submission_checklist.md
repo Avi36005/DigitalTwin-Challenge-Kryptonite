@@ -10,8 +10,8 @@ transcription and the challenge page differ, the challenge page governs. Recheck
 record any change below.
 
 **Overall status (rechecked 14 October 2026): ready for local review — not ready to submit.** Submission-ready requires every
-row below to be *Ready*: today the college/incubator, the recorded and uploaded video, and the public-access checks are
-outstanding. Cloud deployment is not required by the form and is not part of this gate.
+row below to be *Ready*: today the recorded and uploaded video and the public-access checks are outstanding (the
+college was supplied on 17 October 2026). Cloud deployment is not required by the form and is not part of this gate.
 
 ## The twelve mandatory README items
 
@@ -20,7 +20,7 @@ Verification date for every row: 11 October 2026 (local repository; `scripts/che
 | # | Form item | README anchor | Evidence (files / URLs) | Status | Owner |
 |---|---|---|---|---|---|
 | 1 | Team details | [`#1-team-details`](../README.md#1-team-details) | Team Kryptonite; Avinash Gehi (leader), Hardik Hinduja; [`team_details.md`](team_details.md) | Ready | — |
-| 2 | College / incubator information | [`#2-college-or-incubator-information`](../README.md#2-college-or-incubator-information) | — | **Missing** — not supplied; never inferred | Team |
+| 2 | College / incubator information | [`#2-college-or-incubator-information`](../README.md#2-college-or-incubator-information) | Vivekanand Education Society's Institute of Technology (VESIT), Mumbai; [`team_details.md`](team_details.md) | Ready (supplied 17 Oct 2026) | — |
 | 3 | Project title | [`#3-project-title`](../README.md#3-project-title) | README | Ready | — |
 | 4 | Problem statement | [`#4-problem-statement`](../README.md#4-problem-statement) | README; [`product.md`](product.md) | Ready | — |
 | 5 | Healthcare use case | [`#5-healthcare-use-case`](../README.md#5-healthcare-use-case) | README (workflow + screenshots); [`product.md`](product.md) | Ready | — |
@@ -42,7 +42,7 @@ path or app-hosting URL. Status: **not yet created** (publication requires the t
 | Instruction | Source | Status / note |
 |---|---|---|
 | Video length | Challenge page (rechecked 14 Oct 2026): “Minimum 20-minute video”. Form transcription (11 Oct): 15–20 min, unlisted YouTube | **At least 20:00** by both the rendered file and YouTube's displayed duration; target **20:15** so rounding or trimming cannot drop it below the minimum. The challenge page governs; recheck if organisers clarify (D-040) |
-| Folder name `Team Name_College Name` | Challenge page (not on the form) | **Outstanding** — e.g. `Kryptonite_<College>` once the college is supplied; team decides whether this is the repository name or a top-level folder |
+| Folder name `Team Name_College Name` | Challenge page (not on the form) | **Outstanding** — proposed `Kryptonite_VESIT`; team decides whether this is the repository name or a top-level folder |
 | Repository public; all files and links accessible | Form and challenge page | **Outstanding** (needs explicit approval). Before publishing: `context.md` stays git-ignored (personal email); `git ls-files data artifacts var` lists only `artifacts/README.md` |
 | Team leader submits name, phone, email and repository link | Challenge page / form | **Outstanding** — the team leader submits on Unstop; not automated |
 | Deadline | Challenge page: 20 Oct 2026, 7:00 PM IST; form: none shown | Recheck before submitting |
@@ -58,7 +58,7 @@ path or app-hosting URL. Status: **not yet created** (publication requires the t
 
 ## Final pre-submission steps (in order)
 
-- [ ] Supply the college/incubator → README §2, `configs/submission.yaml`, `team_details.md`; rebuild slides
+- [x] Supply the college/incubator → README §2, `configs/submission.yaml`, `team_details.md`; rebuild slides (17 Oct 2026)
 - [ ] Confirm the license holder wording in `LICENSE`
 - [ ] Record the video per [`demo_script.md`](demo_script.md); measure the rendered duration (**at least 20:00**; target 20:15)
 - [ ] With authorization: upload to YouTube as **Unlisted**; confirm the displayed duration is at least 20:00; record URL and displayed duration in `configs/submission.yaml` and README §8

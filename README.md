@@ -36,7 +36,7 @@ only when the evidence exists; details and owners: [`docs/submission_checklist.m
 | # | Form item | Section | Status |
 |---|---|---|---|
 | 1 | Team details | [Team details](#1-team-details) | Ready |
-| 2 | College / incubator information | [College or incubator](#2-college-or-incubator-information) | **Missing — team to supply** |
+| 2 | College / incubator information | [College or incubator](#2-college-or-incubator-information) | Ready |
 | 3 | Project title | [Project title](#3-project-title) | Ready |
 | 4 | Problem statement | [Problem statement](#4-problem-statement) | Ready |
 | 5 | Healthcare use case | [Healthcare use case](#5-healthcare-use-case) | Ready |
@@ -61,8 +61,7 @@ More: [`docs/team_details.md`](docs/team_details.md).
 
 ## 2. College or incubator information
 
-**Not yet supplied.** The team will add its confirmed college or incubator name here before submission; it is not
-inferred from any other source.
+**Vivekanand Education Society's Institute of Technology (VESIT), Mumbai** — Team Kryptonite. No incubator.
 
 ## 3. Project title
 
