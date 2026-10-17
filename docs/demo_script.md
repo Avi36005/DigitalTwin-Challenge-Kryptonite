@@ -89,10 +89,13 @@ only a timed rehearsal and the rendered file establish the real duration. YouTub
 > error updates this person's own correction. Model weights are never refit during replay. It is a statistical
 > research twin, not a simulator of human physiology.
 >
-> *[Slide 7]* Offline, a versioned adapter builds a canonical store, and a frozen experiment produces a checksummed
-> model artifact and a metrics file. Online, a FastAPI replay session owns the clock and releases only what would have
-> been available; the twin engine sees only those events. The same feature, adaptation and episode code runs offline
-> and online, and our tests confirm the served predictions equal the evaluated ones.
+> *[Slide 7]* Read it left to right. Two streams come in: the static baseline profile and the dynamic CGM and
+> wearable data, plus synthetic patients and the external Shanghai cohort. A verified adapter builds one canonical
+> store. Along the bottom, offline, a frozen experiment produces a checksummed model and its evidence. Along the top,
+> online, a replay session owns the clock and releases only what would have been available; the twin engine — the
+> blue box — fuses both streams in one model, adapts to the patient, adds a prediction range and a warning, and the
+> clinician dashboard shows the result. The dashed line is the point: the same feature, adaptation and episode code
+> runs offline and online, and our tests confirm the served predictions equal the evaluated ones.
 >
 > *[Slide 8]* We compared persistence, a linear trend and ridge regression with LightGBM and CatBoost; both tree
 > families got identical inputs and searches. Personalization is one

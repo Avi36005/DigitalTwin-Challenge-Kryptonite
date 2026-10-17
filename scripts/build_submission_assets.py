@@ -15,6 +15,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+from architecture_diagram import build_spec, check_fit, draw_png, draw_pptx  # noqa: E402
 from glucotwin.config import load_experiment_config  # noqa: E402
 from glucotwin.evaluation.report import profile_benefit_on_new_people, selection_disclosures  # noqa: E402
 from glucotwin.features import FEATURE_SETS, PROFILE_FEATURES  # noqa: E402
@@ -28,7 +29,7 @@ OUT = ROOT / "docs/submission"
 UI = ROOT / "reports/ui"
 
 # Same palette as the web app: near-black ink, one blue (serving model, online path, forecasts), neutral greys.
-BLUE, INK, INK2, GRAY, LIGHT, AMBER = "#2563EB", "#0B1220", "#475569", "#94A3B8", "#E3E8EF", "#B45309"
+BLUE, INK, INK2, GRAY, LIGHT, AMBER = "#2563EB", "#0B1220", "#1F2937", "#94A3B8", "#E3E8EF", "#B45309"
 plt.rcParams.update({
     "font.family": "Arial", "font.size": 11, "axes.edgecolor": LIGHT, "axes.labelcolor": INK2,
     "xtick.color": INK2, "ytick.color": INK, "axes.spines.top": False, "axes.spines.right": False,
@@ -207,78 +208,22 @@ def fig_per_patient(m: dict) -> Path:
     return p
 
 
-LINE = 0.036
+ARCH_SUBTITLE = ("Two data streams fused in one model; the offline build and the online twin share the same feature and "
+                 "adaptation code.")
 
 
-def _h(n: int) -> float:
-    return 0.062 + n * LINE + 0.016
+def arch_spec(m: dict):
+    ff = fusion_facts(m)
+    spec = build_spec(ff["n_prof"], ff["n_dyn"])
+    check_fit(spec)
+    return spec
 
 
-def _box(ax, x, top, w, title, lines, edge=INK):
-    h = _h(len(lines))
-    ax.add_patch(FancyBboxPatch((x, top - h), w, h, boxstyle="round,pad=0.006,rounding_size=0.016", fc="white",
-                                ec=edge, lw=1.4))
-    ax.text(x + 0.012, top - 0.022, title, fontsize=10.5, fontweight="bold", color=INK, va="top")
-    for i, ln in enumerate(lines):
-        ax.text(x + 0.012, top - 0.064 - i * LINE, ln, fontsize=8.6, color=INK2, va="top")
-    return (x, top - h, w, h)
-
-
-def _arrow(ax, x1, y1, x2, y2, text=None, tx=None, ty=None, ha="left"):
-    ax.annotate("", xy=(x2, y2), xytext=(x1, y1), arrowprops=dict(arrowstyle="-|>", color=INK2, lw=1.2))
-    if text:
-        ax.text(tx if tx is not None else (x1 + x2) / 2, ty if ty is not None else (y1 + y2) / 2, text, fontsize=8,
-                color=INK if ha == "left" else INK2, va="center", ha=ha, style="italic")
-
-
-def fig_architecture(fused: bool = False) -> Path:
-    fig = plt.figure(figsize=(12, 6.6))
-    ax = fig.add_axes([0, 0, 1, 1])
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.axis("off")
-    ax.text(0.02, 0.965, "GlucoTwin architecture", fontsize=15, fontweight="bold", color=INK, va="top")
-    ax.text(0.02, 0.925, "Offline: reproducible commands on CPU.  Online: local API + browser. "
-            "The same feature, adaptation and episode code runs in both.", fontsize=9.5, color=INK2, va="top")
-    ax.text(0.02, 0.875, "OFFLINE", fontsize=9, color=INK, fontweight="bold")
-    ax.text(0.54, 0.875, "ONLINE (local demo)", fontsize=9, color=BLUE, fontweight="bold")
-    T = 0.845
-    cg = _box(ax, 0.02, T, 0.2, "CGMacros 1.0.0", ["PhysioNet, CC BY-NC-SA 4.0", "SHA-256 verified", "data/raw (not in Git)"], GRAY)
-    sy = _box(ax, 0.02, cg[1] - 0.03, 0.2, "Synthetic generator", ["Fictional SYN-A…E (CC0)", "gaps, late meals,", "short history"], GRAY)
-    ad = _box(ax, 0.27, T, 0.22, "Adapter + canonical store", ["native Dexcom recovery from", "the interpolated 1-min table",
-                                                              "5-min wearable summaries", "baseline labs (static profile)",
-                                                              "observed_at / available_at", "Parquet per patient + SQLite"])
-    _arrow(ax, 0.22, cg[1] + cg[3] / 2, 0.27, ad[1] + ad[3] * 0.7)
-    _arrow(ax, 0.22, sy[1] + sy[3] / 2, 0.27, ad[1] + ad[3] * 0.3)
-    og = _box(ax, 0.02, 0.36, 0.22, "Origin table", ["causal features (≤ 180 min)", "quality ok / degraded / insufficient",
-                                                     "targets at +30 / +60 min", "new-onset event labels", "60/10/10/20 split + purge"])
-    _arrow(ax, 0.33, ad[1], 0.17, og[1] + og[3], "build_features", tx=0.213, ty=0.40)
-    _box(ax, 0.29, 0.46, 0.2, "Frozen experiment", ["persistence · trend · ridge", "LightGBM · CatBoost search",
-                                                          "validation-only selection", "adaptation selection",
-                                                          "conformal intervals", "alert threshold",
-                                                          "single final-test run", "→ metrics.json, report"])
-    _arrow(ax, 0.24, og[1] + og[3] / 2, 0.29, og[1] + og[3] / 2)
-    rp = _box(ax, 0.54, T, 0.2, "Replay session", ["backend-owned clock", "releases available_at ≤ t",
-                                                   "seek/reset → new revision", "cursors per revision"], BLUE)
-    _arrow(ax, 0.49, rp[1] + rp[3] / 2, 0.54, rp[1] + rp[3] / 2, "source", tx=0.515, ty=rp[1] + rp[3] / 2 + 0.035,
-           ha="center")
-    tw = _box(ax, 0.54, rp[1] - 0.07, 0.2, "TwinEngine", ["build_features (same code)",
-                                                         "model: profile + CGM + wearable" if fused else "population model",
-                                                         "AdaptationState (same code)", "conformal interval",
-                                                         "warning score − 180", "episode state machine",
-                                                         "research alert rule", "immutable forecast record"], BLUE)
-    _arrow(ax, 0.64, rp[1], 0.64, tw[1] + tw[3], "released events only", tx=0.648, ty=rp[1] - 0.035)
-    _arrow(ax, 0.49, tw[1] + 0.06, 0.54, tw[1] + 0.06, "artifact\n+ registry", tx=0.515, ty=tw[1] + 0.13, ha="center")
-    api = _box(ax, 0.79, T, 0.19, "FastAPI /api/v1", ["schema 1.0 (Pydantic)", "OpenAPI → TypeScript types",
-                                                    "SQLite: forecasts, acks", "loopback, narrow CORS"], BLUE)
-    _arrow(ax, 0.74, tw[1] + tw[3] * 0.75, 0.79, api[1] + 0.03)
-    ui = _box(ax, 0.79, api[1] - 0.07, 0.19, "React web app", ["Landing page", "Overview · Participants",
-                                                              "Replay · Model evidence", "Data quality"], BLUE)
-    _arrow(ax, 0.885, api[1], 0.885, ui[1] + ui[3], "polling", tx=0.893, ty=api[1] - 0.035)
-    p = ASSETS / "fig_architecture.png"
-    fig.savefig(p, facecolor="white")
-    plt.close(fig)
-    return p
+def fig_architecture(m: dict) -> Path:
+    """README / architecture-PDF figure (with its own title) and a title-less copy for the PDF deck."""
+    spec = arch_spec(m)
+    draw_png(FIGS / "fig_architecture_slide.png", spec)
+    return draw_png(ASSETS / "fig_architecture.png", spec, "GlucoTwin — system architecture", ARCH_SUBTITLE)
 
 
 def fig_split() -> Path:
@@ -357,7 +302,7 @@ def research_slide() -> dict | None:
     imported = sum(d.get("parsed_participants") or 0 for d in inv["datasets"])
     ci = lambda c: f"{c['mean_diff']:+.2f} [{c['ci95'][0]:+.2f}, {c['ci95'][1]:+.2f}] mg/dL"  # noqa: E731
     f2 = lambda p, h: f"{p['horizons'][h]['mae']:.2f}"  # noqa: E731
-    return {"kind": "bullets", "title": "New people and an independent cohort (research experiment)",
+    return {"kind": "bullets", "title": "Research: new people and an independent cohort",
             "bullets": [
                 "Models kept separate: the v2 recipe (LightGBM, dynamic streams only; the demo model when this experiment "
                 "was declared), a Ridge five-minute candidate on CGM-only features, and a separate 15-minute LightGBM as "
@@ -493,7 +438,8 @@ def slides(m: dict, sub: dict) -> list[dict]:
                       if disc and base else
                       f"Protocol frozen before fitting; model, adaptation, intervals and alert threshold chosen on validation. Results shown are a corrected re-run ({m['experiment_id']}) of {corrects} after two code fixes — same protocol, same test segment, already inspected."),
                      "Adaptation uses a residual only after its target reading was available; missing future data is censored, never negative."]},
-        {"kind": "image", "title": "Architecture", "image": str(ASSETS / "fig_architecture.png")},
+        {"kind": "architecture", "title": "System architecture: two data streams, one twin", "spec": arch_spec(m),
+         "image": str(FIGS / "fig_architecture_slide.png")},
         {"kind": "bullets", "title": "Models and personalization",
          "bullets": [*([f"Fusion: the serving model reads {ff['n_dyn']} dynamic features (CGM history, wearable heart rate and activity) and {ff['n_prof']} static baseline profile values (age, sex, BMI, HbA1c, fasting glucose and insulin, triglycerides, HDL) in one model."] if ff["n_prof"] else []),
                      "Baselines: persistence, bounded linear trend, ridge regression.",
@@ -561,7 +507,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      *(["Profile fusion: profile values are constant per person, so with 14 people they can act as an identity code; no benefit was shown on people held out entirely."] if disc else []),
                      "Prediction ranges under-cover; the warning score is uncalibrated and its threshold rule (F1) ignores review workload; 180 mg/dL is a research threshold, not triage.",
                      "Retrospective replay only: no clinician workflow, outcome or safety study. Optional Chronos-Bolt not run."]},
-        {"kind": "bullets", "title": "Next steps: evidence needed before use with Indian patients",
+        {"kind": "bullets", "title": "Next steps: evidence needed for Indian patients",
          "bullets": ["Prospective, consented Indian cohort with unblinded CGMs, recorded transmission latency, medications and meal logging times.",
                      "Re-evaluate held-out participants (cold start) and per-site calibration; report subgroup performance.",
                      "AI-READI five-minute CGM and wearable data (access not yet requested; steps listed) for a larger new-person evaluation under the declared protocol gt-nested-2026-10-12-v2.",
@@ -580,6 +526,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
 def build_pptx(deck: list[dict], path: Path) -> None:
     from pptx import Presentation
     from pptx.dml.color import RGBColor
+    from pptx.oxml.ns import qn
     from pptx.util import Emu, Inches, Pt
 
     def rgb(h):
@@ -589,6 +536,14 @@ def build_pptx(deck: list[dict], path: Path) -> None:
     prs.slide_width, prs.slide_height = Inches(13.333), Inches(7.5)
     blank = prs.slide_layouts[6]
     W = prs.slide_width
+
+    def rule(slide, x, y, w, weight, color=INK):
+        ln = slide.shapes.add_connector(1, x, y, x + w, y)
+        st = ln._element.find(qn("p:style"))  # no theme style: no shadow, exact weight
+        if st is not None:
+            ln._element.remove(st)
+        ln.line.color.rgb = rgb(color)
+        ln.line.width = Pt(weight)
 
     def textbox(slide, x, y, w, h, text, size=18, bold=False, color=INK, font="Arial"):
         tb = slide.shapes.add_textbox(x, y, w, h)
@@ -603,23 +558,26 @@ def build_pptx(deck: list[dict], path: Path) -> None:
 
     for i, s in enumerate(deck, start=1):
         sl = prs.slides.add_slide(blank)
-        bar = sl.shapes.add_shape(1, 0, 0, W, Inches(0.12))
-        bar.fill.solid()
-        bar.fill.fore_color.rgb = rgb(INK)
-        bar.line.fill.background()
+        sl.background.fill.solid()
+        sl.background.fill.fore_color.rgb = rgb("#FFFFFF")
         if s["kind"] == "title":
+            rule(sl, Inches(0.9), Inches(1.75), Inches(1.2), 2.5)
             textbox(sl, Inches(0.9), Inches(2.0), Inches(11), Inches(1.2), s["title"], 54, True)
-            textbox(sl, Inches(0.9), Inches(3.2), Inches(11), Inches(0.8), s["subtitle"], 26, False, BLUE)
-            tf = textbox(sl, Inches(0.9), Inches(4.4), Inches(11), Inches(1.6), s["body"][0], 18, False, INK2)
+            textbox(sl, Inches(0.9), Inches(3.2), Inches(11), Inches(0.8), s["subtitle"], 26)
+            tf = textbox(sl, Inches(0.9), Inches(4.4), Inches(11), Inches(1.6), s["body"][0], 18)
             for line in s["body"][1:]:
                 p = tf.add_paragraph()
                 r = p.add_run()
                 r.text = line
                 r.font.size, r.font.name = Pt(18), "Arial"
-                r.font.color.rgb = rgb(INK2)
+                r.font.color.rgb = rgb(INK)
             continue
         textbox(sl, Inches(0.6), Inches(0.35), Inches(12.1), Inches(0.8), s["title"], 30, True)
-        textbox(sl, Inches(11.6), Inches(7.0), Inches(1.5), Inches(0.4), f"{i}", 11, False, INK2)
+        rule(sl, Inches(0.6), Inches(1.08), Inches(12.13), 0.75, LIGHT)
+        textbox(sl, Inches(12.3), Inches(7.05), Inches(0.5), Inches(0.3), f"{i}", 11)
+        if s["kind"] == "architecture":
+            draw_pptx(sl, s["spec"])
+            continue
         if s["kind"] in ("bullets", "bullets_image"):
             w = Inches(12.1) if s["kind"] == "bullets" else Inches(6.3)
             tb = sl.shapes.add_textbox(Inches(0.6), Inches(1.35), w, Inches(5.6))
@@ -661,7 +619,7 @@ def build_pptx(deck: list[dict], path: Path) -> None:
                 pic.height, pic.width = maxh, Emu(int(pic.width * ratio))
                 pic.left = int((W - pic.width) / 2)
             if s.get("caption"):
-                textbox(sl, Inches(0.6), Inches(6.45), Inches(12.1), Inches(0.9), s["caption"], 13, False, INK2)
+                textbox(sl, Inches(0.6), Inches(6.45), Inches(12.1), Inches(0.9), s["caption"], 13)
         elif s["kind"] == "table":
             rows, cols = len(s["table"]), len(s["table"][0])
             gt = sl.shapes.add_table(rows, cols, Inches(0.6), Inches(1.35), Inches(8.2), Inches(0.36 * rows)).table
@@ -673,9 +631,9 @@ def build_pptx(deck: list[dict], path: Path) -> None:
                     para.runs[0].font.size, para.runs[0].font.name = Pt(13), "Arial"
                     para.runs[0].font.bold = r_i == 0 or str(row[0]) == SERVING_LABEL
                     cell.fill.solid()
-                    cell.fill.fore_color.rgb = rgb("#FFFFFF")  # white cells; the selected row is bold blue text
-                    para.runs[0].font.color.rgb = rgb(BLUE if str(row[0]) == SERVING_LABEL else INK)
-            textbox(sl, Inches(9.1), Inches(1.35), Inches(3.8), Inches(5.5), s["note"], 14, False, INK2)
+                    cell.fill.fore_color.rgb = rgb("#FFFFFF")  # white cells, black text
+                    para.runs[0].font.color.rgb = rgb(INK)  # the selected row is marked in bold
+            textbox(sl, Inches(9.1), Inches(1.35), Inches(3.8), Inches(5.5), s["note"], 14)
     prs.save(path)
 
 
@@ -690,7 +648,7 @@ def build_pdf(deck: list[dict], path: Path) -> None:
     cv = canvas.Canvas(str(path), pagesize=(W, H))
     cv.setTitle("GlucoTwin — personalized glucose forecasting between clinic visits")
     body = ParagraphStyle("b", fontName="Helvetica", fontSize=15, leading=20, textColor=HexColor(INK), spaceAfter=9)
-    small = ParagraphStyle("s", fontName="Helvetica", fontSize=12, leading=16, textColor=HexColor(INK2))
+    small = ParagraphStyle("s", fontName="Helvetica", fontSize=12, leading=16, textColor=HexColor(INK))
 
     def image(pathstr, x, y, maxw, maxh):
         img = ImageReader(pathstr)
@@ -699,16 +657,15 @@ def build_pdf(deck: list[dict], path: Path) -> None:
         cv.drawImage(img, x + (maxw - iw * sc) / 2, y + (maxh - ih * sc) / 2, iw * sc, ih * sc)
 
     for i, s in enumerate(deck, start=1):
-        cv.setFillColor(HexColor(INK))
-        cv.rect(0, H - 9, W, 9, stroke=0, fill=1)
+        if s["kind"] == "architecture":  # full-slide figure drawn from the same spec as the PPTX shapes
+            cv.drawImage(ImageReader(s["image"]), 0, 0, W, H)
         if s["kind"] == "title":
             cv.setFillColor(HexColor(INK))
+            cv.rect(65, H - 128, 86, 2.5, stroke=0, fill=1)
             cv.setFont("Helvetica-Bold", 54)
             cv.drawString(65, H - 210, s["title"])
-            cv.setFillColor(HexColor(BLUE))
             cv.setFont("Helvetica", 26)
             cv.drawString(65, H - 260, s["subtitle"])
-            cv.setFillColor(HexColor(INK2))
             cv.setFont("Helvetica", 18)
             for j, line in enumerate(s["body"]):
                 cv.drawString(65, H - 330 - j * 28, line)
@@ -717,7 +674,9 @@ def build_pdf(deck: list[dict], path: Path) -> None:
         cv.setFillColor(HexColor(INK))
         cv.setFont("Helvetica-Bold", 28)
         cv.drawString(43, H - 70, s["title"])
-        cv.setFillColor(HexColor(INK2))
+        cv.setStrokeColor(HexColor(LIGHT))
+        cv.setLineWidth(0.75)
+        cv.line(43, H - 78, W - 43, H - 78)
         cv.setFont("Helvetica", 10)
         cv.drawRightString(W - 40, 22, str(i))
         top = H - 100
@@ -754,8 +713,7 @@ def build_pdf(deck: list[dict], path: Path) -> None:
                      ("TOPPADDING", (0, 0), (-1, -1), 6), ("BOTTOMPADDING", (0, 0), (-1, -1), 6)]
             for r_i, row in enumerate(s["table"]):
                 if row[0] == SERVING_LABEL:
-                    style += [("TEXTCOLOR", (0, r_i), (-1, r_i), HexColor(BLUE)),
-                              ("FONT", (0, r_i), (-1, r_i), "Helvetica-Bold", 12)]
+                    style += [("FONT", (0, r_i), (-1, r_i), "Helvetica-Bold", 12)]
             t.setStyle(TableStyle(style))
             _, h = t.wrap(560, 400)
             t.drawOn(cv, 43, top - h)
@@ -818,6 +776,21 @@ def build_architecture_pdf(path: Path, m: dict) -> None:
 SERVING_LABEL = ""  # set in main(): table rows of the serving model are highlighted
 
 
+def export_pdf_from_pptx(pptx: Path) -> bool:
+    """Export the PDF from the PPTX with LibreOffice so both files show the same slides with embedded fonts."""
+    import shutil
+    import subprocess
+
+    office = shutil.which("soffice") or shutil.which("libreoffice")
+    if not office:
+        return False
+    r = subprocess.run([office, "--headless", "--convert-to", "pdf", "--outdir", str(pptx.parent), str(pptx)],
+                       capture_output=True, text=True, timeout=300)
+    ok = r.returncode == 0 and pptx.with_suffix(".pdf").exists()
+    print(f"PDF exported from PPTX with LibreOffice: {ok}")
+    return ok
+
+
 def main() -> None:
     global SERVING_LABEL
     ASSETS.mkdir(parents=True, exist_ok=True)
@@ -827,13 +800,14 @@ def main() -> None:
     SERVING_LABEL = serving_ids(m)[0]
     for f in (fig_mae, fig_paired, fig_per_patient):
         print(f(m))
-    print(fig_architecture(fusion_facts(m)["n_prof"] > 0))
+    print(fig_architecture(m))
     print(fig_split())
     print(fig_twin_loop())
     build_architecture_pdf(OUT / "GlucoTwin_Architecture.pdf", m)
     deck = slides(m, submission())
     build_pptx(deck, OUT / "GlucoTwin_Presentation.pptx")
-    build_pdf(deck, OUT / "GlucoTwin_Presentation.pdf")
+    if not export_pdf_from_pptx(OUT / "GlucoTwin_Presentation.pptx"):
+        build_pdf(deck, OUT / "GlucoTwin_Presentation.pdf")  # fallback without LibreOffice: same content, own layout
     print(f"slides: {len(deck)} -> {OUT}")
 
 
