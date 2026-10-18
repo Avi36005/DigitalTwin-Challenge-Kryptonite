@@ -143,7 +143,7 @@ export function ReplayPage({ sid }: { sid: string }) {
       {latestF?.split_segment === "training" && (
         <InlineNotice tone="neutral" icon={Info} role="note">
           This replay time lies in the model’s training period, so these forecasts are in-sample. Use <strong>Test period</strong> below
-          the chart to review held-out forecasts.
+          the chart to review forecasts from the final test period.
         </InlineNotice>
       )}
 
@@ -177,8 +177,8 @@ export function ReplayPage({ sid }: { sid: string }) {
   );
 }
 
-/** At the start of a recording nothing has been released yet, so the chart is empty: say so, and offer the held-out test
- *  period — where the twin is shown on data it never trained on — as the first stop. */
+/** At the start of a recording nothing has been released yet, so the chart is empty: say so, and offer the final test
+ *  period (later recordings from a participant represented in training) as the first stop. */
 function StartNotice({ session, events, eventsLoaded, segments, onAnnounce }: {
   session: ReplaySession; events: ObservationEvent[]; eventsLoaded: boolean; segments?: EvaluationSegment[] | null;
   onAnnounce: (msg: string) => void;
@@ -189,14 +189,14 @@ function StartNotice({ session, events, eventsLoaded, segments, onAnnounce }: {
   if (!eventsLoaded || latestGlucose(events, clock) || session.status === "playing") return null;
   const test = segments?.find((s) => s.name === "test");
   const go = () => test && control.mutate({ action: "seek", seek_to: test.start_at }, {
-    onSuccess: (s) => onAnnounce(`Moved to the held-out test period. Replay time ${replayTime(s.clock_at)}.`),
+    onSuccess: (s) => onAnnounce(`Moved to the final test period. Replay time ${replayTime(s.clock_at)}.`),
     onError: (e) => toast(`Replay control failed: ${(e as Error).message}`, "error"),
   });
   return (
     <InlineNotice tone="neutral" icon={Info} role="note"
-      action={test ? <Button variant="primary" size="sm" icon={Target} busy={control.isPending} onClick={go}>Go to held-out test period</Button> : undefined}>
+      action={test ? <Button variant="primary" size="sm" icon={Target} busy={control.isPending} onClick={go}>Go to final test period</Button> : undefined}>
       <strong>No readings released yet.</strong> The replay clock is at the start of the recording.{" "}
-      {test ? <>Jump to the held-out test period (from {replayTime(test.start_at)}) to see forecasts on data the model never trained on, or press Play.</>
+      {test ? <>Jump to the final test period (from {replayTime(test.start_at)}) to see forecasts on later recordings from a participant represented in training, or press Play.</>
         : <>Press Play to release readings as they would have arrived.</>}
     </InlineNotice>
   );

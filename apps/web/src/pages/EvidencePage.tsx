@@ -58,7 +58,7 @@ export function EvidencePage() {
             </select>
           </div>
         ) : undefined}>
-        Forecast error and warnings on held-out data, read from the saved experiment artifacts.
+        Forecast error and warnings, read from the saved experiment artifacts: later recordings from participants represented in training (demo model) or people held out entirely (research).
       </PageHeader>
       <ServingLine selected={chosen} regime={meta ? REGIME[meta.regime] : undefined} />
       {list.isLoading || (!research && ev.isLoading) || (research && rs.isLoading) ? <Skeleton h={300} /> : research ? (

@@ -13,7 +13,7 @@ const SEG_LABEL: Record<string, string> = {
   training: "Training (in-sample)",
   validation: "Validation",
   calibration: "Calibration",
-  test: "Held-out test",
+  test: "Final test",
 };
 
 /** Compact replay controls under the chart. The backend owns the clock; a seek creates a new revision. */
@@ -79,7 +79,7 @@ export function ReplayToolbar({ session, segments, onAnnounce }: {
       <div className="replay-bar__end">
         {test && (
           <Button size="sm" variant={clock < ms(test.start_at) ? "secondary" : "ghost"} icon={Target} disabled={busy} onClick={() => commitSeek(ms(test.start_at))}
-            title={`Jump to the start of the held-out test period (${replayTime(test.start_at)})`}>Test period</Button>
+            title={`Jump to the start of the final test period, later recordings from a participant represented in training (${replayTime(test.start_at)})`}>Test period</Button>
         )}
         <label className="visually-hidden" htmlFor={`${sliderId}-speed`}>Replay speed</label>
         <select id={`${sliderId}-speed`} className="select select--sm" value={session.speed} disabled={busy}

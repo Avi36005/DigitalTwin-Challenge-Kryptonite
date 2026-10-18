@@ -179,15 +179,16 @@ def main() -> int:
     if ready["dataset"]["ready"] and p01 and p12:
         seg = {s["name"]: s for s in run.get(f"/patients/{p01['patient_id']}")["evaluation_segments"]}
         run.scene("Scene A — recorded data: a false alarm, then a true warning",
-                  "Held-out test period of the serving model. Shows saved forecasts, a research warning whose outcome "
-                  "is unknown until later, a false alarm, a rewind (new revision) and a true warning.",
+                  "Final test period of the serving model (later recordings from a participant represented in training). "
+                  "Shows saved forecasts, a research warning whose outcome is unknown until later, a false alarm, a rewind "
+                  "(new revision) and a true warning.",
                   p01, "dataset_replay", seg["test"]["start_at"],
                   [("step", 12, "orientation"), ("step", 2, "warning issued?"), ("step", 24, "outcome now known"),
                    ("seek", at(9, "20:00"), "rewind/seek creates a new revision"), ("step", 7, ""), ("step", 1, ""),
                    ("step", 6, "outcome of the second warning")])
         seg12 = {s["name"]: s for s in run.get(f"/patients/{p12['patient_id']}")["evaluation_segments"]}
         run.scene("Scene B — recorded data: a real 70-minute sensor gap",
-                  "A genuine gap in the native Dexcom readings during this participant's held-out test period.",
+                  "A genuine gap in the native Dexcom readings during this participant's final test period.",
                   p12, "dataset_replay", seg12["test"]["start_at"],
                   [("seek", at(9, "10:25"), "before the gap"), ("seek", at(9, "10:50"), "21 min without a reading"),
                    ("seek", at(9, "11:30"), "61 min without a reading"), ("seek", at(9, "11:45"), "readings resume")])

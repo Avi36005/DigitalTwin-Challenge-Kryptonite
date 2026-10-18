@@ -8,7 +8,7 @@ noted). All recorded-data screenshots were recaptured on 13 Oct 2026 after the s
 |---|---|
 | `01-twin-workspace-synthetic.png` | Synthetic demonstration (SYN-B) after stepping and acknowledging a warning |
 | `02-missing-and-stale-data.png` | Synthetic SYN-D inside a 150-minute sensor gap: stale reading and stale forecast |
-| `03-forecast-with-interval-recorded.png` | Recorded-data replay (CGMacros participant, held-out test period): forecasts with prediction ranges (target coverage 80 %) and the measured-coverage details |
+| `03-forecast-with-interval-recorded.png` | Recorded-data replay (CGMacros participant, final test period: later recordings of a participant represented in training): forecasts with prediction ranges (target coverage 80 %) and the measured-coverage details |
 | `04-forecast-evidence-dialog.png` | Forecast details drawer (information cutoff, model version, evaluation period, population vs correction, explanations) |
 | `05-model-evidence.png` | Model evidence page: the short fusion-constraint notice, results at a glance, the disclosures and all configurations |
 | `06-data-quality.png` | Data quality page (current replay, sources, model-input limits, coverage) |
@@ -17,7 +17,7 @@ noted). All recorded-data screenshots were recaptured on 13 Oct 2026 after the s
 | `09-recording-1920-recorded-gap-stale.png` | 1920×1080: Participant 12, Day 9 · 10:50 — genuine 70-minute Dexcom gap; reading and forecasts out of date |
 | `10-landing-desktop.png` | Landing page (desktop) with the synthetic-demonstration preview |
 | `11-landing-phone.png` | Landing page on a 390 px phone (full page) |
-| `12-overview.png` | Workspace overview: *Open recorded demo* (Participant 01 from the held-out test period), then recent replays as divided rows |
+| `12-overview.png` | Workspace overview: *Open recorded demo* (Participant 01 from the final test period), then recent replays as divided rows |
 | `13-insufficient-history-recorded.png` | 1920×1080: Participant 12, Day 9 · 11:45 — readings resumed but the twin abstains (2 readings in the last hour) |
 | `14-research-evidence.png` | Model evidence switched to the nested research experiment `gt-nested-2026-10-12-v1`: results on held-out people, kept separate from the serving model |
 | `15-research-portable-external.png` | Same page, 15-minute portable track: external ShanghaiT2DM cohort results |

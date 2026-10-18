@@ -8,7 +8,7 @@ const SEG: Record<string, string> = {
   training: "Training period — this origin is in-sample for the population model",
   validation: "Validation-selection period",
   calibration: "Calibration period",
-  test: "Held-out test period",
+  test: "Final test period (later recordings from a participant represented in training)",
   unassigned: "Outside the evaluation segments",
 };
 const KIND: Record<string, string> = {
@@ -67,7 +67,7 @@ export function ForecastDetail({ f, patient, report, open, onClose }: {
             </div>
             <p className="drawer-body__note">
               Prediction range: target coverage {Math.round((f.estimates.find((e) => e.interval_level)?.interval_level ?? 0.8) * 100)}%.{" "}
-              {cov ? <>Measured on the held-out test period: {cov.byHorizon.map((b) => `${fmtPct(b.coverage, 1)} at ${b.horizon} min`).join(", ")} ({cov.experiment}). Coverage varies by participant; no guarantee.</>
+              {cov ? <>Measured on the final test period: {cov.byHorizon.map((b) => `${fmtPct(b.coverage, 1)} at ${b.horizon} min`).join(", ")} ({cov.experiment}). Coverage varies by participant; no guarantee.</>
                 : <>No measured coverage for this model version on recorded data; no guarantee.</>}
             </p>
           </section>

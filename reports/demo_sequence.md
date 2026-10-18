@@ -8,7 +8,7 @@ Generated from live API responses on this installation; regenerate with `uv run 
 
 ## Scene A — recorded data: a false alarm, then a true warning
 
-Held-out test period of the serving model. Shows saved forecasts, a research warning whose outcome is unknown until later, a false alarm, a rewind (new revision) and a true warning.
+Final test period of the serving model (later recordings from a participant represented in training). Shows saved forecasts, a research warning whose outcome is unknown until later, a false alarm, a rewind (new revision) and a true warning.
 
 Participant **Participant 01** (`pt-1eef47`) · mode `dataset_replay` · clock range Day 9 · 08:14 → Day 9 · 21:10
 
@@ -25,7 +25,7 @@ Participant **Participant 01** (`pt-1eef47`) · mode `dataset_replay` · clock r
 
 ## Scene B — recorded data: a real 70-minute sensor gap
 
-A genuine gap in the native Dexcom readings during this participant's held-out test period.
+A genuine gap in the native Dexcom readings during this participant's final test period.
 
 Participant **Participant 12** (`pt-d260d8`) · mode `dataset_replay` · clock range Day 9 · 07:58 → Day 9 · 11:45
 

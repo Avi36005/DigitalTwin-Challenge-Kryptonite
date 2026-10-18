@@ -62,8 +62,8 @@ export function OverviewPage() {
   );
 }
 
-/** One click to the walkthrough: the first primary-analysis participant, starting at the held-out test period, so the
- *  first screen shows forecasts on data the model never trained on instead of an empty chart. */
+/** One click to the walkthrough: the first primary-analysis participant, starting at the final test period, so the
+ *  first screen shows forecasts instead of an empty chart. */
 function RecordedDemo({ demo }: { demo: PatientSummary }) {
   const detail = usePatient(demo.patient_id);
   const test = detail.data?.evaluation_segments?.find((s) => s.name === "test");
@@ -72,9 +72,9 @@ function RecordedDemo({ demo }: { demo: PatientSummary }) {
     <Section title="Recorded demo" divider={false}>
       <div className="start-row">
         <p className="start-row__text">
-          {demo.display_alias}, starting at the held-out test period
+          {demo.display_alias}, starting at the final test period
           {test ? <> (<span className="num">{replayTime(test.start_at)}</span>)</> : null}: forecasts, warnings and their outcomes
-          on data the model never trained on. Each click starts a new replay session.
+          on later recordings from a participant represented in training. Each click starts a new replay session.
         </p>
         <div className="start-row__actions">
           <Button variant="primary" icon={Play} disabled={!test} busy={create.isPending}

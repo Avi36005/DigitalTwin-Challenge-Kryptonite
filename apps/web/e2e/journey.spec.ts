@@ -9,7 +9,7 @@ async function startReplay(page: Page, mode: "synthetic_demo" | "dataset_replay"
   const dialog = page.getByRole("dialog", { name: "New replay" });
   await dialog.getByRole("radio", { name: mode === "synthetic_demo" ? /Synthetic demonstration/ : /Recorded-data replay/ }).check();
   await dialog.getByLabel("Participant", { exact: true }).selectOption(patient);
-  if (testPeriod) await dialog.getByRole("radio", { name: /Held-out test period/ }).check();
+  if (testPeriod) await dialog.getByRole("radio", { name: /Final test period/ }).check();
   await dialog.getByRole("button", { name: "Start replay" }).click();
   await expect.poll(() => new URL(page.url()).searchParams.get("session")).not.toBe(previous);
   await expect(page).toHaveURL(/session=/);
@@ -127,7 +127,7 @@ test("missing-data, stale and abstention states are explicit", async ({ page }) 
   await page.screenshot({ path: `${SHOTS}/02-missing-and-stale-data.png` });
 });
 
-test("recorded-data replay in the held-out test period shows prediction ranges with their target coverage", async ({ page, request }) => {
+test("recorded-data replay in the final test period shows prediction ranges with their target coverage", async ({ page, request }) => {
   const pts = await (await request.get(`${API}/patients?mode=dataset_replay`)).json();
   test.skip(!pts.items?.length, "CGMacros not imported on this machine");
   const p = pts.items.find((x: { eligible_for_primary_analysis: boolean }) => x.eligible_for_primary_analysis);
@@ -136,11 +136,11 @@ test("recorded-data replay in the held-out test period shows prediction ranges w
   await page.getByRole("button", { name: "Step 1 h forward" }).click();
   await expect(page.getByText("Prediction range · target coverage 80%")).toBeVisible();
   await page.getByRole("button", { name: "Details", exact: true }).click();
-  await expect(page.getByText(/Measured coverage on the held-out test period/)).toBeVisible();
+  await expect(page.getByText(/Measured coverage on the final test period/)).toBeVisible();
   await expect(page.getByText("Recorded-data replay").first()).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/03-forecast-with-interval-recorded.png` });
   await page.getByRole("button", { name: "View forecast details" }).click();
-  await expect(page.getByRole("dialog", { name: "Forecast details" })).toContainText("Held-out test period");
+  await expect(page.getByRole("dialog", { name: "Forecast details" })).toContainText("Final test period (later recordings from a participant represented in training)");
   await page.waitForTimeout(400); // let the drawer finish its short slide-in
   await page.screenshot({ path: `${SHOTS}/04-forecast-evidence-dialog.png` });
   await page.keyboard.press("Escape");
@@ -401,7 +401,7 @@ test.describe("landing page and route compatibility", () => {
 
 // Last, so the sessions they create do not appear in the overview screenshot above.
 test.describe("first replay experience on recorded data", () => {
-  test("Open recorded demo starts Participant 01 at the held-out test period", async ({ page }) => {
+  test("Open recorded demo starts Participant 01 at the final test period", async ({ page }) => {
     const p = await byAlias(page, "Participant 01");
     test.skip(!p, "CGMacros not imported on this machine");
     const detail = await (await page.request.get(`${API}/patients/${p.patient_id}`)).json();
@@ -417,7 +417,7 @@ test.describe("first replay experience on recorded data", () => {
     await expect(page.getByRole("region", { name: "Current glucose" })).not.toContainText("No reading yet");
   });
 
-  test("a replay from the start of a recording offers the held-out test period", async ({ page }) => {
+  test("a replay from the start of a recording offers the final test period", async ({ page }) => {
     const p = await byAlias(page, "Participant 01");
     test.skip(!p, "CGMacros not imported on this machine");
     const detail = await (await page.request.get(`${API}/patients/${p.patient_id}`)).json();
@@ -425,7 +425,7 @@ test.describe("first replay experience on recorded data", () => {
     await page.goto("/app");
     const sid = await startReplay(page, "dataset_replay", p.patient_id);
     await expect(page.getByText("No readings released yet.")).toBeVisible();
-    await page.getByRole("button", { name: "Go to held-out test period" }).click();
+    await page.getByRole("button", { name: "Go to final test period" }).click();
     await expect.poll(async () => Date.parse((await session(page, sid)).clock_at)).toBe(Date.parse(testStart));
     await expect(page.getByText("No readings released yet.")).toBeHidden();
   });

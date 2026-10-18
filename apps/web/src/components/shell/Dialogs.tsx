@@ -237,8 +237,8 @@ export function NewReplayDialog({ open, onClose, initialPatient }: { open: boole
             <label className="radio-card">
               <input type="radio" name="start" checked={start === "test"} onChange={() => setStart("test")} />
               <span>
-                <strong className="radio-card__title">Held-out test period</strong>
-                <span className="radio-card__desc">Begins at {replayTime(testSeg.start_at)}; the twin rebuilds its state from earlier data.</span>
+                <strong className="radio-card__title">Final test period</strong>
+                <span className="radio-card__desc">Later recordings from a participant represented in training. Begins at {replayTime(testSeg.start_at)}; the twin rebuilds its state from earlier data.</span>
               </span>
             </label>
           </div>
@@ -331,7 +331,7 @@ export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => vo
           glucose is not already high. The panel names the forecast that fired it. It is a forecast level in mg/dL, not a probability. “Mark as reviewed” only records a local acknowledgement — no
           message is sent to anyone.</p>
         <p><strong>Evidence.</strong> Model evidence shows the measured comparison (persistence, linear trend, ridge,
-          LightGBM, CatBoost) on a held-out test period. Mean absolute error is an average error in mg/dL, not an accuracy
+          LightGBM, CatBoost) on the final test period: later recordings from participants represented in training. Mean absolute error is an average error in mg/dL, not an accuracy
           percentage.</p>
         <p className="muted">Shortcut: ⌘K / Ctrl K opens search (not while typing in a field).</p>
       </div>

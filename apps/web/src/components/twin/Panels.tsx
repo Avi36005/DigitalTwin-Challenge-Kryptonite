@@ -206,7 +206,7 @@ function RangeNote({ f, report }: { f: Forecast; report?: EvaluationReport }) {
       {open && (
         <p id={id} className="range-note__detail">
           {cov ? (
-            <>Measured coverage on the held-out test period: {cov.byHorizon.map((b) => `${fmtPct(b.coverage, 1)} at ${b.horizon} min (participants ${fmtPct(b.min, 0)}–${fmtPct(b.max, 0)})`).join("; ")} — experiment {cov.experiment}. Coverage varies by participant; no guarantee.</>
+            <>Measured coverage on the final test period: {cov.byHorizon.map((b) => `${fmtPct(b.coverage, 1)} at ${b.horizon} min (participants ${fmtPct(b.min, 0)}–${fmtPct(b.max, 0)})`).join("; ")} — experiment {cov.experiment}. Coverage varies by participant; no guarantee.</>
           ) : f.mode === "synthetic_demo" ? (
             <>The synthetic demonstration model has no measured coverage on recorded data. Coverage varies; no guarantee.</>
           ) : (
