@@ -9,9 +9,9 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 
 | # | Slide | Content and evidence |
 |---|---|---|
-| 1 | Title | GlucoTwin — personalized glucose forecasting between clinic visits; Team Kryptonite (Avinash Gehi, leader; Hardik Hinduja); VESIT, Mumbai |
+| 1 | Title | GlucoTwin — personalized glucose forecasting between clinic visits; **Team Kryptonite · VESIT** (brand line from `configs/submission.yaml`); Avinash Gehi, leader; Hardik Hinduja; full college name |
 | 2 | The problem | HbA1c vs between-visit excursions; clinician question; target definition |
-| 3 | Use case and boundaries | Users, proposed workflow, what it never does, fit as proposal |
+| 3 | Use case and boundaries | Hypothetical Mumbai example, labelled as an illustration; users; proposed workflow (warnings reviewed one person at a time, no multi-patient queue); what it never does; fit as proposal |
 | 4 | What makes it a twin | Operational definition + twin loop figure |
 | 5 | Data and provenance | CGMacros facts, cohort, interpolation finding, synthetic fixtures |
 | 6 | Availability and leakage controls | Two timestamps, meals excluded, split figure, frozen protocol |
@@ -27,7 +27,7 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 | 16 | Early warning and uncertainty | Detected onsets, false alarms per observed patient-day (per eligible day alongside), qualified forecast lead vs a threshold rule; range coverage vs target, overall and per participant; meal sensitivity |
 | 17 | New people and an independent cohort | Research experiment `gt-nested-2026-10-12-v1` from its saved `report.json` (omitted until run): the three models kept separate (v2 recipe — the demo model when the experiment was declared; Ridge five-minute candidate; separate 15-minute LightGBM external check); 145 imported, 14 internal, 98 external; high-glucose trade-off; warning burden; external result with intervals; not promoted |
 | 18 | Project outcomes | What was built, the provenance finding, measured outcomes (computed from `metrics.json`), the corrected re-run and the fusion constraint, reproducibility |
-| 19 | Limitations | Cohort, population, blinded CGM, medication, profile as identity code, thresholds, intervals, retrospective |
+| 19 | Limitations | Cohort, population, blinded CGM, medication, profile as identity code, thresholds, intervals, retrospective; scores depend on dataset, task and protocol (simulated-patient results do not transfer) |
 | 20 | Next steps | Evidence needed before use with Indian patients; AI-READI under the declared successor protocol |
 | 21 | Team, links, reproducibility and licenses | Team; repository and video links (video at least 20 minutes; added after publication/upload); quick start; data citation; experiment ID |
 

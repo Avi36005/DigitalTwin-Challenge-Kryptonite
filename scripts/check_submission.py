@@ -1,8 +1,9 @@
 """Check the README submission links and write docs/submission_access_audit.md.
 
 Local checks (always): every README link/image target exists, is not Git-ignored (so it will be in the public
-repository), in-page anchors resolve to README headings, PDFs/PPTX open and report a page/slide count, and the twelve
-form sections are present. With --online, external http(s) links are fetched (read-only GET). Publication-dependent
+repository), in-page anchors resolve to README headings, PDFs/PPTX open and report a page/slide count, the twelve
+form sections are present, and the links in the team folder index (`Team Name_College Name`, e.g. Kryptonite_VESIT/)
+resolve. With --online, external http(s) links are fetched (read-only GET). Publication-dependent
 checks (public visibility, signed-out access, YouTube) are listed as pending until their URLs exist in
 configs/submission.yaml — this script never publishes or uploads anything.
 
@@ -59,13 +60,15 @@ def describe_file(path: Path) -> str:
     return f"{suffix.lstrip('.') or 'file'}, {path.stat().st_size / 1e3:.0f} kB"
 
 
-def check_local(target: str, anchors: set[str]) -> tuple[bool, str]:
+def check_local(target: str, anchors: set[str], base: Path = README.parent) -> tuple[bool, str]:
     path_part, _, frag = target.partition("#")
     if not path_part:
         return (frag in anchors, "anchor found" if frag in anchors else f"MISSING anchor #{frag}")
-    path = (README.parent / path_part).resolve()
+    path = (base / path_part).resolve()
     if not path.exists():
         return False, "MISSING file"
+    if frag and path == README and frag not in anchors:
+        return False, f"MISSING README anchor #{frag}"
     rel = path.relative_to(ROOT).as_posix()
     if git("check-ignore", "-q", rel).returncode == 0:
         return False, "file exists but is Git-ignored (would not be published)"
@@ -107,6 +110,16 @@ def main() -> int:
             ok, res = check_local(target, anchors)
         links.append((kind, label or "(image)", target, ok, res))
     sub = yaml.safe_load((ROOT / "configs/submission.yaml").read_text())
+    index = ROOT / f"{sub['team']['name']}_{sub['team']['institution_short']}" / "README.md"
+    if not index.exists():
+        links.append(("folder", "team folder index", index.relative_to(ROOT).as_posix(), False,
+                      "MISSING — run scripts/build_submission_assets.py"))
+    for target in dict.fromkeys(t for _, _, t in (LINK.findall(index.read_text()) if index.exists() else [])):
+        if target.startswith(("http://", "https://")):
+            ok, res = check_online(target) if online else (True, "external — not fetched (run with --online)")
+        else:
+            ok, res = check_local(target, anchors, index.parent)
+        links.append(("folder link", index.parent.name, target, ok, res))
     today = date.today().isoformat()
     bad = [x for x in links if not x[3]] + [x for x in sec_rows if not x[2]]
 
@@ -123,7 +136,7 @@ def main() -> int:
         "|---|---|---|",
         *[f"| {i} | {n} | {'yes' if ok else '**NO**'} |" for i, n, ok in sec_rows],
         "",
-        "## README links and images",
+        "## README and team folder links",
         "",
         "| Type | Text | Target | Result | Check |",
         "|---|---|---|---|---|",
@@ -145,7 +158,7 @@ def main() -> int:
         "| Unstop form: repository URL field (≤ 500 characters, direct GitHub URL) | — | Pending — team leader submits |",
         "",
         f"**Summary:** {len(links) - sum(1 for x in links if not x[3])}/{len(links)} README links and images pass the local "
-        f"checks; {sum(1 for x in sec_rows if x[2])}/12 mandatory sections present. "
+        f"checks (including the team folder index); {sum(1 for x in sec_rows if x[2])}/12 mandatory sections present. "
         + ("No local failures." if not bad else f"{len(bad)} local failure(s) — fix before submission."),
         "",
     ]

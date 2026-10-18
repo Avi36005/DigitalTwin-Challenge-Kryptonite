@@ -1,36 +1,43 @@
-# GlucoTwin — personalized glucose forecasting between clinic visits
+# GlucoTwin — Team Kryptonite (VESIT)
 
-**Team Kryptonite · Digital Twin Challenge 2026 (Happiest Health) · student research prototype.** GlucoTwin keeps a
-patient-specific state for a person with Type 2 diabetes, updates it as continuous-glucose and wearable observations
-arrive, forecasts glucose 30 and 60 minutes ahead, and warns of a new sustained high-glucose episode — while showing a
-clinician exactly what was known at each moment.
+**Personalized glucose forecasting between clinic visits · Digital Twin Challenge 2026 (Happiest Health) · student
+research prototype.** GlucoTwin keeps a patient-specific state for an adult with Type 2 diabetes, updates it as
+continuous-glucose and wearable readings arrive, forecasts glucose 30 and 60 minutes ahead and warns of a new sustained
+high-glucose episode, while showing a clinician exactly what was known at each moment. The demo model reads a
+baseline profile (EHR-like demographics and screening labs) and the glucose and wearable streams together. Every result
+below was measured on recorded CGM data from real people; none comes from simulated patients.
 
-> Research demonstration only. Not a medical device; no treatment advice; replay of recorded or synthetic data — never a
-> live device connection. Results come from three separately labelled models, all reproducible with the commands below:
->
-> * **Current demo model — fusion LightGBM** (`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`). It serves
->   recorded-data replays and reads the static baseline profile together with the glucose and wearable streams, as the
->   brief requires. Synthetic replays use a separate, fixed demonstration model (dynamic inputs only, labelled
->   synthetic in the app). Its test results come from **later recordings of the same 14 people it was trained on**, not
->   from new patients. It was selected by the v2 rule restricted to models that read both, a constraint declared on
->   13 Oct 2026 **after** the test segment had been inspected. We selected a model that implements the required fusion;
->   we have **not** established that profile features improve forecasting for unseen patients
->   ([why](#what-the-profile-fusion-does-and-does-not-show)). The previous demo model, LightGBM v2 on the dynamic
->   streams only (`gt-primary-2026-10-11-v2`, the v1 protocol re-run after two code fixes —
->   [repair report](reports/repair_report.md)), stays registered for rollback; v1 is preserved.
-> * **Five-minute candidate — Ridge on CGM-only features** (`ridge.cgm-only-v1.gt-nested-2026-10-12-v1`). Chosen by a
->   frozen rule and evaluated on people it never saw (experiment `gt-nested-2026-10-12-v1`). Evaluated, **not promoted**;
->   it reads CGM only, so it does not meet the two-stream requirement and is not a replacement for the demo model.
-> * **External check — a separate 15-minute LightGBM** (`lightgbm.cgm15-v1.gt-nested-2026-10-12-v1`). Trained on
->   CGMacros and evaluated once on an independent Chinese cohort; it is not the demo model and not the Ridge candidate.
->
-> **145 participants imported; 14 evaluated internally and 98 evaluated externally.**
+*Hypothetical example (an illustration, not a deployment):* a diabetes educator in Mumbai follows adults with Type 2
+diabetes who wear CGMs between quarterly visits, and opens one person's replay to see the forecasts, any warning and the
+data behind it ([use case](#5-healthcare-use-case)).
+
+## Results at a glance
+
+Each row names the model and the setting it was evaluated in; they are different models and different tests. Mean
+absolute error (MAE) is in mg/dL, averaged equally over participants: an average error, not an accuracy percentage.
+
+| Result | Model | Evaluated on |
+|---|---|---|
+| MAE **12.96 / 20.26** at 30 / 60 min (persistence 14.84 / 23.23) | **Demo model**: fusion LightGBM with patient adaptation | Later recordings of the **same 14 CGMacros people it was trained on**; a test over time, not on new patients (retrospective, [details](#7-ai-and-ml-model-details)) |
+| **61 of 64** new high-glucose onsets warned; **40 false alarms, 1.49 per observed patient-day**; median forecast lead 30 min | **Demo model**, 60-minute warning | Same as the row above |
+| Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage | **Demo model** | Same as the row above |
+| MAE **13.88 / 22.30** (persistence 15.34 / 24.47) | Research candidate procedure (Ridge on CGM only, chosen in 4 of 5 folds), **not** the demo model | 14 CGMacros people, **each held out entirely** once (nested experiment) |
+| MAE **11.15 / 20.11** (persistence 12.14 / 20.44; the 60-minute difference is inconclusive) | A separate 15-minute LightGBM, **not** the demo model | **98 ShanghaiT2DM people**, an independent cohort, evaluated once |
+
+Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
+establish performance on real patients.
+
+Research demonstration only: not a medical device, no treatment advice, and a replay of recorded or synthetic data,
+never a live device. The demo model was chosen to meet the brief's fusion requirement, under a constraint declared
+**after** the test segment had been inspected; we have **not** established that the profile improves forecasts for
+unseen patients ([the three models](#the-three-models-behind-these-numbers) ·
+[what the fusion does and does not show](#what-the-profile-fusion-does-and-does-not-show)).
 
 ![GlucoTwin workspace: recorded-data replay in the final test period (later recordings of a participant the model was trained on)](reports/ui/03-forecast-with-interval-recorded.png)
 
 ## Submission checklist (Unstop form)
 
-The twelve mandatory items, where each is answered below, and its status on **11 October 2026**. Status is updated
+The twelve mandatory items, where each is answered below, and its status on **19 October 2026**. Status is updated
 only when the evidence exists; details and owners: [`docs/submission_checklist.md`](docs/submission_checklist.md).
 
 | # | Form item | Section | Status |
@@ -57,7 +64,8 @@ only when the evidence exists; details and owners: [`docs/submission_checklist.m
 | Members | Avinash Gehi (leader) · Hardik Hinduja |
 | Contact | Through the Unstop submission (the leader's contact details are entered on the form, not published here) |
 
-More: [`docs/team_details.md`](docs/team_details.md).
+More: [`docs/team_details.md`](docs/team_details.md). Team folder (the challenge's `Team Name_College Name` rule):
+[`Kryptonite_VESIT/`](Kryptonite_VESIT/README.md), an index of the submission files.
 
 ## 2. College or incubator information
 
@@ -84,6 +92,12 @@ not been established (§7).
 
 ## 5. Healthcare use case
 
+* **Hypothetical example (an illustration only; no clinic, partner or pilot is involved):** a diabetes educator in
+  Mumbai follows adults with Type 2 diabetes who wear CGMs and activity trackers between quarterly visits. One sensor
+  produces about 288 readings a day, too many to read by hand. The educator opens one person's replay and sees the
+  current reading, the 30- and 60-minute forecasts with their ranges, any research warning with the forecast that fired
+  it, and the data each forecast was allowed to use. GlucoTwin reviews one person at a time; it has no multi-patient
+  queue, and no Indian participants were evaluated.
 * **Who:** a clinician or diabetes educator reviewing a small cohort of adults with Type 2 diabetes who wear CGMs and
   activity trackers between visits; a second user is a reviewer inspecting the evidence.
 * **Question answered:** “Which monitored patient's glucose pattern merits review, and what observations support that
@@ -139,6 +153,28 @@ Product details: [`docs/product.md`](docs/product.md) · interface handoff: [`do
 CPU only; no cloud account, GPU, API key or LLM. Exact versions: `uv.lock`, `apps/web/package-lock.json`.
 
 ## 7. AI and ML model details
+
+### The three models behind these numbers
+
+Results come from three separately labelled models, all reproducible with the commands in [Run it locally](#run-it-locally):
+
+* **Current demo model — fusion LightGBM** (`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`). It serves
+  recorded-data replays and reads the static baseline profile together with the glucose and wearable streams, as the
+  brief requires. Synthetic replays use a separate, fixed demonstration model (dynamic inputs only, labelled
+  synthetic in the app). Its test results come from **later recordings of the same 14 people it was trained on**, not
+  from new patients. It was selected by the v2 rule restricted to models that read both, a constraint declared on
+  13 Oct 2026 **after** the test segment had been inspected. We selected a model that implements the required fusion;
+  we have **not** established that profile features improve forecasting for unseen patients
+  ([why](#what-the-profile-fusion-does-and-does-not-show)). The previous demo model, LightGBM v2 on the dynamic
+  streams only (`gt-primary-2026-10-11-v2`, the v1 protocol re-run after two code fixes —
+  [repair report](reports/repair_report.md)), stays registered for rollback; v1 is preserved.
+* **Five-minute candidate — Ridge on CGM-only features** (`ridge.cgm-only-v1.gt-nested-2026-10-12-v1`). Chosen by a
+  frozen rule and evaluated on people it never saw (experiment `gt-nested-2026-10-12-v1`). Evaluated, **not promoted**;
+  it reads CGM only, so it does not meet the two-stream requirement and is not a replacement for the demo model.
+* **External check — a separate 15-minute LightGBM** (`lightgbm.cgm15-v1.gt-nested-2026-10-12-v1`). Trained on
+  CGMacros and evaluated once on an independent Chinese cohort; it is not the demo model and not the Ridge candidate.
+
+**145 participants imported; 14 evaluated internally and 98 evaluated externally.**
 
 | Aspect | What was actually done |
 |---|---|
@@ -293,7 +329,7 @@ artifact by [`scripts/build_submission_assets.py`](scripts/build_submission_asse
 ## 12. Accessible files and links
 
 All submission links above are relative paths to files tracked in this repository; none points to a private drive,
-authenticated notebook or local-only file. Last local check: **11 October 2026** — every README link target exists, is
+authenticated notebook or local-only file. Last local check: **19 October 2026** — every README link target and every link in the team folder index exists, is
 tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** public repository visibility,
 signed-out access and the YouTube link, because the repository has not been published and the video has not been
 uploaded. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
@@ -379,6 +415,7 @@ Latest results: [`reports/verification.md`](reports/verification.md) · integrat
 
 ```text
 .
+├── Kryptonite_VESIT/         team folder (Team Name_College Name): index of the submission files
 ├── apps/web/                 React clinician workspace
 │   ├── src/                  pages, twin components, API client, state
 │   └── e2e/                  Playwright journeys (also produce reports/ui/*.png)

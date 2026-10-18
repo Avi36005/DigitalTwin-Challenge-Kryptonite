@@ -1,4 +1,4 @@
-"""Build charts, the architecture PDF and the presentation (PPTX + PDF) from saved artifacts.
+"""Build charts, the architecture PDF, the presentation (PPTX + PDF) and the team folder index from saved artifacts.
 
 Every number shown is read from artifacts/experiments/<id>/metrics.json at build time — nothing is typed in.
 Usage:  uv run --group docs python scripts/build_submission_assets.py
@@ -91,6 +91,16 @@ def submission() -> dict:
     import yaml
 
     return yaml.safe_load((ROOT / "configs/submission.yaml").read_text())
+
+
+PROTOCOL_NOTE = ("Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated "
+                 "patients does not establish performance on real patients.")
+
+
+def brand(sub: dict) -> str:
+    """'Team Kryptonite · VESIT' — the short name used on the title slide, the README heading and the video title card."""
+    t = sub["team"]
+    return f"Team {t['name']} · {t['institution_short']}" if t.get("institution_short") else f"Team {t['name']}"
 
 
 def team_lines(sub: dict) -> tuple[str, str, str, str]:
@@ -404,7 +414,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
         [r.label, f"{r.selection_mae_30:.2f}", f"{r.selection_mae_60:.2f}", f"{r.selection_score:.2f}"] for r in cand.itertuples()]
     return [
         {"kind": "title", "title": "GlucoTwin", "subtitle": "Personalized glucose forecasting between clinic visits",
-         "body": ["Digital Twin Challenge 2026 · Happiest Health", team, inst,
+         "body": [brand(sub), team.split(" — ", 1)[-1], inst, "Digital Twin Challenge 2026 · Happiest Health",
                   "Student research prototype — not a medical device"]},
         {"kind": "bullets", "title": "The problem: what happens between appointments",
          "bullets": ["HbA1c summarises ~3 months of glucose; it cannot show short high-glucose excursions (NIDDK).",
@@ -413,8 +423,9 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      "Question for the clinician: “Which monitored patient’s glucose pattern merits review, and what observations support that?”",
                      "Our target: forecast glucose 30 and 60 minutes ahead and warn of a NEW sustained episode > 180 mg/dL (≥ 15 min), for Type 2 diabetes."]},
         {"kind": "bullets", "title": "Use case and boundaries",
-         "bullets": ["User: a clinician reviewing a small monitored cohort; secondary user: a reviewer inspecting evidence.",
-                     "Workflow (proposed): baseline labs at a visit → CGM + wearable measurements → twin forecasts → review list.",
+         "bullets": ["Hypothetical example (an illustration, not a deployment): a diabetes educator in Mumbai follows adults with Type 2 diabetes who wear CGMs between quarterly visits, and opens one person’s replay to see forecasts, warnings and the data behind them.",
+                     "User: a clinician reviewing a small monitored cohort; secondary user: a reviewer inspecting evidence.",
+                     "Workflow (proposed): baseline labs at a visit → CGM + wearable measurements → twin forecasts → warnings reviewed one person at a time (no multi-patient queue yet).",
                      "Shows: observed vs predicted glucose, uncertainty, data freshness, factual reasons, research warnings.",
                      "Never: insulin or medication advice, triage, live device claims, LLM-generated predictions.",
                      "Potential fit with diagnostics + outpatient services is a proposal — no partnership or pilot is claimed."]},
@@ -506,7 +517,8 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      "Medication and insulin use unknown; meal logging time undocumented.",
                      *(["Profile fusion: profile values are constant per person, so with 14 people they can act as an identity code; no benefit was shown on people held out entirely."] if disc else []),
                      "Prediction ranges under-cover; the warning score is uncalibrated and its threshold rule (F1) ignores review workload; 180 mg/dL is a research threshold, not triage.",
-                     "Retrospective replay only: no clinician workflow, outcome or safety study. Optional Chronos-Bolt not run."]},
+                     "Retrospective replay only: no clinician workflow, outcome or safety study. Optional Chronos-Bolt not run.",
+                     PROTOCOL_NOTE]},
         {"kind": "bullets", "title": "Next steps: evidence needed for Indian patients",
          "bullets": ["Prospective, consented Indian cohort with unblinded CGMs, recorded transmission latency, medications and meal logging times.",
                      "Re-evaluate held-out participants (cold start) and per-site calibration; report subgroup performance.",
@@ -564,7 +576,7 @@ def build_pptx(deck: list[dict], path: Path) -> None:
             rule(sl, Inches(0.9), Inches(1.75), Inches(1.2), 2.5)
             textbox(sl, Inches(0.9), Inches(2.0), Inches(11), Inches(1.2), s["title"], 54, True)
             textbox(sl, Inches(0.9), Inches(3.2), Inches(11), Inches(0.8), s["subtitle"], 26)
-            tf = textbox(sl, Inches(0.9), Inches(4.4), Inches(11), Inches(1.6), s["body"][0], 18)
+            tf = textbox(sl, Inches(0.9), Inches(4.4), Inches(11), Inches(1.6), s["body"][0], 20, True)
             for line in s["body"][1:]:
                 p = tf.add_paragraph()
                 r = p.add_run()
@@ -776,6 +788,51 @@ def build_architecture_pdf(path: Path, m: dict) -> None:
 SERVING_LABEL = ""  # set in main(): table rows of the serving model are highlighted
 
 
+def team_folder(sub: dict) -> Path:
+    """The challenge's `Team Name_College Name` folder (e.g. Kryptonite_VESIT/): an index of the submission files.
+
+    The files stay where the README links them, so each exists once; links and status come from configs/submission.yaml.
+    """
+    t, links = sub["team"], sub["links"]
+    d = ROOT / f"{t['name']}_{t['institution_short']}"
+    d.mkdir(exist_ok=True)
+    video = (f"[{links['video']}]({links['video']})" if links["video"]
+             else "Not yet recorded or uploaded; the link is added here and in [README §8](../README.md#8-demo-video) after upload")
+    repo = f"[{links['repository']}]({links['repository']})" if links["repository"] else "This repository (public link added after publication)"
+    rows = [
+        ("Project README: all twelve form items", "[`README.md`](../README.md)"),
+        ("Results at a glance (each row names its model and evaluation setting)", "[README](../README.md#results-at-a-glance)"),
+        ("Presentation with details and outcomes", "[`GlucoTwin_Presentation.pdf`](../docs/submission/GlucoTwin_Presentation.pdf) · "
+                                                   "[`.pptx`](../docs/submission/GlucoTwin_Presentation.pptx)"),
+        ("Architecture diagram", "[`GlucoTwin_Architecture.pdf`](../docs/submission/GlucoTwin_Architecture.pdf)"),
+        (f"Demo video (unlisted YouTube, at least {sub['video']['minimum_duration'].split(':')[0]} minutes)", video),
+        ("Team details", "[`docs/team_details.md`](../docs/team_details.md)"),
+        ("Source code", f"{repo}: [`apps/web`](../apps/web) · [`services/api`](../services/api) · [`ml/glucotwin`](../ml/glucotwin)"),
+        ("Run it locally", "[README](../README.md#run-it-locally)"),
+        ("License", "[`LICENSE`](../LICENSE) (MIT, code only); data terms in [README §9](../README.md#9-open-source-license)"),
+    ]
+    text = "\n".join([
+        f"# {d.name}: GlucoTwin",
+        "",
+        f"**{brand(sub)}** · {t['institution']} · Digital Twin Challenge 2026 (Happiest Health).",
+        f"Team: {' · '.join(f'{n} (leader)' if n == t['leader'] else n for n in t['members'])}.",
+        "",
+        "This folder follows the challenge's `Team Name_College Name` rule. It indexes the submission; each file lives",
+        "once in the repository, at the path the README links.",
+        "",
+        "| Item | Where |",
+        "|---|---|",
+        *[f"| {a} | {b} |" for a, b in rows],
+        "",
+        "Research demonstration only: not a medical device and no treatment advice. Generated by",
+        "[`scripts/build_submission_assets.py`](../scripts/build_submission_assets.py) from",
+        "[`configs/submission.yaml`](../configs/submission.yaml).",
+        "",
+    ])
+    (d / "README.md").write_text(text)
+    return d / "README.md"
+
+
 def export_pdf_from_pptx(pptx: Path) -> bool:
     """Export the PDF from the PPTX with LibreOffice so both files show the same slides with embedded fonts."""
     import shutil
@@ -809,6 +866,7 @@ def main() -> None:
     if not export_pdf_from_pptx(OUT / "GlucoTwin_Presentation.pptx"):
         build_pdf(deck, OUT / "GlucoTwin_Presentation.pdf")  # fallback without LibreOffice: same content, own layout
     print(f"slides: {len(deck)} -> {OUT}")
+    print(team_folder(submission()))
 
 
 if __name__ == "__main__":

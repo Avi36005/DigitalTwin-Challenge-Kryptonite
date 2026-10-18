@@ -15,15 +15,17 @@ the experiment), narrate what the screen shows — never the number written here
 
 | Video time | Segment | Duration | Shown | Narration (words) |
 |---|---|---|---|---|
-| 00:00–02:00 | Team, problem and healthcare use case | 2:00 | Slides 1–3 | 245 |
+| 00:00–02:00 | Team, problem and healthcare use case | 2:00 | Slides 1–3 | 302 |
 | 02:00–04:30 | Data, provenance and information availability | 2:30 | Slides 5–6 | 300 |
-| 04:30–07:15 | Architecture, models, fusion and patient adaptation | 2:45 | Slides 4, 7–10 | 369 |
+| 04:30–07:15 | Architecture, models, fusion and patient adaptation | 2:45 | Slides 4, 7–10 | 430 |
 | 07:15–14:00 | Working dashboard and replay, including missing-data and abstention cases | 6:45 | Live app | 618 + screen actions |
 | 14:00–18:00 | Measured comparison, baseline performance and limits of the evidence | 4:00 | Model evidence page, slides 13–16 | 501 + navigation |
-| 18:00–20:00 | Project outcomes, limitations, reproducibility and next steps | 2:00 | Slides 18–21 (17 optional: research evidence) | 242 |
+| 18:00–20:00 | Project outcomes, limitations, reproducibility and next steps | 2:00 | Slides 18–21 (17 optional: research evidence) | 264 |
 
-Narration words are counted from this file (2,275 in total). At about 130 words per minute that is roughly 17.5
-minutes of speech; Chapters 5 and 6 are now close to their slots, so rehearse those first; the remainder is slide transitions, clicks and waiting in Chapters 4 and 5. This is an estimate —
+Narration words are counted from this file (2,415 in total, recounted on 19 Oct 2026). At about 130 words per minute
+that is roughly 18.6 minutes of speech. Chapters 1 and 3 now carry more narration than their slots (about 2:20 and 3:20
+at that pace) and Chapter 6 is at its limit, so rehearse those first and trim pauses elsewhere: the target stays about
+20:15, because the form's checkbox also mentions 15–20 minutes (D-040). The remainder is slide transitions, clicks and waiting in Chapters 4 and 5. This is an estimate —
 only a timed rehearsal and the rendered file establish the real duration. YouTube chapters: paste the six start times above into the video description.
 
 ## Recording setup (before 00:00)
@@ -39,7 +41,7 @@ only a timed rehearsal and the rendered file establish the real duration. YouTub
 
 ## Chapter 1 — Team, problem and healthcare use case (00:00–02:00) · slides 1–3
 
-> *[Slide 1]* Hello, we are Team Kryptonite — Avinash Gehi and Hardik Hinduja — and this is GlucoTwin: personalized
+> *[Slide 1]* Hello, we are Team Kryptonite from VESIT, Mumbai — Avinash Gehi and Hardik Hinduja — and this is GlucoTwin: personalized
 > glucose forecasting between clinic visits, a student research prototype for the Happiest Health Digital Twin
 > Challenge 2026.
 >
@@ -54,7 +56,10 @@ only a timed rehearsal and the rendered file establish the real duration. YouTub
 > and warn of a *new* episode above 180 milligrams per decilitre lasting at least fifteen minutes. That threshold is a
 > research definition, not a triage rule.
 >
-> *[Slide 3]* The user is a clinician reviewing a small monitored cohort, and the question we answer is: which
+> *[Slide 3]* Here is a hypothetical example — an illustration, not a deployment. A diabetes educator in Mumbai
+> follows adults with Type 2 diabetes who wear glucose sensors between quarterly visits. Instead of scrolling through
+> every reading, the educator opens one person's replay and sees the forecasts, any warning and the data behind it.
+> More generally, the user is a clinician reviewing a small monitored cohort, and the question we answer is: which
 > patient's glucose pattern merits review, and what observations support that? The twin combines a static baseline
 > profile — demographics and screening labs, like an EHR — with dynamic streams from the glucose sensor and a fitness
 > tracker. We deliberately leave out medication advice, triage, live device claims and any LLM-generated prediction.
@@ -123,7 +128,7 @@ only a timed rehearsal and the rendered file establish the real duration. YouTub
 > always says whether we are watching recorded data or the synthetic demonstration.
 
 *Action:* **Open recorded demo** on the Overview (the same as **New replay** → *Recorded-data replay* →
-**Participant 01** → *Held-out test period* → **Start replay**).
+**Participant 01** → *Final test period* → **Start replay**).
 The clock shows **Day 9 · 08:14**; current glucose **115** (08:10); 30-min forecast **119**, range **103–136**; 60-min
 **129**, range **102–155**; patient adaptation **active**.
 
@@ -166,7 +171,7 @@ forecast details**.
 > already available at the replay clock. Each forecast is an immutable record: its information cutoff, model version,
 > evaluation period, population forecast and patient correction, and factual explanations — associations, not causes.
 
-**11:15 — A real sensor gap in recorded data.** *Action:* **New replay** → **Participant 12** → *Held-out test
+**11:15 — A real sensor gap in recorded data.** *Action:* **New replay** → **Participant 12** → *Final test
 period* → seek to **Day 9 · 10:25**.
 > Participant 12's own record has a seventy-minute gap in its test period. At 10:25 glucose is 397 and the review
 > status says glucose is already high — a current observation, kept separate from predictions.
@@ -243,7 +248,9 @@ period* → seek to **Day 9 · 10:25**.
 >
 > *[Slide 19]* The limits are real: fourteen people from one US site, no Indian participants, blinded research sensors
 > replayed with assumed zero delay, unknown medication use, under-covering prediction ranges, a profile that may act as
-> an identity code, and test results on a segment we had already seen. Nothing here is clinical validation.
+> an identity code, and test results on a segment we had already seen. Nothing here is clinical validation. And
+> scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
+> establish performance on real patients.
 >
 > *[Slide 20]* Before use with Indian patients we would need a consented prospective cohort with real-time sensors,
 > medications and meal-logging times; evaluation on held-out participants and sites; a warning policy with an alert
