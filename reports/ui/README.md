@@ -6,6 +6,7 @@ noted). All recorded-data screenshots were recaptured on 13 Oct 2026 after the s
 
 | File | Shows |
 |---|---|
+| `demo-recorded-warning.gif` | README GIF (`make demo-gif`, 1040×1260 crop, 24 s): Participant 01, recorded data, final test period, stepped 5 min at a time from Day 9 · 20:00; a research warning is issued at 20:30 (outcome pending) and the onset follows at 20:45 (forecast lead 15 min). Each key frame is checked against `reports/demo_sequence.md`, Scene A |
 | `01-twin-workspace-synthetic.png` | Synthetic demonstration (SYN-B) after stepping and acknowledging a warning |
 | `02-missing-and-stale-data.png` | Synthetic SYN-D inside a 150-minute sensor gap: stale reading and stale forecast |
 | `03-forecast-with-interval-recorded.png` | Recorded-data replay (CGMacros participant, final test period: later recordings of a participant represented in training): forecasts with prediction ranges (target coverage 80 %) and the measured-coverage details |

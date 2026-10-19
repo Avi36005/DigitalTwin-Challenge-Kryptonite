@@ -1,5 +1,5 @@
 # GlucoTwin — local research demo. All commands run on CPU, bind to 127.0.0.1 and need no cloud account.
-.PHONY: setup synthetic data-download data data-shanghai manifest experiment research research-report report contracts api web dev test test-web e2e check build clean-var
+.PHONY: setup synthetic data-download data data-shanghai manifest experiment research research-report report contracts api web dev test test-web e2e demo-gif check build clean-var
 
 setup:            ## install Python (uv) and web (npm) dependencies
 	uv sync --group dev --group docs
@@ -67,6 +67,9 @@ test-web:         ## frontend type check, unit tests and production build
 
 e2e:              ## browser journeys on their own API (:8010) + web server (:5180) with throwaway storage (also writes reports/ui/*.png)
 	cd apps/web && npm run e2e
+
+demo-gif:         ## README GIF: Participant 01's recorded warning, from issue to outcome (needs CGMacros imported and ffmpeg)
+	cd apps/web && npm run demo-gif
 
 check: test test-web e2e
 

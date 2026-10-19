@@ -33,7 +33,13 @@ never a live device. The demo model was chosen to meet the brief's fusion requir
 unseen patients ([the three models](#the-three-models-behind-these-numbers) ·
 [what the fusion does and does not show](#what-the-profile-fusion-does-and-does-not-show)).
 
-![GlucoTwin workspace: recorded-data replay in the final test period (later recordings of a participant the model was trained on)](reports/ui/03-forecast-with-interval-recorded.png)
+![GlucoTwin replay on recorded data: a research warning is issued at Day 9 · 20:30 and the onset follows at 20:45](reports/ui/demo-recorded-warning.gif)
+
+*Recorded CGMacros data (de-identified), Participant 01, final test period: later recordings of a participant
+represented in training, replayed 5 minutes at a time (not a live device). A research warning is issued at Day 9 ·
+20:30 while its outcome is pending; the onset follows at 20:45 (forecast lead 15 min). The same participant had a
+false alarm earlier that day (11:25), and across the test 40 of 101 warning episodes were false alarms (1.49 per
+observed patient-day). Re-record with `make demo-gif` (needs ffmpeg).*
 
 ## Submission checklist (Unstop form)
 
@@ -403,6 +409,7 @@ synthetic UTC timeline ([`docs/replay.md`](docs/replay.md)).
 make test       # backend tests: leakage, labels, splits, adaptation maturity, activity windows, warning matching, replay invariants, API, integration
 make test-web   # type check + frontend tests + production build
 make e2e        # Playwright journeys on their own API + web server with throwaway storage (also refreshes reports/ui/*.png)
+make demo-gif   # re-records the README GIF (reports/ui/demo-recorded-warning.gif) from the same throwaway servers; needs ffmpeg
 uv run python scripts/demo_sequence.py     # re-records the demo replay sequence from the API
 uv run python scripts/check_submission.py  # README links, anchors, tracked files, PDF/PPTX readability
 scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an empty directory: setup, tests, e2e, Shanghai path
