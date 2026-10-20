@@ -415,9 +415,11 @@ def tune_bullet() -> str | None:
         return None
     d = json.loads(TUNE.read_text())
     p = d["paired"]["C1_with_history|C0_current_features|final|60"]
-    return (f"Small, reliable, below our bar — tuned retraining with 24-hour history (D-051, 1,830 fits, each person held out): "
-            f"{p['mean_diff']:+.2f} [{p['ci95'][0]:+.2f}, {p['ci95'][1]:+.2f}] mg/dL at 60 min, {p['improved']} of {p['n']} people "
-            "better, against a declared −0.5; not adopted.")
+    r = d["paired"]["C1_with_history|R0_untuned_serving_recipe|final|60"]
+    return (f"Small internal gain, below our bar — tuned retraining with 24-hour history (D-051, 1,830 fits, each person held "
+            f"out): {p['mean_diff']:+.2f} [{p['ci95'][0]:+.2f}, {p['ci95'][1]:+.2f}] mg/dL at 60 min vs the equally tuned current "
+            f"features, {p['improved']} of {p['n']} better; vs the refitted serving recipe {r['mean_diff']:+.2f} "
+            f"[{r['ci95'][0]:+.2f}, {r['ci95'][1]:+.2f}]. Declared bar −0.5; not adopted.")
 
 
 def retrain_bullet() -> str | None:
@@ -436,8 +438,8 @@ def blend_bullet() -> str | None:
         return None
     d = json.loads(BLEND.read_text())["decision"]
     c = d["checks"]
-    return (f"Not adopted — a LightGBM–CatBoost blend (D-048, declared before scoring): {c['improvement_60']:+.2f} mg/dL at 60 min "
-            "on development people against a 0.5 target, so the demo model is unchanged and the held-out folds were never opened.")
+    return (f"Not adopted — a LightGBM–CatBoost blend (D-048): {c['improvement_60']:+.2f} mg/dL at 60 min on development "
+            "people against a 0.5 target; held-out folds never opened.")
 
 
 TWO_HOUR_EXT = ROOT / "artifacts/research/gt-2h-ext-2026-10-20/two_hour_external_summary.json"

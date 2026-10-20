@@ -1,6 +1,6 @@
 # Nested tuning study — `gt-tune-2026-10-21` (D-051)
 
-Protocol committed before any fit (sha256 `ad758b9481c1`). Outer folds first opened 2026-10-20T17:51:02+00:00; run 2026-10-20T17:46:24+00:00 → 2026-10-20T18:12:33+00:00 UTC, 1,830 LightGBM fits (1524 s of fitting), LightGBM 4.7.0. Each arm got the same 30 seeded parameter sets × 3 round counts per horizon and the same patient-correction grid, chosen on each outer fold's inner folds; the assessment people never influenced a choice. The 14 people were inspected in earlier experiments: internal validation, not untouched evidence.
+Protocol committed before any fit (sha256 `ad758b9481c1`). Outer folds first opened 2026-10-20T17:51:02+00:00; run 2026-10-20T17:46:24+00:00 → 2026-10-20T18:12:33+00:00 UTC, 1,830 LightGBM fits (1524 s of fitting), LightGBM 4.7.0. Each arm got the same 30 seeded trials per horizon (each trial samples one boosting-round count from 300, 600 or 1200) and the same patient-correction grid, chosen on each outer fold's inner folds; the assessment people never influenced a choice. The 14 people were inspected in earlier experiments: internal validation, not untouched evidence.
 
 ## Assessment people (each held out once), macro per-participant MAE in mg/dL
 

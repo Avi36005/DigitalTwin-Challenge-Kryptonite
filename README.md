@@ -388,13 +388,23 @@ long-history features changed the population model's 60-minute error by −1.39 
 people) but the personalised error only by −0.41 [−1.07, +0.12] — a lead for a future declared study, not a result
 ([report](reports/retrain_study.md)).
 
-**Tuned retraining, a small reliable gain below our bar** (`gt-tune-2026-10-21`, D-051, declared before any fit). Both
-feature sets got the identical tuning budget (30 shared parameter sets × 3 round counts per horizon, then the patient-
-correction grid), chosen on inner folds and scored once on each held-out person (1,830 fits). Adding causal
-6/12/24-hour glucose history lowered personalised 60-minute error from 22.27 to 21.90 mg/dL: **−0.37 [−0.63, −0.06]**,
-lower for 10 of 14 people (population-only −1.18 [−1.97, −0.52]). The interval excludes zero, but the declared bar was
-−0.5 mg/dL, so it is not adopted and the demo model is unchanged; these 14 people were inspected before, so this is
-internal validation ([report](reports/tune_study.md)).
+**Tuned retraining: a small internal gain, below our bar** (`gt-tune-2026-10-21`, D-051, declared before any fit).
+Both feature sets got the identical tuning budget (30 seeded trials per horizon, each sampling one boosting-round count
+from 300, 600 or 1200, then the patient-correction grid), chosen on inner folds and scored once on each held-out person
+(1,830 fits). Against the equally tuned current features (C0), adding causal 6/12/24-hour glucose history (C1) lowered
+personalised 60-minute error from 22.27 to 21.90 mg/dL: −0.37 [−0.63, −0.06], lower for 10 of 14 people
+(population-only −1.18 [−1.97, −0.52]). Against the serving recipe refitted in the same folds (R0, 22.55) the
+difference is −0.65 [−1.41, +0.07], 8 of 14 — not established. The declared bar was a −0.5 mg/dL gain over C0, so C1 is
+not adopted and the demo model is unchanged. These 14 people were inspected in earlier experiments and the hypothesis
+followed earlier results: internal evidence, not independent confirmation ([report](reports/tune_study.md)).
+
+**Serving ranges: a candidate, not switched** (`gt-ranges-2026-10-21`, D-050, declared before any candidate was
+computed; point forecasts unchanged). A range per glucose trend did not pass its pre-test rule, so the single range per
+horizon is kept. Calibrated on the validation and calibration segments together instead of the calibration segment
+alone, that range covered 77.9 % / 78.7 % at 30 / 60 min on the final test segment, against 74.2 % / 74.0 % for the
+served ranges (target 80 %), for ranges 5–7 mg/dL wider. That test segment was inspected earlier and is the only
+evidence for it, so the served ranges stay as they are; the candidate is research only
+([report](reports/serving_ranges_study.md)).
 
 
 Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:

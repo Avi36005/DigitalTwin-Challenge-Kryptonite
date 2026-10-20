@@ -277,7 +277,8 @@ re-run and saved: 15,440 of 15,440 forecasts within 0.05 mg/dL ([serving parity]
 
 **Tuned retraining — `gt-tune-2026-10-21` (D-051, not serving).** Nested: equal tuning budget for the current
 features (C0) and the same plus causal 6/12/24-hour history (C1), model and patient correction chosen on inner folds,
-each person scored once. Personalised 60-min MAE 22.27 vs 21.90 mg/dL (C1 − C0 −0.37 [−0.63, −0.06], 10 of 14 better);
-below the declared −0.5 bar, so not adopted ([report](../reports/tune_study.md)). Ranges (D-050): the served global
+each person scored once (30 seeded trials per horizon, each sampling 300, 600 or 1200 boosting rounds). Personalised
+60-min MAE 22.27 vs 21.90 mg/dL (C1 − C0 −0.37 [−0.63, −0.06], 10 of 14 better: a small internal gain); against the
+refitted serving recipe −0.65 [−1.41, +0.07], 8 of 14 (not established); below the declared −0.5 bar, so not adopted ([report](../reports/tune_study.md)). Ranges (D-050): the served global
 range is kept; calibrated on validation + calibration it covered 77.9 % / 78.7 % on the inspected test segment,
 reported as a candidate only ([report](../reports/serving_ranges_study.md)).

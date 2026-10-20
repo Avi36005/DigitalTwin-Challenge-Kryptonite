@@ -243,7 +243,8 @@ def render(d: dict) -> str:
              f"Protocol committed before any fit (sha256 `{d['env']['protocol_sha256'][:12]}`). Outer folds first opened "
              f"{d['opened']['opened_at']}; run {d['started_at']} → {d['finished_at']} UTC, {d['n_fits']:,} LightGBM fits "
              f"({d['fit_seconds']:.0f} s of fitting), LightGBM {d['env']['lightgbm']}. Each arm got the same 30 seeded "
-             "parameter sets × 3 round counts per horizon and the same patient-correction grid, chosen on each outer fold's "
+             "trials per horizon (each trial samples one boosting-round count from 300, 600 or 1200) and the same "
+             "patient-correction grid, chosen on each outer fold's "
              "inner folds; the assessment people never influenced a choice. The 14 people were inspected in earlier "
              "experiments: internal validation, not untouched evidence.", "",
              "## Assessment people (each held out once), macro per-participant MAE in mg/dL", "",
