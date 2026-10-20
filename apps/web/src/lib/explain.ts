@@ -53,7 +53,7 @@ export interface TrendAccuracy {
   slope: number;
   label: string;
   steady: boolean;
-  byHorizon: { horizon: number; mae: number | null; steadyMae: number | null; origins: number }[];
+  byHorizon: { horizon: number; mae: number | null; steadyMae: number | null; origins: number; rangeCoverage: number | null }[];
   peakBias60: number | null;
   experiment: string | null;
 }
@@ -86,7 +86,8 @@ export function trendAccuracy(f: Forecast, report: EvaluationReport | undefined)
   return {
     slope, label: hit.label, steady: hit.trend === "steady",
     byHorizon: horizons.map((h) => ({ horizon: h, mae: row(h, hit.trend)?.mae_macro ?? null,
-      steadyMae: row(h, "steady")?.mae_macro ?? null, origins: row(h, hit.trend)?.origins ?? 0 })),
+      steadyMae: row(h, "steady")?.mae_macro ?? null, origins: row(h, hit.trend)?.origins ?? 0,
+      rangeCoverage: row(h, hit.trend)?.range_coverage ?? null })),
     peakBias60: row(60, "all")?.mean_signed_error_target_above_180 ?? null,
     experiment: report?.experiment_id ?? null,
   };

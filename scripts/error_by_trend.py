@@ -49,6 +49,9 @@ def main() -> int:
     d = p.merge(t, on=["patient_id", "origin"], how="left", validate="many_to_one")
     d = d[np.isfinite(d["predicted"]) & np.isfinite(d["target"]) & np.isfinite(d["slope_15"])]
     d["err"] = (d["predicted"] - d["target"]).abs()
+    # the served 80 % half-widths (calibrated on the later calibration segment), so coverage here is out-of-calibration
+    served = json.loads((paths().artifacts / "models" / m["model_version"] / "serving.json").read_text())["intervals"]
+    qh = {int(k): float(v) for k, v in served["quantiles_mg_dl"].items()}
     rows = []
     for h in sorted(d["horizon"].unique()):
         x = d[d["horizon"] == h]
@@ -60,6 +63,8 @@ def main() -> int:
             rows.append({"horizon": int(h), "trend": key, "label": lab,
                          "slope_min": None if not np.isfinite(lo) else lo, "slope_max": None if not np.isfinite(hi) else hi,
                          "mae_macro": mae, "origins": int(len(y)), "participants": people,
+                         "range_coverage": float((y["err"] <= qh[int(h)]).mean()) if people >= MIN_PEOPLE and int(h) in qh
+                         else None,
                          "mean_signed_error_target_above_180": float((hi_t["predicted"] - hi_t["target"]).mean())
                          if len(hi_t) else None})
     out = {"experiment_id": a.experiment, "model_version": m["model_version"], "pipeline": label,
@@ -74,18 +79,22 @@ def main() -> int:
           "last 15 minutes. Macro per-participant MAE in mg/dL; a stratum with fewer than "
           f"{MIN_PEOPLE} participants is not summarised. Descriptive only: it says when forecasts tend to be less "
           "accurate, not why.", "",
-          "| Trend | " + " | ".join(f"{h}-min MAE (origins)" for h in sorted(d["horizon"].unique())) + " |",
+          "| Trend | " + " | ".join(f"{h}-min MAE (origins) · served 80 % range coverage" for h in sorted(d["horizon"].unique())) + " |",
           "|---|" + "---|" * d["horizon"].nunique()]
     for key, lab, *_ in [("all", "All origins"), *STRATA]:
         cells = []
         for h in sorted(d["horizon"].unique()):
             r = next(r for r in rows if r["horizon"] == h and r["trend"] == key)
-            cells.append("—" if r["mae_macro"] is None else f"{r['mae_macro']:.1f} ({r['origins']:,})")
+            cells.append("—" if r["mae_macro"] is None else f"{r['mae_macro']:.1f} ({r['origins']:,}) · "
+                         + ("—" if r["range_coverage"] is None else f"{100 * r['range_coverage']:.0f} %"))
         md.append(f"| {lab} | " + " | ".join(cells) + " |")
     pk = {r["horizon"]: r["mean_signed_error_target_above_180"] for r in rows if r["trend"] == "all"}
     md += ["", "Mean signed error (forecast − actual) when the actual value was above 180 mg/dL: "
            + "; ".join(f"{h} min {v:+.1f} mg/dL" for h, v in pk.items() if v is not None)
            + " — peaks tend to be under-forecast.", "",
+           "Range coverage uses the served half-widths (" + ", ".join(f"{h} min ±{v:.1f}" for h, v in qh.items())
+           + " mg/dL, calibrated on the later calibration segment), pooled over origins: they cover far fewer than 80 % "
+           "of outcomes while glucose changes fast, and come closest to the target when it is steady.", "",
            f"Regenerate: `uv run python scripts/error_by_trend.py`. Raw numbers: "
            f"`artifacts/experiments/{a.experiment}/error_by_trend.json`.", ""]
     (ROOT / "reports/error_by_trend.md").write_text("\n".join(md))

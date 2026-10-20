@@ -2219,6 +2219,11 @@ export interface components {
             participants: number;
             /** Mean Signed Error Target Above 180 */
             mean_signed_error_target_above_180?: number | null;
+            /**
+             * Range Coverage
+             * @description Share of origins in this stratum whose outcome fell inside the served 80 % range (validation segment; ranges calibrated on the later calibration segment).
+             */
+            range_coverage?: number | null;
         };
         /** TwinState */
         TwinState: {

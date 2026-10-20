@@ -605,6 +605,9 @@ class TrendErrorRow(Contract):
     origins: int
     participants: int
     mean_signed_error_target_above_180: float | None = None
+    range_coverage: float | None = Field(
+        default=None, description="Share of origins in this stratum whose outcome fell inside the served 80 % range "
+                                  "(validation segment; ranges calibrated on the later calibration segment).")
 
 
 class TrendErrorReport(Contract):

@@ -6548,6 +6548,18 @@
               }
             ],
             "title": "Mean Signed Error Target Above 180"
+          },
+          "range_coverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range Coverage",
+            "description": "Share of origins in this stratum whose outcome fell inside the served 80 % range (validation segment; ranges calibrated on the later calibration segment)."
           }
         },
         "additionalProperties": false,
