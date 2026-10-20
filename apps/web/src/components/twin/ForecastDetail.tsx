@@ -19,8 +19,8 @@ const KIND: Record<string, string> = {
 };
 
 /** Side drawer with the provenance of one forecast: identity, cutoff, components, range semantics, explanations. */
-export function ForecastDetail({ f, patient, report, open, onClose }: {
-  f: Forecast | null; patient?: PatientSummary; report?: EvaluationReport; open: boolean; onClose: () => void;
+export function ForecastDetail({ f, patient, report, open, onClose, publicDemo = false }: {
+  f: Forecast | null; patient?: PatientSummary; report?: EvaluationReport; open: boolean; onClose: () => void; publicDemo?: boolean;
 }) {
   const cov = f ? measuredCoverage(report, f.model_version) : null;
   return (
@@ -31,7 +31,8 @@ export function ForecastDetail({ f, patient, report, open, onClose }: {
         <div className="drawer-body">
           <section aria-label="Identity">
             <dl className="dl">
-              <dt>Model</dt><dd>{f.model_family === "lightgbm" ? "LightGBM" : f.model_family ?? "—"}</dd>
+              <dt>Model</dt><dd>{f.model_family === "lightgbm" ? "LightGBM" : f.model_family ?? "—"}
+                {publicDemo && f.mode === "synthetic_demo" && <span className="table__sub">Synthetic demonstration model, fitted on fictional data — not the evaluated real-data fusion model</span>}</dd>
               <dt>Model version</dt><dd className="wrap-id">{f.model_version ?? "none"}</dd>
               <dt>Data</dt><dd>{modeLabel(f.mode)}{patient ? ` · ${patient.dataset.name} ${patient.dataset.version} (${patient.dataset.license})` : ""}</dd>
               <dt>Evaluation period</dt><dd>{f.split_segment ? SEG[f.split_segment] ?? f.split_segment : "Not part of a measured evaluation"}</dd>

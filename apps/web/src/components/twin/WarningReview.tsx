@@ -1,6 +1,7 @@
 import { CircleCheck, TriangleAlert } from "lucide-react";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import type { Alert } from "@/api/types";
+import { friendlyError } from "@/lib/apiErrors";
 import { replayTime } from "@/lib/time";
 import { Button, Dialog, InlineNotice } from "../ui";
 import "@/styles/warning-review.css";
@@ -67,7 +68,7 @@ export function WarningReviewDialog({ alert, current, revision, participant, tri
       onClose();
     } catch (e) {
       setStatus("error"); // the typed note stays in the field for a retry
-      setError(e instanceof Error ? e.message : String(e));
+      setError(friendlyError(e));
     } finally {
       inFlight.current = false;
     }

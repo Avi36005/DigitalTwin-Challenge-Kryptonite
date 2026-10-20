@@ -2,17 +2,20 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { createBrowserRouter, Link, Navigate, Outlet, RouterProvider, ScrollRestoration, useLocation, type RouteObject } from "react-router";
 import { ClientProvider, type Client } from "./api/client";
+import { PublicDemoBanner } from "./components/shell/PublicDemoBanner";
 import { PageHeader } from "./components/ui";
 import { migrateLegacyUrl, paths } from "./lib/routes";
 import { LandingPage } from "./pages/LandingPage";
 import { PreferencesProvider } from "./state/preferences";
 import { ToastProvider } from "./state/toasts";
 
-/** Root: restores scroll on Back/Forward and starts new pages at the top (window is the only page scroller). */
+/** Root: restores scroll on Back/Forward and starts new pages at the top (window is the only page scroller); the hosted
+ *  public demonstration adds its banner above every page. */
 function Root() {
   return (
     <>
       <ScrollRestoration />
+      <PublicDemoBanner />
       <Outlet />
     </>
   );

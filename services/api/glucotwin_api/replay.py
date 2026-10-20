@@ -5,6 +5,9 @@
   (``speed`` replay-minutes per wall-clock second), so release is deterministic given the clock.
 * ``seek`` and ``reset`` start a new revision: the engine is rebuilt from scratch using only events
   released by the new clock. Old-revision cursors are rejected; old forecasts stay only in the audit DB.
+* In the public synthetic demonstration (``public.PublicConfig.enabled``) every session belongs to one visitor: another
+  visitor's, an evicted or an expired session is reported exactly like an unknown one. Sessions are capped per visitor
+  and in total (least recently used evicted) and expire after a period without use.
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from glucotwin.serving import ServingModel
 from glucotwin.twin import TwinEngine
 
 from .catalog import Catalog, SourceTimeline
+from .public import PublicConfig
 from .storage import LocalStore
 
 STEP_MINUTES = 5
@@ -52,13 +56,18 @@ class Session:
     error: dict[str, str] | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     lock: threading.RLock = field(default_factory=threading.RLock)
+    owner: str | None = None        # public demo only: hash of the visitor cookie
+    last_used: float = 0.0          # SessionManager.now() at the last access (public demo expiry and eviction)
 
 
 class SessionManager:
-    def __init__(self, catalog: Catalog, serving: dict[str, ServingModel | None], store: LocalStore):
+    def __init__(self, catalog: Catalog, serving: dict[str, ServingModel | None], store: LocalStore,
+                 public: PublicConfig | None = None):
         self.catalog = catalog
         self.serving = serving
         self.store = store
+        self.public = public or PublicConfig()
+        self.now = time.monotonic   # replaceable in tests; only used for public-demo expiry and eviction
         self.sessions: dict[str, Session] = {}
         self._lock = threading.Lock()
         st = load_settings()
@@ -66,7 +75,7 @@ class SessionManager:
 
     # ------------------------------------------------------------------ lifecycle
 
-    def create(self, patient_id: str, mode: str, start_at, speed: float) -> Session:
+    def create(self, patient_id: str, mode: str, start_at, speed: float, owner: str | None = None) -> Session:
         if not self.catalog.has(patient_id):
             raise ApiError(404, "patient_not_found", f"Unknown participant {patient_id!r}.")
         if self.catalog.mode(patient_id) != mode:
@@ -77,23 +86,61 @@ class SessionManager:
         if start_at is not None:
             clock = self._validate_time(tl, start_at)
         sid = uuid.uuid4().hex[:12]
-        s = Session(sid, patient_id, mode, tl, clock, speed)
+        s = Session(sid, patient_id, mode, tl, clock, speed, owner=owner, last_used=self.now())
         with s.lock:
             self._rebuild(s)
         with self._lock:
+            if self.public.enabled:
+                self._sweep_locked()
+                mine = [x for x in self.sessions.values() if x.owner == owner]
+                over = len(mine) - self.public.max_sessions_per_visitor + 1
+                for old in sorted(mine, key=lambda x: x.last_used)[:max(0, over)]:
+                    self._drop_locked(old.id, "evicted_visitor_limit")
+                extra = len(self.sessions) - self.public.max_sessions + 1
+                for old in sorted(self.sessions.values(), key=lambda x: x.last_used)[:max(0, extra)]:
+                    self._drop_locked(old.id, "evicted_global_limit")
             self.sessions[sid] = s
         self.store.log(sid, "create", {"patient_id": patient_id, "mode": mode, "clock": clock})
         return s
 
-    def get(self, sid: str) -> Session:
+    def get(self, sid: str, owner: str | None = None) -> Session:
         s = self.sessions.get(sid)
+        if s is not None and self.public.enabled:
+            if s.owner != owner:
+                s = None  # another visitor's session is indistinguishable from an unknown one
+            elif self._expired(s):
+                with self._lock:
+                    self._drop_locked(sid, "expired")
+                s = None
+            else:
+                s.last_used = self.now()
         if s is None:
             raise ApiError(404, "session_not_found", f"Unknown replay session {sid!r}.")
         return s
 
-    def latest_for(self, patient_id: str) -> Session | None:
-        cands = [s for s in self.sessions.values() if s.patient_id == patient_id]
+    def visible(self, owner: str | None = None) -> list[Session]:
+        """Sessions the caller may see: all of them locally; only the visitor's own, unexpired ones in public mode."""
+        if not self.public.enabled:
+            return list(self.sessions.values())
+        with self._lock:
+            self._sweep_locked()
+            return [s for s in self.sessions.values() if s.owner == owner]
+
+    def latest_for(self, patient_id: str, owner: str | None = None) -> Session | None:
+        cands = [s for s in self.visible(owner) if s.patient_id == patient_id]
         return cands[-1] if cands else None
+
+    def _expired(self, s: Session) -> bool:
+        return self.now() - s.last_used > self.public.session_idle_minutes * 60.0
+
+    def _sweep_locked(self) -> None:
+        for sid in [x.id for x in self.sessions.values() if self._expired(x)]:
+            self._drop_locked(sid, "expired")
+
+    def _drop_locked(self, sid: str, reason: str) -> None:
+        s = self.sessions.pop(sid, None)
+        if s is not None:  # the twin state is freed once no in-flight request holds it; issued forecasts stay in the audit DB
+            self.store.log(sid, "removed", {"reason": reason})
 
     def _validate_time(self, tl: SourceTimeline, ts) -> float:
         m = float(to_minutes([ts])[0])
@@ -134,8 +181,9 @@ class SessionManager:
         if target > s.clock + 1e-6:
             self._advance(s, target)
 
-    def control(self, sid: str, action: str, steps: int | None, seek_to, speed: float | None) -> Session:
-        s = self.get(sid)
+    def control(self, sid: str, action: str, steps: int | None, seek_to, speed: float | None,
+                owner: str | None = None) -> Session:
+        s = self.get(sid, owner)
         with s.lock:
             self.sync(s)
             if speed is not None:

@@ -15,6 +15,7 @@ import {
   type Pipeline,
 } from "@/lib/evidence";
 import { fmtNum, fmtPct } from "@/lib/format";
+import { useDeployment } from "@/state/deployment";
 import { useEvaluation, useEvaluationById, useEvaluations, useResearch, useResearchSummaries, useServing } from "@/state/evaluation";
 import { Disclosure } from "@/components/evidence/Disclosure";
 import { ResearchAfterDemo } from "@/components/evidence/ResearchAfterDemo";
@@ -23,6 +24,7 @@ import { SafetyGuardrails } from "@/components/evidence/SafetyGuardrails";
 import { EmptyState, InlineNotice, MetadataLine, PageHeader, Section, Skeleton, SortTh } from "@/components/ui";
 
 export function EvidencePage() {
+  const { publicDemo } = useDeployment();
   const list = useEvaluations();
   const [params, setParams] = useSearchParams();
   const items = list.data?.items ?? [];
@@ -69,7 +71,15 @@ export function EvidencePage() {
         ) : undefined}>
         Forecast error and warnings, read from the saved experiment artifacts: later recordings from participants represented in training (demo model) or people held out entirely (research).
       </PageHeader>
-      <ServingLine selected={chosen} regime={meta ? REGIME[meta.regime] : undefined} />
+      {publicDemo && (
+        <InlineNotice tone="neutral" role="note">
+          <strong>Replays in this public demonstration use the synthetic demonstration model</strong>, fitted on fictional data. The
+          results on this page are the published evidence for the real-data models, read from saved experiment files, and are
+          also reported in the repository’s README and reports. They are not this demonstration’s performance, and nothing here
+          was measured on the synthetic replays.
+        </InlineNotice>
+      )}
+      {!publicDemo && <ServingLine selected={chosen} regime={meta ? REGIME[meta.regime] : undefined} />}
       {list.isLoading || (!research && ev.isLoading) || (research && rs.isLoading) ? <Skeleton h={300} /> : research ? (
         rs.isError ? <EmptyState title="Research report unavailable">{(rs.error as Error).message}</EmptyState>
           : rs.data?.status !== "completed" ? <EmptyState title="Research experiment not assessed yet">{rs.data?.status_message}</EmptyState>

@@ -5,6 +5,7 @@ import { useClient } from "@/api/client";
 import { modeLabel } from "@/lib/format";
 import { APP, paths } from "@/lib/routes";
 import { RAIL_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
+import { useDeployment } from "@/state/deployment";
 import { usePreferences } from "@/state/preferences";
 import { useReadiness, useSession } from "@/state/replay";
 import { Button, IconButton, InlineNotice } from "../ui";
@@ -167,6 +168,7 @@ function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
 function ApiStatus() {
   const client = useClient();
   const r = useReadiness();
+  const { publicDemo } = useDeployment();
   if (client.transportKind === "fixtures") {
     return (
       <InlineNotice tone="attention" icon={TriangleAlert} role="status">
@@ -178,8 +180,9 @@ function ApiStatus() {
     return (
       <InlineNotice tone="danger" icon={TriangleAlert} role="alert"
         action={<Button size="sm" onClick={() => r.refetch()}>Retry</Button>}>
-        The GlucoTwin API is not reachable. Start it with <code>make api</code> (or <code>uv run glucotwin serve</code>);
-        nothing on this page is being replaced with example data.
+        {publicDemo ? <>The demonstration’s API is not reachable right now; try again shortly.</>
+          : <>The GlucoTwin API is not reachable. Start it with <code>make api</code> (or <code>uv run glucotwin serve</code>);</>}
+        {" "}nothing on this page is being replaced with example data.
       </InlineNotice>
     );
   }

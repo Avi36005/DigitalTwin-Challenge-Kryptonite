@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import type { PatientSummary } from "@/api/types";
 import { fmtPct } from "@/lib/format";
+import { RECORDED_UNAVAILABLE, useDeployment } from "@/state/deployment";
 import { useOpenTwin } from "@/state/open";
 import { usePatientPage, usePatients, useSessions } from "@/state/replay";
 import { statusWord } from "@/components/shell/Sidebar";
@@ -25,6 +26,7 @@ export function ParticipantsPage() {
   const catalogue = usePatients(); // filter options only; rows come from the server-filtered page below
   const sessions = useSessions();
   const open = useOpenTwin();
+  const { publicDemo } = useDeployment();
   const [params] = useSearchParams();
   const focus = params.get("focus");
   const [q, setQ] = useState("");
@@ -37,7 +39,8 @@ export function ParticipantsPage() {
   const cohorts = useMemo(() => Array.from(new Set((catalogue.data?.items ?? []).map((p) => p.cohort.label))), [catalogue.data]);
   const needle = useDebounced(q.trim(), 250);
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
-  const query = { mode: mode === "all" ? undefined : mode, cohort: cohort === "all" ? undefined : cohort,
+  // a public demonstration only ever asks for synthetic participants
+  const query = { mode: publicDemo ? "synthetic_demo" as const : mode === "all" ? undefined : mode, cohort: cohort === "all" ? undefined : cohort,
     eligible: primaryOnly ? true : undefined, q: needle || undefined, sort: SERVER_SORT[sort.key],
     order: sort.dir === 1 ? "asc" as const : "desc" as const, limit: PAGE, cursor: cursors[cursors.length - 1] };
   const patients = usePatientPage(query);
@@ -59,8 +62,8 @@ export function ParticipantsPage() {
   return (
     <>
       <PageHeader title="Participants">
-        De-identified CGMacros participants and fictional synthetic participants. Baseline values appear inside a replay, as known
-        at its replay time.
+        {publicDemo ? "Fictional synthetic participants." : "De-identified CGMacros participants and fictional synthetic participants."}{" "}
+        Baseline values appear inside a replay, as known at its replay time.
       </PageHeader>
 
       <div className="filters" role="search" aria-label="Filter participants">
@@ -72,14 +75,14 @@ export function ParticipantsPage() {
               aria-label="Search participants" />
           </div>
         </div>
-        <div className="field-inline">
+        {!publicDemo && <div className="field-inline">
           <label htmlFor="p-mode">Data</label>
           <select id="p-mode" className="select" value={mode} onChange={(e) => setMode(e.target.value as typeof mode)}>
             <option value="all">All data</option>
             <option value="dataset_replay">Recorded-data replay</option>
             <option value="synthetic_demo">Synthetic demonstration</option>
           </select>
-        </div>
+        </div>}
         <div className="field-inline">
           <label htmlFor="p-cohort">Cohort</label>
           <select id="p-cohort" className="select" value={cohort} onChange={(e) => setCohort(e.target.value)}>
@@ -87,10 +90,10 @@ export function ParticipantsPage() {
             {cohorts.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <label className="check">
+        {!publicDemo && <label className="check">
           <input type="checkbox" checked={primaryOnly} onChange={(e) => setPrimaryOnly(e.target.checked)} />
           Primary Type 2 analysis only
-        </label>
+        </label>}
         <span className="filters__end">
           {filtered && <Button size="sm" variant="quiet" onClick={clear}>Clear filters</Button>}
           <span className="filters__count" aria-live="polite">{total} of {all.length} match{total > PAGE ? ` · showing ${pageStart + 1}–${pageStart + rows.length}` : ""}</span>
@@ -170,8 +173,9 @@ export function ParticipantsPage() {
         </div>
       )}
       <p className="page-note">
-        No risk ranking is shown: a participant without a current replay has unknown, not low, risk. The model was evaluated on the
-        primary Type 2 cohort only; other recorded participants are exploratory. Recorded data: CGMacros 1.0.0 (CC BY-NC-SA 4.0).
+        No risk ranking is shown: a participant without a current replay has unknown, not low, risk.{" "}
+        {publicDemo ? RECORDED_UNAVAILABLE : <>The model was evaluated on the primary Type 2 cohort only; other recorded participants are
+          exploratory. Recorded data: CGMacros 1.0.0 (CC BY-NC-SA 4.0).</>}
       </p>
     </>
   );

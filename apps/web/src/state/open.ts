@@ -2,7 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { useClient } from "@/api/client";
 import type { ReplayMode, ReplaySessionList } from "@/api/types";
+import { friendlyError } from "@/lib/apiErrors";
 import { paths } from "@/lib/routes";
+import { useDeployment } from "./deployment";
 import { usePreferences } from "./preferences";
 import { useToast } from "./toasts";
 
@@ -13,6 +15,7 @@ export function useCreateReplay() {
   const nav = useNavigate();
   const toast = useToast();
   const { prefs } = usePreferences();
+  const { publicDemo } = useDeployment();
   return useMutation({
     mutationFn: (a: { patientId: string; mode: ReplayMode; startAt?: string }) =>
       client.createSession(a.patientId, a.mode, { start_at: a.startAt, speed: prefs.defaultSpeed }),
@@ -22,7 +25,7 @@ export function useCreateReplay() {
       toast(`Replay started for ${s.patient_alias}`);
       nav(paths.session(s.id));
     },
-    onError: (e: Error) => toast(`Could not start the replay: ${e.message}`, "error"),
+    onError: (e: Error) => toast(`Could not start the replay: ${friendlyError(e, publicDemo)}`, "error"),
   });
 }
 

@@ -1,0 +1,17 @@
+# Allow-list: only Git-tracked source needed for the synthetic demonstration enters the build context.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!ml/
+!services/
+!packages/
+!configs/
+!apps/web/
+apps/web/node_modules/
+apps/web/dist/
+apps/web/test-results/
+apps/web/playwright-report/
+**/__pycache__/
+**/.DS_Store

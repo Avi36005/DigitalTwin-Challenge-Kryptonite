@@ -4,6 +4,7 @@ import type { PatientSummary, ReplaySession } from "@/api/types";
 import { modeLabel } from "@/lib/format";
 import { paths } from "@/lib/routes";
 import { replayTime, wallTime } from "@/lib/time";
+import { RECORDED_UNAVAILABLE, useDeployment } from "@/state/deployment";
 import { useCreateReplay } from "@/state/open";
 import { usePatient, usePatients, useSessions } from "@/state/replay";
 import { useShell } from "@/components/shell/ShellContext";
@@ -15,15 +16,18 @@ export function OverviewPage() {
   const sessions = useSessions();
   const patients = usePatients();
   const recent = sessions.data?.items ?? [];
+  const { publicDemo } = useDeployment();
   const all = patients.data?.items ?? [];
-  const recorded = all.filter((p) => p.mode === "dataset_replay");
+  const recorded = publicDemo ? [] : all.filter((p) => p.mode === "dataset_replay");
   const primary = recorded.filter((p) => p.eligible_for_primary_analysis).length;
   const synthetic = all.filter((p) => p.mode === "synthetic_demo").length;
   const demo = recorded.find((p) => p.eligible_for_primary_analysis);
 
   return (
     <>
-      <PageHeader title="Overview">Open the recorded demo, resume a replay or choose a participant.</PageHeader>
+      <PageHeader title="Overview">
+        {publicDemo ? "Resume a replay or choose a synthetic participant." : "Open the recorded demo, resume a replay or choose a participant."}
+      </PageHeader>
 
       {demo && <RecordedDemo demo={demo} />}
 
@@ -34,7 +38,8 @@ export function OverviewPage() {
         ) : recent.length === 0 ? (
           <EmptyState icon={History} title="No replays yet"
             action={<Button variant="primary" onClick={() => shell.open("new-replay")}>Choose participant</Button>}>
-            Start a replay to see the twin update as measurements arrive. Sessions live in the local API process.
+            Start a replay to see the twin update as measurements arrive.{" "}
+            {publicDemo ? "Replays are private to this browser and expire when unused." : "Sessions live in the local API process."}
           </EmptyState>
         ) : (
           <SessionRows items={recent.slice(0, 6)} />
@@ -47,6 +52,8 @@ export function OverviewPage() {
             <p className="start-row__text">
               {recorded.length > 0 ? (
                 <>{recorded.length} recorded CGMacros participants — {primary} in the primary Type 2 analysis — and {synthetic} synthetic demonstration participants.</>
+              ) : publicDemo ? (
+                <>{synthetic} synthetic demonstration participants. {RECORDED_UNAVAILABLE}</>
               ) : (
                 <>{synthetic} synthetic demonstration participants. Recorded CGMacros data is not imported on this machine.</>
               )}

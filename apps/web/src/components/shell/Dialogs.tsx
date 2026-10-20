@@ -5,6 +5,7 @@ import type { PatientSummary, ReplayMode } from "@/api/types";
 import { modeLabel } from "@/lib/format";
 import { paths } from "@/lib/routes";
 import { replayTime } from "@/lib/time";
+import { useDeployment } from "@/state/deployment";
 import { usePreferences } from "@/state/preferences";
 import { useCreateReplay } from "@/state/open";
 import { usePatient, usePatients, useSessions } from "@/state/replay";
@@ -132,6 +133,7 @@ export function WorkspaceSearch({ open, onClose }: { open: boolean; onClose: () 
 export function NewReplayDialog({ open, onClose, initialPatient }: { open: boolean; onClose: () => void; initialPatient?: string }) {
   const patients = usePatients();
   const create = useCreateReplay();
+  const { publicDemo } = useDeployment();
   const [mode, setMode] = useState<ReplayMode>("dataset_replay");
   const [pid, setPid] = useState<string>("");
   const [start, setStart] = useState<"start" | "test">("start");
@@ -149,16 +151,23 @@ export function NewReplayDialog({ open, onClose, initialPatient }: { open: boole
     initialized.current = true;
     const all = patients.data.items;
     const init = all.find((p) => p.patient_id === initialPatient);
-    const hasDataset = all.some((p) => p.mode === "dataset_replay");
-    const m: ReplayMode = init?.mode ?? (hasDataset ? "dataset_replay" : "synthetic_demo");
+    const hasDataset = !publicDemo && all.some((p) => p.mode === "dataset_replay");
+    const m: ReplayMode = publicDemo ? "synthetic_demo" : init?.mode ?? (hasDataset ? "dataset_replay" : "synthetic_demo");
     setMode(m);
-    setPid(init?.patient_id ?? all.find((p) => p.mode === m && (m !== "dataset_replay" || p.eligible_for_primary_analysis))?.patient_id ?? "");
+    setPid((init?.mode === m ? init.patient_id : undefined)
+      ?? all.find((p) => p.mode === m && (m !== "dataset_replay" || p.eligible_for_primary_analysis))?.patient_id ?? "");
     setStart("start");
-  }, [open, initialPatient, patients.data]);
+  }, [open, initialPatient, patients.data, publicDemo]);
+  // the health check can answer after the dialog opened: a public demonstration never keeps a recorded-data choice
+  useEffect(() => {
+    if (!publicDemo || mode !== "dataset_replay") return;
+    setMode("synthetic_demo");
+    setPid(patients.data?.items.find((p) => p.mode === "synthetic_demo")?.patient_id ?? "");
+  }, [publicDemo, mode, patients.data]);
   const testSeg = detail.data?.evaluation_segments?.find((s) => s.name === "test");
 
   const submit = () => {
-    if (!pid) return;
+    if (!pid || (publicDemo && mode === "dataset_replay")) return;
     create.mutate({ patientId: pid, mode, startAt: start === "test" && testSeg ? testSeg.start_at : undefined }, {
       onSuccess: onClose,
     });
@@ -181,14 +190,14 @@ export function NewReplayDialog({ open, onClose, initialPatient }: { open: boole
       }
     >
       <p className="dialog__lead">
-        Replays recorded measurements as if they were arriving, using only information available at each replay time.
-        This is not a live device connection.
+        {publicDemo ? "Replays fictional, synthetic measurements" : "Replays recorded measurements"} as if they were arriving,
+        using only information available at each replay time. This is not a live device connection.
       </p>
       <fieldset className="field">
         <legend>Data mode</legend>
         <div className="radio-row">
           {(["dataset_replay", "synthetic_demo"] as const).map((m) => {
-            const n = (patients.data?.items ?? []).filter((p) => p.mode === m).length;
+            const n = publicDemo && m === "dataset_replay" ? 0 : (patients.data?.items ?? []).filter((p) => p.mode === m).length;
             return (
               <label key={m} className="radio-card">
                 <input type="radio" name="mode" value={m} checked={mode === m} disabled={n === 0}
@@ -197,7 +206,8 @@ export function NewReplayDialog({ open, onClose, initialPatient }: { open: boole
                   <strong className="radio-card__title">{modeLabel(m)}</strong>
                   <span className="radio-card__desc">
                     {m === "dataset_replay"
-                      ? n ? "CGMacros research recordings (de-identified)" : "CGMacros not imported on this machine"
+                      ? publicDemo ? "Local installation only — not redistributed in this public demonstration"
+                        : n ? "CGMacros research recordings (de-identified)" : "CGMacros not imported on this machine"
                       : "Fictional participants for software demonstration"}
                   </span>
                 </span>

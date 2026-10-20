@@ -1,0 +1,7 @@
+# Public synthetic demonstration in one container: `docker compose up --build`, then open http://localhost:7860.
+services:
+  glucotwin:
+    build: .
+    image: glucotwin-public-demo:local
+    ports:
+      - "127.0.0.1:7860:7860"   # published on the host's loopback only

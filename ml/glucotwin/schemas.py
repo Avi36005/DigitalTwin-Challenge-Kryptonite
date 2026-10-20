@@ -796,10 +796,19 @@ class DatasetInventory(Versioned):
 # --------------------------------------------------------------------------------------------
 
 
+class PublicDemoLimits(Contract):
+    session_idle_minutes: int = Field(description="A replay session unused for this long is removed.")
+    max_sessions_per_visitor: int = Field(description="Starting one more evicts the visitor's least recently used.")
+
+
 class Health(Versioned):
     status: Literal["ok"]
     service: str
     version: str
+    public_demo: bool = Field(
+        default=False, description="True when this server is the public synthetic demonstration: synthetic "
+                                   "participants only, sessions private to each visitor's browser, limited and expiring.")
+    public_demo_limits: PublicDemoLimits | None = None
 
 
 class ComponentReadiness(Contract):

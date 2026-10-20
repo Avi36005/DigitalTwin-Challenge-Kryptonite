@@ -21,7 +21,7 @@
     glucotwin research promote   EXPLICIT: point the registry at a frozen candidate (atomic, verified; not run by default)
     glucotwin research rollback  EXPLICIT: point the registry back to a previous serving model version
     glucotwin contracts export   export OpenAPI + example payloads to packages/contracts
-    glucotwin serve              start the API on 127.0.0.1:8000
+    glucotwin serve              start the API on 127.0.0.1:8000 (--public-demo: public synthetic demonstration)
 """
 
 from __future__ import annotations
@@ -81,8 +81,11 @@ def main(argv: list[str] | None = None) -> int:
 
     sv = sub.add_parser("serve")
     sv.add_argument("--host", default="127.0.0.1")
-    sv.add_argument("--port", type=int, default=8000)
+    sv.add_argument("--port", type=int, default=None, help="default: $PORT, else 8000")
     sv.add_argument("--reload", action="store_true")
+    sv.add_argument("--public-demo", action="store_true",
+                    help="public synthetic demonstration: synthetic participants only, sessions private per visitor, "
+                         "limited and expiring (sets GLUCOTWIN_PUBLIC_DEMO=1)")
 
     a = ap.parse_args(argv)
     if a.group == "data":
@@ -171,9 +174,14 @@ def main(argv: list[str] | None = None) -> int:
 
         print(export())
     elif a.group == "serve":
+        import os
+
         import uvicorn
 
-        uvicorn.run("glucotwin_api.app:app", host=a.host, port=a.port, reload=a.reload)
+        if a.public_demo:
+            os.environ["GLUCOTWIN_PUBLIC_DEMO"] = "1"
+        port = a.port if a.port is not None else int(os.environ.get("PORT", "8000"))
+        uvicorn.run("glucotwin_api.app:app", host=a.host, port=port, reload=a.reload)
     return 0
 
 

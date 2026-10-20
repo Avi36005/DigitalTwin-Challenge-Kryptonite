@@ -1,7 +1,9 @@
 import { Pause, Play, RotateCcw, Target } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ControlCommand, EvaluationSegment, ReplaySession } from "@/api/types";
+import { friendlyError } from "@/lib/apiErrors";
 import { ms, replayTime, toIso } from "@/lib/time";
+import { useDeployment } from "@/state/deployment";
 import { useControl } from "@/state/replay";
 import { useToast } from "@/state/toasts";
 import { Button, InlineNotice } from "../ui";
@@ -21,6 +23,7 @@ export function ReplayToolbar({ session, segments, onAnnounce }: {
   session: ReplaySession; segments?: EvaluationSegment[] | null; onAnnounce: (msg: string) => void;
 }) {
   const control = useControl(session.id);
+  const { publicDemo } = useDeployment();
   const toast = useToast();
   const lastCmd = useRef<ControlCommand | null>(null);
   const [pending, setPending] = useState<number | null>(null);
@@ -43,7 +46,7 @@ export function ReplayToolbar({ session, segments, onAnnounce }: {
           onAnnounce(`${done}. Replay time ${replayTime(s.clock_at)}.`);
         }
       },
-      onError: (e) => toast(`Replay control failed: ${(e as Error).message}`, "error"),
+      onError: (e) => toast(`Replay control failed: ${friendlyError(e, publicDemo)}`, "error"),
     });
   };
   const commitSeek = (t: number) => {

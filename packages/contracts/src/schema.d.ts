@@ -1135,6 +1135,13 @@ export interface components {
             service: string;
             /** Version */
             version: string;
+            /**
+             * Public Demo
+             * @description True when this server is the public synthetic demonstration: synthetic participants only, sessions private to each visitor's browser, limited and expiring.
+             * @default false
+             */
+            public_demo: boolean;
+            public_demo_limits?: components["schemas"]["PublicDemoLimits"] | null;
         };
         /** HistorySummary */
         HistorySummary: {
@@ -1485,6 +1492,19 @@ export interface components {
             status: "available" | "not_yet_available" | "missing_in_source" | "excluded_suspect";
             /** Note */
             note?: string | null;
+        };
+        /** PublicDemoLimits */
+        PublicDemoLimits: {
+            /**
+             * Session Idle Minutes
+             * @description A replay session unused for this long is removed.
+             */
+            session_idle_minutes: number;
+            /**
+             * Max Sessions Per Visitor
+             * @description Starting one more evicts the visitor's least recently used.
+             */
+            max_sessions_per_visitor: number;
         };
         /** Readiness */
         Readiness: {

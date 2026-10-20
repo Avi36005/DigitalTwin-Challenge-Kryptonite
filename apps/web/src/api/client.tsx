@@ -8,6 +8,7 @@ import type {
   EvaluationReport,
   EventPage,
   ForecastPage,
+  Health,
   LatestForecast,
   PatientDetail,
   PatientPage,
@@ -39,6 +40,7 @@ export function createClient(t: Transport) {
   };
   return {
     transportKind: t.kind,
+    health: (signal?: AbortSignal) => get<Health>("/health", signal),
     readiness: (signal?: AbortSignal) => get<Readiness>("/health/ready", signal),
     patients: (signal?: AbortSignal) => get<PatientPage>(`/patients${q({ limit: 200 })}`, signal),
     patientPage: (p: PatientQuery, signal?: AbortSignal) =>

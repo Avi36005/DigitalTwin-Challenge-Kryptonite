@@ -627,15 +627,17 @@ function describe(e: ObservationEvent): string {
 }
 
 /* ================================================================ Model details (below the chart) */
-export function ModelDetails({ twin, latest }: { twin?: TwinState; latest?: LatestForecast }) {
+export function ModelDetails({ twin, latest, publicDemo = false }: { twin?: TwinState; latest?: LatestForecast; publicDemo?: boolean }) {
   const p = twin?.personalization;
   const f = latest?.forecast;
+  const synthetic = f?.mode === "synthetic_demo" || twin?.model_version?.startsWith("synthetic") === true;
   const status = !p || !p.enabled ? "Unavailable" : p.status === "active" ? "Active" : p.status === "reset_after_gap" ? "Reset after a data gap" : "Warming up";
   return (
     <section className="lower__col" aria-labelledby="model-title">
       <h2 className="lower__title" id="model-title">Model details</h2>
       <dl className="dl dl--compact">
-        <dt>Model</dt><dd>{twin?.model_family ? `${twin.model_family === "lightgbm" ? "LightGBM" : twin.model_family}` : "Unavailable"}</dd>
+        <dt>Model</dt><dd>{twin?.model_family ? `${twin.model_family === "lightgbm" ? "LightGBM" : twin.model_family}` : "Unavailable"}
+          {publicDemo && synthetic && <span className="table__sub">Synthetic demonstration model, fitted on fictional data — not the evaluated real-data fusion model</span>}</dd>
         <dt>Version</dt><dd className="wrap-id">{twin?.model_version ?? "—"}</dd>
         <dt>Patient adaptation</dt><dd>{status}</dd>
         {p?.horizons.map((h) => {

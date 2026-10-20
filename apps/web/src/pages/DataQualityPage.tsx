@@ -5,25 +5,27 @@ import { featureSetOf, modelUsesProfile } from "@/lib/forecast";
 import { fmtPct, modeLabel } from "@/lib/format";
 import { paths } from "@/lib/routes";
 import { durationLabel, replayTime } from "@/lib/time";
+import { RECORDED_UNAVAILABLE, useDeployment } from "@/state/deployment";
 import { useDatasets, useEvaluation, useServing } from "@/state/evaluation";
 import { Disclosure } from "@/components/evidence/Disclosure";
 import { useLatestForecast, usePatient, usePatients, useReadiness, useSessions, useTwin } from "@/state/replay";
-import { EmptyState, PageHeader, Section, Skeleton, StatusLabel } from "@/components/ui";
+import { EmptyState, InlineNotice, PageHeader, Section, Skeleton, StatusLabel } from "@/components/ui";
 
 export function DataQualityPage() {
   const patients = usePatients();
   const ready = useReadiness();
   const ev = useEvaluation();
+  const { publicDemo } = useDeployment();
   const all = useMemo(() => patients.data?.items ?? [], [patients.data]);
-  const firstDataset = all.find((p) => p.mode === "dataset_replay");
+  const firstDataset = publicDemo ? undefined : all.find((p) => p.mode === "dataset_replay");
   const firstSynthetic = all.find((p) => p.mode === "synthetic_demo");
   const ds = usePatient(firstDataset?.patient_id);
   const syn = usePatient(firstSynthetic?.patient_id);
   const cohortCounts = useMemo(() => {
     const m = new Map<string, number>();
-    for (const p of all.filter((x) => x.mode === "dataset_replay")) m.set(p.cohort.label, (m.get(p.cohort.label) ?? 0) + 1);
+    for (const p of all.filter((x) => x.mode === "dataset_replay" && !publicDemo)) m.set(p.cohort.label, (m.get(p.cohort.label) ?? 0) + 1);
     return Array.from(m.entries());
-  }, [all]);
+  }, [all, publicDemo]);
   const cohort = ev.data?.cohort;
   const servingVersion = (ev.data?.protocol as { model_version?: string } | undefined)?.model_version;
   const servingRequiresProfile = useServing().data?.items.find((x) => x.mode === "dataset_replay")?.requires_complete_profile === true;
@@ -33,6 +35,8 @@ export function DataQualityPage() {
       <PageHeader title="Data quality">
         What data each replay rests on: the current session’s readings, dataset-level coverage and the limits of the model’s inputs.
       </PageHeader>
+      {publicDemo && <InlineNotice tone="neutral" role="note">{RECORDED_UNAVAILABLE} Only the fictional synthetic data is described
+        live here; recorded-data quality is documented in the repository’s data card.</InlineNotice>}
       {patients.isLoading ? <Skeleton h={300} /> : all.length === 0 ? (
         <EmptyState icon={Database} title="No data loaded">Import CGMacros or build the synthetic fixtures.</EmptyState>
       ) : (
@@ -44,7 +48,7 @@ export function DataQualityPage() {
           <Section title="Sources and time policy">
             <dl className="dl dl--wide">
               <dt>Recorded data</dt>
-              <dd>{firstDataset ? <>{firstDataset.dataset.name} {firstDataset.dataset.version} · {firstDataset.dataset.license}{firstDataset.dataset.citation_url && <> · <a href={firstDataset.dataset.citation_url} target="_blank" rel="noreferrer">dataset DOI</a></>}</> : "Not imported on this machine"}</dd>
+              <dd>{firstDataset ? <>{firstDataset.dataset.name} {firstDataset.dataset.version} · {firstDataset.dataset.license}{firstDataset.dataset.citation_url && <> · <a href={firstDataset.dataset.citation_url} target="_blank" rel="noreferrer">dataset DOI</a></>}</> : publicDemo ? "Not available in this public demonstration (local installation only)" : "Not imported on this machine"}</dd>
               <dt>Synthetic data</dt>
               <dd>{firstSynthetic ? <>{firstSynthetic.dataset.name} · {firstSynthetic.dataset.license}</> : "Not built"}</dd>
               <dt>Cohorts</dt>
@@ -102,7 +106,7 @@ export function DataQualityPage() {
                     <th scope="col" className="num">Wearable coverage</th><th scope="col" className="num">Meals</th><th scope="col">Missing baseline fields</th><th scope="col">Analysis</th></tr>
                 </thead>
                 <tbody>
-                  {all.map((p) => (
+                  {(publicDemo ? all.filter((p) => p.mode === "synthetic_demo") : all).map((p) => (
                     <tr key={p.patient_id}>
                       <th scope="row" className="col-sticky">{p.display_alias}</th>
                       <td className="nowrap">{p.cohort.label}</td>

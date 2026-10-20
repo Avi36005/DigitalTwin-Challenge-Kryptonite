@@ -5,10 +5,12 @@ import { Link } from "react-router";
 import { useClient } from "@/api/client";
 import { ApiError } from "@/api/transport";
 import type { Alert, EvaluationSegment, Forecast, ObservationEvent, ReplaySession } from "@/api/types";
+import { EXPIRED_REPLAY, friendlyError } from "@/lib/apiErrors";
 import { forecastUsable, latestGlucose } from "@/lib/chart";
 import { modeLabel } from "@/lib/format";
 import { paths } from "@/lib/routes";
 import { ms, replayTime } from "@/lib/time";
+import { useDeployment } from "@/state/deployment";
 import { useEvaluation } from "@/state/evaluation";
 import { useOpenTwin } from "@/state/open";
 import { usePreferences } from "@/state/preferences";
@@ -25,6 +27,7 @@ import {
   useTwin,
 } from "@/state/replay";
 import { useToast } from "@/state/toasts";
+import { useShell } from "@/components/shell/ShellContext";
 import { statusWord } from "@/components/shell/Sidebar";
 import { ReplayToolbar } from "@/components/replay/ReplayToolbar";
 import { ReviewSummary } from "@/components/review/ReviewSummary";
@@ -56,6 +59,7 @@ export function ReplayPage({ sid }: { sid: string }) {
   const twin = useTwin(session);
   const profile = useSessionProfile(session);
   const evaluation = useEvaluation();
+  const { publicDemo } = useDeployment();
   const { events, loaded: eventsLoaded } = useReleasedEvents(session);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -94,6 +98,7 @@ export function ReplayPage({ sid }: { sid: string }) {
 
   if (sessionQ.isError) {
     const notFound = sessionQ.error instanceof ApiError && sessionQ.error.status === 404;
+    if (publicDemo) return <PublicReplayError error={sessionQ.error} retry={() => sessionQ.refetch()} />;
     return (
       <>
         <PageHeader title="Replay" />
@@ -176,10 +181,11 @@ export function ReplayPage({ sid }: { sid: string }) {
         <RecentObservations events={events} clock={clock} loaded={eventsLoaded} />
         <WarningHistory alerts={alerts.data} revision={session.revision} sessionKey={`${session.id}:${session.revision}`}
           participant={session.patient_alias} onSave={(a, note) => ack.mutateAsync({ a, note })} />
-        <ModelDetails twin={twin.data} latest={latest.data} />
+        <ModelDetails twin={twin.data} latest={latest.data} publicDemo={publicDemo} />
       </div>
 
-      <ForecastDetail f={selected ?? latestF} patient={patient.data} report={evaluation.data} open={detailOpen} onClose={() => setDetailOpen(false)} />
+      <ForecastDetail f={selected ?? latestF} patient={patient.data} report={evaluation.data} open={detailOpen} onClose={() => setDetailOpen(false)}
+        publicDemo={publicDemo} />
       <div className="visually-hidden" aria-live="polite">{announce}</div>
     </>
   );
@@ -193,12 +199,13 @@ function StartNotice({ session, events, eventsLoaded, segments, onAnnounce }: {
 }) {
   const control = useControl(session.id);
   const toast = useToast();
+  const { publicDemo } = useDeployment();
   const clock = ms(session.clock_at);
   if (!eventsLoaded || latestGlucose(events, clock) || session.status === "playing") return null;
   const test = segments?.find((s) => s.name === "test");
   const go = () => test && control.mutate({ action: "seek", seek_to: test.start_at }, {
     onSuccess: (s) => onAnnounce(`Moved to the final test period. Replay time ${replayTime(s.clock_at)}.`),
-    onError: (e) => toast(`Replay control failed: ${(e as Error).message}`, "error"),
+    onError: (e) => toast(`Replay control failed: ${friendlyError(e, publicDemo)}`, "error"),
   });
   return (
     <InlineNotice tone="neutral" icon={Info} role="note"
@@ -210,8 +217,27 @@ function StartNotice({ session, events, eventsLoaded, segments, onAnnounce }: {
   );
 }
 
+/** Public demonstration: a replay that expired or belongs to another browser is said so plainly, with a way forward. */
+function PublicReplayError({ error, retry }: { error: unknown; retry: () => void }) {
+  const shell = useShell();
+  const gone = error instanceof ApiError && error.status === 404;
+  const limited = error instanceof ApiError && error.status === 429;
+  return (
+    <>
+      <PageHeader title="Replay" />
+      <EmptyState title={gone ? EXPIRED_REPLAY : limited ? "Too many requests" : "Could not load the replay session"}
+        action={limited ? <Button onClick={retry}>Try again</Button>
+          : <Button variant="primary" onClick={() => shell.open("new-replay")}>Start a new replay</Button>}>
+        {gone ? "Replays in this public demonstration are private to the browser that started them and are removed after a period of inactivity or when the demonstration restarts."
+          : limited ? "Too many requests; wait a moment and try again." : friendlyError(error, true)}
+      </EmptyState>
+    </>
+  );
+}
+
 function ParticipantSwitcher({ currentId }: { currentId: string }) {
   const patients = usePatients();
+  const { publicDemo } = useDeployment();
   const open = useOpenTwin();
   const items = patients.data?.items ?? [];
   return (
@@ -222,7 +248,7 @@ function ParticipantSwitcher({ currentId }: { currentId: string }) {
           const p = items.find((x) => x.patient_id === e.target.value);
           if (p) open.open(p.patient_id, p.mode); // resumes that participant's own session or starts one; never resets this one
         }}>
-        {["dataset_replay", "synthetic_demo"].map((m) => (
+        {(publicDemo ? ["synthetic_demo"] : ["dataset_replay", "synthetic_demo"]).map((m) => (
           <optgroup key={m} label={modeLabel(m)}>
             {items.filter((p) => p.mode === m).map((p) => (
               <option key={p.patient_id} value={p.patient_id}>

@@ -6,12 +6,14 @@ import { useClient } from "@/api/client";
 import { LandingPreview } from "@/components/landing/LandingPreview";
 import { Wordmark } from "@/components/shell/Brand";
 import { paths } from "@/lib/routes";
+import { useDeployment } from "@/state/deployment";
 
 /**
  * Front door of the research prototype. Outside the workspace shell (no sidebar in the DOM). The only API call is the
  * small evaluation summary for the research-context line; if the API is unavailable the line is simply omitted.
  */
 export function LandingPage() {
+  const { publicDemo } = useDeployment();
   useEffect(() => {
     document.title = "GlucoTwin · Glucose forecasting research prototype";
     return () => {
@@ -37,7 +39,10 @@ export function LandingPage() {
               <Link to={paths.overview()} className="btn btn--primary btn--lg">Open workspace</Link>
               <Link to={paths.evidence()} className="text-link">View model evidence<ArrowRight size={16} aria-hidden /></Link>
             </div>
-            <p className="hero__note">Recorded and synthetic data. Research prototype; not for clinical decisions.</p>
+            <p className="hero__note">
+              {publicDemo ? "Synthetic data only in this public demonstration." : "Recorded and synthetic data."} Research prototype; not
+              for clinical decisions.
+            </p>
           </div>
           <div className="hero__preview">
             <LandingPreview />

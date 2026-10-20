@@ -2,19 +2,26 @@
 
 Local research demonstration only: binds to loopback by default, narrow CORS, no authentication,
 no external notifications. Not a medical device and not production software.
+
+Opt-in public synthetic demonstration (``GLUCOTWIN_PUBLIC_DEMO=1``, ``glucotwin serve --public-demo``): synthetic
+participants only (recorded-data routes answer 403), an anonymous visitor cookie keeps each visitor's replay sessions
+private, sessions are capped and expire, and requests are rate-limited (``public.py``). With ``GLUCOTWIN_WEB_DIST`` set
+to a built ``apps/web/dist`` the same process also serves the web app, so one port serves everything.
 """
 
 from __future__ import annotations
 
 import base64
+import logging
 import os
 import uuid
+from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import APIRouter, FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from glucotwin import __version__
 from glucotwin.config import paths
 from glucotwin.data.store import from_minutes
@@ -48,6 +55,7 @@ from glucotwin.serving import load_serving
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import evidence
+from . import public as pub
 from .catalog import Catalog
 from .replay import STALE_MINUTES, ApiError, Session, SessionManager
 from .storage import LocalStore
@@ -55,12 +63,20 @@ from .storage import LocalStore
 ERRORS = {404: {"model": ErrorEnvelope}, 409: {"model": ErrorEnvelope}, 422: {"model": ErrorEnvelope}}
 
 
+SYNTHETIC_ONLY = "This public demonstration serves synthetic participants only."
+
+
 class AppState:
     def __init__(self) -> None:
+        self.public = pub.load_config()
         self.catalog = Catalog()
         self.serving: dict[str, Any] = {}
         self.serving_errors: dict[str, str] = {}
         for mode in ("dataset_replay", "synthetic_demo"):
+            if self.public.enabled and mode == "dataset_replay":
+                self.serving[mode] = None  # never loaded in the public demonstration
+                self.serving_errors[mode] = "Not served in the public synthetic demonstration."
+                continue
             try:
                 self.serving[mode] = load_serving(mode)
                 if self.serving[mode] is None:
@@ -69,7 +85,8 @@ class AppState:
                 self.serving[mode] = None
                 self.serving_errors[mode] = f"Model artifact failed verification: {exc}"
         self.store = LocalStore(paths().var / "glucotwin.sqlite3")
-        self.sessions = SessionManager(self.catalog, self.serving, self.store)
+        self.sessions = SessionManager(self.catalog, self.serving, self.store, self.public)
+        self.limiter = pub.RateLimiter()
 
 
 def create_app() -> FastAPI:
@@ -85,6 +102,49 @@ def create_app() -> FastAPI:
                        allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
     state = AppState()
     app.state.gt = state
+    cfg = state.public
+    log = logging.getLogger("uvicorn.error")
+    if cfg.enabled:
+        log.info("GlucoTwin public synthetic demonstration: synthetic participants only; sessions private per visitor, "
+                 "at most %d per visitor and %d in total, removed after %d idle minutes; %d requests/min per visitor, "
+                 "%d per IP.", cfg.max_sessions_per_visitor, cfg.max_sessions, cfg.session_idle_minutes,
+                 cfg.visitor_requests_per_minute, cfg.ip_requests_per_minute)
+
+    if cfg.enabled:
+        # Added before the request-ID middleware, so it runs inside it and its 429s carry a request ID.
+        @app.middleware("http")
+        async def visitor(request: Request, call_next):
+            token = request.cookies.get(pub.COOKIE)
+            fresh = not pub.valid_token(token)
+            if fresh:
+                token = pub.new_token()
+            request.state.visitor = pub.owner_of(token)
+            if request.url.path.startswith("/api/"):
+                ip = request.client.host if request.client else "unknown"
+                if cfg.trust_proxy and request.headers.get("x-forwarded-for"):
+                    ip = request.headers["x-forwarded-for"].split(",")[0].strip()
+                if not (state.limiter.allow("v:" + request.state.visitor, cfg.visitor_requests_per_minute)
+                        and state.limiter.allow("ip:" + ip, cfg.ip_requests_per_minute)):
+                    response = err(request, 429, "rate_limited",
+                                   "Too many requests from this browser or network; wait a minute and try again.")
+                    response.headers["Retry-After"] = "60"
+                else:
+                    response = await call_next(request)
+            else:
+                response = await call_next(request)
+            if fresh:
+                response.set_cookie(pub.COOKIE, token, max_age=pub.COOKIE_MAX_AGE, path="/", httponly=True,
+                                    samesite="lax", secure=cfg.cookie_secure)
+            return response
+
+    def owner(request: Request) -> str | None:
+        return getattr(request.state, "visitor", None) if cfg.enabled else None
+
+    def synthetic_only(patient_id: str | None = None, mode: str | None = None) -> None:
+        if cfg.enabled and (mode == "dataset_replay" or (
+                patient_id is not None and state.catalog.has(patient_id)
+                and state.catalog.mode(patient_id) == "dataset_replay")):
+            raise ApiError(403, "public_demo_synthetic_only", SYNTHETIC_ONLY)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next):
@@ -122,7 +182,10 @@ def create_app() -> FastAPI:
 
     @api.get("/health", response_model=Health)
     def health():
-        return {"status": "ok", "service": "glucotwin-api", "version": __version__}
+        limits = ({"session_idle_minutes": cfg.session_idle_minutes,
+                   "max_sessions_per_visitor": cfg.max_sessions_per_visitor} if cfg.enabled else None)
+        return {"status": "ok", "service": "glucotwin-api", "version": __version__, "public_demo": cfg.enabled,
+                "public_demo_limits": limits}
 
     @api.get("/health/ready", response_model=Readiness)
     def ready():
@@ -149,10 +212,10 @@ def create_app() -> FastAPI:
 
     # ------------------------------------------------------------------ patients
 
-    def summary(pid: str) -> dict[str, Any]:
+    def summary(pid: str, request: Request) -> dict[str, Any]:
         m = state.catalog.meta(pid)
         prof = state.catalog.profile(pid)
-        s = state.sessions.latest_for(pid)
+        s = state.sessions.latest_for(pid, owner(request))
         attrs = [{"name": a["name"], "label": a["label"], "unit": a.get("unit"),
                   "present_in_source": a["status"] != "missing_in_source", "source": a.get("source"),
                   "availability_rule": a.get("availability_rule"), "note": a.get("note")} for a in prof]
@@ -168,14 +231,17 @@ def create_app() -> FastAPI:
         }
 
     @api.get("/patients", response_model=PatientPage)
-    def patients(mode: Literal["dataset_replay", "synthetic_demo"] | None = None,
+    def patients(request: Request, mode: Literal["dataset_replay", "synthetic_demo"] | None = None,
                  cohort: str | None = Query(None, max_length=60), eligible: bool | None = None,
                  q: str | None = Query(None, max_length=80),
                  sort: Literal["alias", "recording_days", "coverage", "meals"] = "alias",
                  order: Literal["asc", "desc"] = "asc",
                  limit: int = Query(100, ge=1, le=200), cursor: str | None = None):
         """Server-side filtering and stable sorting; ``total`` counts every match, not just this page."""
+        synthetic_only(mode=mode)
         all_ids = state.catalog.ids()
+        if cfg.enabled:
+            all_ids = [p for p in all_ids if state.catalog.mode(p) == "synthetic_demo"]
         ids = [p for p in all_ids if mode is None or state.catalog.mode(p) == mode]
         if cohort:
             ids = [p for p in ids if state.catalog.meta(p)["cohort"]["label"] == cohort]
@@ -206,20 +272,21 @@ def create_app() -> FastAPI:
                 raise ApiError(422, "invalid_cursor", "Cursor is not valid.") from exc
         page = ids[start:start + limit]
         nxt = base64.urlsafe_b64encode(str(start + limit).encode()).decode() if start + limit < len(ids) else None
-        return {"items": [summary(p) for p in page], "next_cursor": nxt, "total": len(ids),
+        return {"items": [summary(p, request) for p in page], "next_cursor": nxt, "total": len(ids),
                 "total_unfiltered": len(all_ids)}
 
     @api.get("/patients/{patient_id}", response_model=PatientDetail, responses=ERRORS)
-    def patient(patient_id: str):
+    def patient(patient_id: str, request: Request):
         if not state.catalog.has(patient_id):
             raise ApiError(404, "patient_not_found", f"Unknown participant {patient_id!r}.")
+        synthetic_only(patient_id)
         m = state.catalog.meta(patient_id)
         b = state.catalog.boundaries.get(patient_id) if m["mode"] == "dataset_replay" else None
         segs = None
         if b is not None:
             segs = [{"name": name, "start_at": from_minutes(lo), "end_at": from_minutes(min(hi, b.end))}
                     for name, (lo, hi) in b.segment_bounds().items()]
-        return {**summary(patient_id), "time_policy": m["time_policy"],
+        return {**summary(patient_id, request), "time_policy": m["time_policy"],
                 "availability_policy_id": m["availability_policy_id"], "notes": m.get("notes", []),
                 "evaluation_segments": segs}
 
@@ -237,15 +304,15 @@ def create_app() -> FastAPI:
             "released_event_count": s.timeline.released_count(s.clock), "error": s.error,
         }
 
-    def synced(sid: str) -> Session:
-        s = state.sessions.get(sid)
+    def synced(sid: str, request: Request) -> Session:
+        s = state.sessions.get(sid, owner(request))
         with s.lock:
             state.sessions.sync(s)
         return s
 
     @api.get("/replay/sessions", response_model=ReplaySessionList)
-    def list_sessions(limit: int = Query(50, ge=1, le=200)):
-        items = sorted(state.sessions.sessions.values(), key=lambda x: x.created_at, reverse=True)[:limit]
+    def list_sessions(request: Request, limit: int = Query(50, ge=1, le=200)):
+        items = sorted(state.sessions.visible(owner(request)), key=lambda x: x.created_at, reverse=True)[:limit]
         out = []
         for s in items:
             with s.lock:
@@ -254,25 +321,27 @@ def create_app() -> FastAPI:
         return {"schema_version": "1.0", "items": out}
 
     @api.post("/replay/sessions", response_model=ReplaySession, status_code=201, responses=ERRORS)
-    def create_session(req: CreateSessionRequest):
-        s = state.sessions.create(req.patient_id, req.mode, req.start_at, req.speed)
+    def create_session(req: CreateSessionRequest, request: Request):
+        synthetic_only(req.patient_id, req.mode)
+        s = state.sessions.create(req.patient_id, req.mode, req.start_at, req.speed, owner(request))
         return session_view(s)
 
     @api.get("/replay/sessions/{session_id}", response_model=ReplaySession, responses=ERRORS)
-    def get_session(session_id: str):
-        s = synced(session_id)
+    def get_session(session_id: str, request: Request):
+        s = synced(session_id, request)
         with s.lock:
             return session_view(s)
 
     @api.post("/replay/sessions/{session_id}/control", response_model=ReplaySession, responses=ERRORS)
-    def control(session_id: str, cmd: ControlCommand):
-        s = state.sessions.control(session_id, cmd.action, cmd.steps, cmd.seek_to, cmd.speed)
+    def control(session_id: str, cmd: ControlCommand, request: Request):
+        s = state.sessions.control(session_id, cmd.action, cmd.steps, cmd.seek_to, cmd.speed, owner(request))
         with s.lock:
             return session_view(s)
 
     @api.get("/replay/sessions/{session_id}/events", response_model=EventPage, responses=ERRORS)
-    def events(session_id: str, cursor: str | None = None, limit: int = Query(500, ge=1, le=2000)):
-        s = synced(session_id)
+    def events(session_id: str, request: Request, cursor: str | None = None,
+               limit: int = Query(500, ge=1, le=2000)):
+        s = synced(session_id, request)
         with s.lock:
             start = 0
             if cursor:
@@ -294,8 +363,8 @@ def create_app() -> FastAPI:
                     "has_more": end < released}
 
     @api.get("/replay/sessions/{session_id}/profile", response_model=SessionProfile, responses=ERRORS)
-    def session_profile(session_id: str):
-        s = synced(session_id)
+    def session_profile(session_id: str, request: Request):
+        s = synced(session_id, request)
         with s.lock:
             vals = []
             for a in state.catalog.profile(s.patient_id):
@@ -316,8 +385,8 @@ def create_app() -> FastAPI:
                     "cohort": state.catalog.meta(s.patient_id)["cohort"], "values": vals}
 
     @api.get("/replay/sessions/{session_id}/twin", response_model=TwinState, responses=ERRORS)
-    def twin(session_id: str):
-        s = synced(session_id)
+    def twin(session_id: str, request: Request):
+        s = synced(session_id, request)
         with s.lock:
             return s.engine.twin_state(s.clock, s.timeline.released(s.clock))
 
@@ -325,8 +394,8 @@ def create_app() -> FastAPI:
         return {k: v for k, v in f.items() if not k.startswith("_")}
 
     @api.get("/replay/sessions/{session_id}/forecast", response_model=LatestForecast, responses=ERRORS)
-    def latest_forecast(session_id: str):
-        s = synced(session_id)
+    def latest_forecast(session_id: str, request: Request):
+        s = synced(session_id, request)
         with s.lock:
             fc = s.engine.forecasts
             base = {"schema_version": "1.0", "session_id": s.id, "session_revision": s.revision,
@@ -352,9 +421,9 @@ def create_app() -> FastAPI:
                     "age_minutes": round(age, 1), "reasons": reasons, "forecast": public(last)}
 
     @api.get("/replay/sessions/{session_id}/forecasts", response_model=ForecastPage, responses=ERRORS)
-    def forecasts(session_id: str, cursor: str | None = None, limit: int = Query(100, ge=1, le=500),
-                  order: Literal["asc", "desc"] = "asc"):
-        s = synced(session_id)
+    def forecasts(session_id: str, request: Request, cursor: str | None = None,
+                  limit: int = Query(100, ge=1, le=500), order: Literal["asc", "desc"] = "asc"):
+        s = synced(session_id, request)
         with s.lock:
             fc = [f for f in s.engine.forecasts if f["_origin"] <= s.clock + 1e-6]
             if order == "desc":
@@ -394,8 +463,8 @@ def create_app() -> FastAPI:
         }
 
     @api.get("/replay/sessions/{session_id}/alerts", response_model=AlertList, responses=ERRORS)
-    def alerts(session_id: str):
-        s = synced(session_id)
+    def alerts(session_id: str, request: Request):
+        s = synced(session_id, request)
         with s.lock:
             serving = s.engine.serving
             items = [alert_view(s, a) for a in s.engine.alerts] if serving else []
@@ -412,8 +481,8 @@ def create_app() -> FastAPI:
 
     @api.post("/replay/sessions/{session_id}/alerts/{alert_id}/acknowledgement", response_model=Alert,
               responses=ERRORS)
-    def acknowledge(session_id: str, alert_id: str, req: AcknowledgementRequest | None = None):
-        s = synced(session_id)
+    def acknowledge(session_id: str, alert_id: str, request: Request, req: AcknowledgementRequest | None = None):
+        s = synced(session_id, request)  # the caller's own session first: another visitor's alert IDs are unreachable
         with s.lock:
             a = next((x for x in s.engine.alerts if x.alert_id == alert_id), None)
             if a is None:
@@ -427,9 +496,20 @@ def create_app() -> FastAPI:
     def evaluations():
         return evidence.list_experiments()
 
+    def no_participant_rows(rep: dict[str, Any]) -> dict[str, Any]:
+        """Public demo: pooled results only; per-participant rows of recorded-data evaluations are withheld."""
+        if not cfg.enabled:
+            return rep
+        rep = {**rep, "per_patient": []}
+        rep["optional_experiments"] = [{k: v for k, v in o.items() if k != "results"}
+                                       if o.get("results") and any("participant" in r for r in o["results"]
+                                                                   if isinstance(r, dict)) else o
+                                       for o in rep.get("optional_experiments", [])]
+        return rep
+
     @api.get("/evaluations/latest", response_model=EvaluationReport)
     def evaluation():
-        return build_report()
+        return no_participant_rows(build_report())
 
     @api.get("/evaluations/{experiment_id}", response_model=EvaluationReport, responses=ERRORS)
     def evaluation_by_id(experiment_id: str):
@@ -438,7 +518,7 @@ def create_app() -> FastAPI:
         rep = build_report(experiment_id)
         if rep["status"] == "not_run":
             raise ApiError(404, "experiment_not_found", f"No saved metrics for experiment {experiment_id!r}.")
-        return rep
+        return no_participant_rows(rep)
 
     @api.get("/research/{experiment_id}", response_model=ResearchReport, responses=ERRORS)
     def research(experiment_id: str):
@@ -461,6 +541,25 @@ def create_app() -> FastAPI:
         return evidence.dataset_inventory()
 
     app.include_router(api)
+
+    dist = os.environ.get("GLUCOTWIN_WEB_DIST")
+    if dist:
+        root = Path(dist).resolve()
+        index = root / "index.html"
+        if not index.is_file():
+            raise RuntimeError(f"GLUCOTWIN_WEB_DIST={dist!r} has no index.html; build the web app first.")
+
+        @app.get("/{path:path}", include_in_schema=False)
+        def web(path: str):
+            """The built web app: real files as they are, any other non-API path falls back to the SPA."""
+            if path == "api" or path.startswith("api/"):
+                raise StarletteHTTPException(404, "Not Found")
+            f = (root / path).resolve()
+            if path and f.is_file() and f.is_relative_to(root):
+                cache = "public, max-age=31536000, immutable" if path.startswith("assets/") else "no-cache"
+                return FileResponse(f, headers={"Cache-Control": cache})
+            return FileResponse(index, headers={"Cache-Control": "no-cache"})
+
     return app
 
 

@@ -2848,3 +2848,18 @@ fieldset.field {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------------------------------------------------------------- Public synthetic demonstration banner (hosted only) */
+.demo-banner {
+  border-bottom: 1px solid var(--gt-divider);
+  border-left: 3px solid var(--gt-accent);
+  background: var(--gt-bg);
+  color: var(--gt-text);
+  font-size: var(--gt-fs-small);
+  line-height: 1.45;
+  padding: var(--gt-2) var(--gt-page-x);
+}
+.demo-banner strong {
+  color: var(--gt-accent-text);
+  font-weight: 600;
+}
