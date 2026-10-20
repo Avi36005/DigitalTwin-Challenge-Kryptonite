@@ -22,10 +22,11 @@
  "max_abs_diff_mg_dl": 0.049997560197851953,
  "over_tolerance": 0,
  "outcome": "pass",
- "checked_at": "2026-10-20T17:00:54+00:00",
+ "checked_at": "2026-10-20T17:44:10+00:00",
  "revision": {
-  "commit": "40c3229827f573614ca04eaecd14e735d98f1d3d",
+  "commit": "002c4ce38ad076849d4579d61a72d2b8778a16fe",
   "dirty": false
  },
- "seconds": 34.9
+ "check_script_sha256": "49b9a40b38b9f8b5c6d0dd8678be7617e7103d2ff4cb9504527457532d1a0947",
+ "seconds": 40.2
 }

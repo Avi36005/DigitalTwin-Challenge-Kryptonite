@@ -580,6 +580,33 @@
    ]
   },
   {
+   "id": "parity",
+   "claim": "App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
+   "model": "demo model online (TwinEngine) vs offline",
+   "population": "final test segment, 14 people",
+   "horizon": "30, 60 min",
+   "type": "software test",
+   "protocol": "configs/experiments/gt-primary-2026-10-13-fusion.yaml",
+   "artifact": "reports/serving_parity.json",
+   "report": "reports/serving_parity.md",
+   "split_hash": "—",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "forecasts compared (saved parity run, outcome pass for the serving model)",
+     "artifact": "15,440",
+     "readme": "15,440",
+     "result": "matches"
+    },
+    {
+     "label": "tolerance (mg/dL)",
+     "artifact": "0.05",
+     "readme": "0.05",
+     "result": "matches"
+    }
+   ]
+  },
+  {
    "id": "synthetic",
    "claim": "Synthetic demonstration model is fitted on fictional data, never evidence",
    "model": "synthetic-demo.lightgbm.dyn-v2.v1",
@@ -599,21 +626,6 @@
      "result": "matches"
     }
    ]
-  },
-  {
-   "id": "parity",
-   "claim": "App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
-   "model": "demo model online (TwinEngine) vs offline",
-   "population": "final test segment, 14 people",
-   "horizon": "30, 60 min",
-   "type": "software test",
-   "protocol": "configs/experiments/gt-primary-2026-10-13-fusion.yaml",
-   "artifact": "— (not saved as a file)",
-   "report": "reports/verification.md",
-   "split_hash": "—",
-   "status": "author-reported",
-   "checks": [],
-   "detail": "a one-off replay through TwinEngine recorded in the report, not saved as a file; `uv run pytest tests/test_v2_preserved.py` re-checks offline that the saved model bundles reproduce their saved adaptive forecasts"
   }
  ]
 }
