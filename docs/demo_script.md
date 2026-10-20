@@ -7,8 +7,10 @@ transcription said 15–20 minutes, and the challenge page governs (D-040). This
 displayed duration falls below 20:00. It is a plan, not a recording: rehearse with a timer, check the finished video is
 at least 20:00, then record the rendered and YouTube-displayed durations in `configs/submission.yaml` and the README.
 
-Every on-screen value in the live chapters was recorded from the running API by `scripts/demo_sequence.py`; see
-[`reports/demo_sequence.md`](../reports/demo_sequence.md) (Scene A = Participant 01, Scene B = Participant 12, Scenes C
+Every on-screen value in the live chapters was recorded from the running app: steps 1–6 by the browser test
+[`apps/web/e2e/judge-journey.spec.ts`](../apps/web/e2e/judge-journey.spec.ts) (screenshots in
+[`reports/ui/journey/`](../reports/ui/journey/)), the rest by `scripts/demo_sequence.py`
+([`reports/demo_sequence.md`](../reports/demo_sequence.md); Scene A = Participant 01, Scene B = Participant 12, Scenes C
 and E = synthetic). The two-hour numbers come from [`reports/two_hour_benchmark.md`](../reports/two_hour_benchmark.md).
 If a value on screen differs (for example after re-running an experiment), narrate what the screen shows — never the
 number written here. The deck has 24 slides; slides not shown in the video stay in the PDF for the judges.
@@ -18,24 +20,25 @@ number written here. The deck has 24 slides; slides not shown in the video stay 
 | Video time | Segment | Duration | Shown | Narration (words) |
 |---|---|---|---|---|
 | 00:00–02:00 | Opening, team, problem and use case | 2:00 | Slides 1–3 | 237 |
-| 02:00–03:00 | Live demo: opening a recorded replay | 1:00 | Landing → Overview → workspace | 86 |
-| 03:00–04:30 | The twin workspace and its guardrails | 1:30 | Workspace, *Review and guardrails* | 176 |
-| 04:30–05:30 | Evidence behind one forecast | 1:00 | Forecast details drawer | 98 |
-| 05:30–08:00 | Warnings with honest outcomes (Day 9), review note, review queue and review summary | 2:30 | Participant 01, Review queue | 231 |
+| 02:00–03:00 | Live demo: opening a recorded replay | 1:00 | Landing → Overview → Participant 01 at Day 9 · 20:38 | 94 |
+| 03:00–04:30 | Step 1 and 2: what the twin reads, and one forecast | 1:30 | *How the twin reached this forecast*, guardrails | 178 |
+| 04:30–05:30 | Step 3: pin the forecast, then see what happened | 1:00 | Forecast details → *Outcome* at 21:38 | 99 |
+| 05:30–08:00 | Step 4 and 5: warnings with honest outcomes, review and a frozen summary | 2:30 | Warnings list, review, Review summary (queue if time allows) | 163 |
 | 08:00–08:45 | Cutaway: data and architecture | 0:45 | Slides 5, 7 | 97 |
-| 08:45–10:45 | Guardrails in action: a real sensor gap | 2:00 | Participant 12 | 140 |
+| 08:45–10:45 | Step 6: a real sensor gap, abstention and recovery | 2:00 | Participant 12 | 169 |
 | 10:45–11:30 | Rewind: nothing from the future leaks in | 0:45 | Participant 12 | 49 |
 | 11:30–12:30 | Synthetic edge cases | 1:00 | Synthetic Participants E and C | 85 |
 | 12:30–13:30 | Model evidence and the safety guardrails | 1:00 | Model evidence | 153 |
 | 13:30–15:00 | Cutaway: measured results (end of the main narrative) | 1:30 | Slides 14, 17 | 153 |
-| 15:00–17:15 | Extension: research beyond the demo model | 2:15 | Slides 18, 19, 20 | 385 |
+| 15:00–17:15 | Extension: research beyond the demo model | 2:15 | Slides 18, 19, 20 | 475 |
 | 17:15–18:45 | Extension: the evidence inside the app | 1:30 | Model evidence (research view), Data quality | 105 |
 | 18:45–20:30 | Limits, next steps and links | 1:45 | Slides 22–24 | 189 |
 
 **Format (team decision, 20 Oct 2026):** slides only for the first two minutes, the app from **02:00**. The first fifteen
 minutes are the main narrative — 10:45 of it in the live app (about 72 %), with two short slide cutaways — and chapters
-12–14 extend it past the 20-minute minimum. Narration words are counted from this file (2,184 in total, recounted on
-20 Oct 2026): 1,123 in the 12.25 live minutes and 1,061 in the slide minutes. At about
+12–14 extend it past the 20-minute minimum. Narration words are counted from this file (2,246 in total, recounted on
+21 Oct 2026): 1,095 in the 12.25 live minutes and 1,151 in the slide minutes. Chapter 12 (475 words) is longer than its
+2:15 slot at 130 words per minute; trim it or let it run long before the extension's later chapters. At about
 130 words per minute, rehearse with a timer; if a live chapter runs short, pause on the screen rather than speed up.
 This is an estimate — only a timed rehearsal and the rendered file establish the real duration. YouTube chapters:
 paste the fourteen start times above into the video description.
@@ -80,77 +83,59 @@ paste the fourteen start times above into the video description.
 > whether we are watching recorded data or the synthetic demonstration.
 
 *Action:* **Open recorded demo** on the Overview (the same as **New replay** → *Recorded-data replay* →
-**Participant 01** → *Final test period* → **Start replay**).
+**Participant 01** → *Final test period* → **Start replay**); then drag the timeline to **Day 9 · 20:38** and release.
 > This is Participant 01 in the final test period — the later recordings of a person the model was trained on, so a
-> test over time, not a new patient. The clock reads Day 9, 08:14.
+> test over time, not a new patient. We jump to the evening of Day 9, 20:38. Glucose is 165 and rising.
 
-## Chapter 3 — The twin workspace and its guardrails (03:00–04:30)
+## Chapter 3 — Step 1 and 2: what the twin reads, and one forecast (03:00–04:30)
 
-The clock shows **Day 9 · 08:14**; current glucose **115** (08:10); 30-min forecast **119**, range **103–136**; 60-min
-**129**, range **103–155**; patient correction **active** (Scene A).
-> The current reading is 115. The twin forecasts 119 in thirty minutes and 129 in sixty, each with a prediction range
-> whose target coverage is eighty percent. In the chart, the black line is observed glucose, the blue points are the
-> newest forecasts, and the faint circles are earlier forecasts, saved and never changed.
+*Action:* scroll to **How the twin reached this forecast**; point at *Inputs at issue time*
+([screenshot](../reports/ui/journey/01-inputs-read-by-the-model.png)).
+> First, what the twin knows about this person. Health record: read by this model; eight values known — age, sex,
+> BMI, HbA1c, fasting glucose, fasting insulin, triglycerides and HDL cholesterol. Body weight, height, ethnicity and
+> the cholesterol fractions are shown for context only; the model does not read them. Wearable activity: five-minute
+> summaries from the last hour were available and used.
 
-*Action:* point at the **Guardrails** block in the *Review and guardrails* inspector; read each row as the screen
-shows it.
-> On the right are the guardrails that applied to this forecast. *Data freshness*: the latest reading is fresh, with
-> its age and the fifteen-minute limit. *Forecast inputs*: complete, with how many readings arrived in the last hour.
-> *Health record*: every profile value this model reads was known at this time — if one were missing, it would
-> abstain. *Patient correction*: learned only from forecasts whose outcome was observed, capped at twenty-five
-> milligrams, reset after a three-hour gap. *Warnings*: what has been issued so far and how each ended. *Prediction
-> range*: the eighty-percent target, and the coverage actually measured on the test period — about seventy-four
-> percent, so no guarantee. *All safety guardrails* opens the full list; we will come back to it.
+*Action:* point at the forecast table, *Patient correction*, *Prediction range* and *Accuracy at this trend*
+([screenshot](../reports/ui/journey/02-forecast-components.png)).
+> The forecast issued at 20:35. The population model said 192 at thirty minutes and 195 at sixty. This person's own
+> correction — learned from 713 and 707 observed outcomes, bounded at plus or minus twenty-five — moved them by minus
+> 3.0 and minus 6.7, to 189 and 188. The range targets eighty percent, but measured 74.2 and 74.0 percent on the test
+> period. And glucose is rising 3.3 per minute: at this trend this model's sixty-minute error was 35.3 milligrams,
+> against 19.5 when steady, and its range held the outcome only 46 percent of the time. On the right, the guardrails
+> that applied to this forecast; and at 20:30 the twin issued a warning — outcome pending.
 
-## Chapter 4 — Evidence behind one forecast (04:30–05:30)
+## Chapter 4 — Step 3: pin the forecast, then see what happened (04:30–05:30)
 
-*Action:* **Step 1 h** → **Day 9 · 09:14**: glucose **149**; forecasts **168** (151–184) and **161** (134–187). Click
-**View forecast details** in the inspector.
-> Every forecast is an immutable record. Here is its information cutoff, the model version and the evaluation period.
-> And here is what makes it a twin: the population forecast, plus this patient's own correction learned from earlier
-> errors, gives the final forecast — read the two numbers on screen. The explanations are factual associations, not
-> causes. Nothing in this drawer can change after the fact. The population model is shared by everyone; the
-> correction belongs to this person alone, and it only moves once a forecast's real outcome has arrived. Model weights
-> are never refit during the replay.
+*Action:* click **View forecast details** (the drawer opens on the 20:35 forecast: cutoff, model version, evaluation
+period); press **Esc** — the forecast stays pinned. Click **Step 1 h** → **Day 9 · 21:38**; click **View forecast
+details** again and point at *Outcome* ([screenshot](../reports/ui/journey/03-forecast-outcome.png)).
+> Every forecast is an immutable record; this one is pinned while the replay moves on one hour. Now the outcome is
+> known. Thirty minutes ahead it said 189, and the sensor read 189 at 21:05 — an error of zero, where the population
+> model alone was three too high, so the correction moved it 3.0 closer. Sixty minutes ahead it said 188 and the
+> reading at 21:35 was 169 — nineteen too high — but the population model alone was 25.8 too high, so the correction
+> moved it 6.7 closer. One case says nothing about how often that happens.
 
-## Chapter 5 — Warnings with honest outcomes (05:30–08:00)
+## Chapter 5 — Step 4 and 5: warnings with honest outcomes, review and a frozen summary (05:30–08:00)
 
-*Action:* close the drawer; **Step 5 min** twice → **Day 9 · 09:24** (glucose **158**).
-> Glucose is rising. At 09:15 the twin issued a research warning: a forecast reached the warning trigger of 170 — ten
-> below the 180 threshold, a margin chosen on validation data. The Review panel names the forecast that fired and the
-> trigger; scroll down, and the Warnings list marks 09:15 *Outcome pending*, because at this replay time the outcome
-> cannot be known yet.
+*Action:* press **Esc**; scroll to the **Warnings** list ([screenshot](../reports/ui/journey/04-warnings-hit-and-false-alarm.png)).
+> The 20:30 warning now has its outcome: a sustained episode began at 20:45 — a forecast lead of fifteen minutes. Earlier
+> today, warnings at 09:15 and 11:25 ended without an episode: false alarms, and the list says so. We show them on
+> purpose. Across the test period this rule caught 61 of 64 new episodes, with 1.49 false alarms per observed
+> patient-day.
 
-*Action:* **Step 1 h** twice → **Day 9 · 11:24**.
-> Now it is known: no sustained episode followed. That was a false alarm, and the app says so.
+*Action:* on the 20:30 warning click **Mark as reviewed**, type *"Seen; recheck after dinner."*, **Save review**; click
+**Review summary** in the header ([screenshot](../reports/ui/journey/05-frozen-review-summary.png)) and show **Print /
+Save as PDF**. Press **Esc**, click **Step 5 min** once (→ **21:43**) and open **Review summary** again. Do not seek in
+this replay after reviewing: a seek starts a new revision and the review count resets.
+> A clinician records that they reviewed the warning, with a note. The review summary freezes what was known: the
+> participant, the session and its revision 2, the model version, the cutoff at 21:38 replay time — kept apart from the
+> wall-clock time of the review — and the note. When the replay moves on to 21:43, the copy does not change; the
+> summary only says the replay has moved since it was taken.
 
-*Action:* drag the timeline to about **Day 9 · 20:03**, release; point at the Warnings list (09:15 and 11:25, both
-*No onset (false alarm)*).
-> A second warning at 11:25 also ended without an episode — two false alarms today. We show them on purpose: across
-> the test period this rule raised 1.49 false alarms per observed patient-day.
-
-*Action:* **Step 5 min** seven times → **Day 9 · 20:38**; click **View forecast details** once and close it (this keeps
-the 20:35 forecast selected for later).
-> At 20:30 the twin warned again. Glucose is now 165 and the thirty-minute forecast is 189. Outcome pending.
-
-*Action:* **Step 5 min** seven more times → **Day 9 · 21:13**; scroll to the **Warnings** list.
-> Glucose is 190. A sustained episode began at 20:45 — fifteen minutes after the warning. The top three entries are today's:
-> two false alarms and one matched onset, with its forecast lead. On the whole test period this rule caught 61 of 64
-> new episodes.
-
-*Action:* **Step 1 h** → **Day 9 · 22:13**, then click **View forecast details** (it opens the selected 20:35 forecast);
-point at *Outcome*.
-> Now we can check that forecast against what happened. Thirty minutes ahead it said 189, and the sensor read 189.
-> Sixty minutes ahead it said 188 and the reading was 169 — nineteen too high — but the patient correction had moved
-> it almost seven milligrams closer than the population model alone. One case says nothing about how often that happens.
-
-*Action:* close the drawer; on the 20:30 warning click **Mark as reviewed**, type a short note (*"Seen; recheck after dinner"*), save. Click
-**Review queue** in the sidebar, point at this replay's row, then **Open** to come back; click **Review summary** in the
-header and show **Print / Save as PDF**. Do not seek again in this replay after reviewing: a seek starts a new revision
-and the review count resets.
-> A clinician records that they reviewed the warning, with a note. The review queue lists the replays with unreviewed
-> warnings first — an order of work, not a risk ranking — and its counts stop at each replay's own clock. The review
-> summary freezes what was known at this moment into a printable page.
+*Action (if time allows):* sidebar → **Review queue**; point at this replay's row; **Open** to come back.
+> The review queue lists replays with unreviewed warnings first — an order of work, not a risk ranking — and its counts
+> stop at each replay's own clock.
 
 ## Chapter 6 — Cutaway: data and architecture (08:00–08:45) · slides 5, 7
 
@@ -162,21 +147,25 @@ and the review count resets.
 > the clock; the twin adapts to the patient, adds a range, a warning and guardrails, and the same code runs offline and
 > online. We have not shown that the profile improves forecasts for new patients.
 
-## Chapter 7 — Guardrails in action: a real sensor gap (08:45–10:45)
+## Chapter 7 — Step 6: a real sensor gap, abstention and recovery (08:45–10:45)
 
 *Action:* **New replay** → **Participant 12** → *Final test period* → seek to **Day 9 · 10:27** (Scene B; this timeline stops at :x2/:x7 minutes).
 > Participant 12's own record has a seventy-minute gap in its test period. At 10:27 glucose is 397 — already high; the
 > review panel says so, and keeps that observation separate from predictions.
 
 *Action:* seek to **Day 9 · 10:52**, then **11:32**; point at *Data freshness* and the forecast cards.
-> The last reading was at 10:29. The guardrail turns: data freshness is *Stale*, twenty-three minutes and then over an hour
-> old, over the fifteen-minute limit. No new forecast is made without a new reading; the last one stays visible, marked
-> stale, and the chart leaves the gap empty instead of drawing a line through it. A warning open across such a gap
-> would be marked *Outcome unknown (gap)*, never counted as a hit.
+> The last reading, 391, was at 10:29. The guardrail turns: data freshness is *Stale*, twenty-three minutes and then over
+> an hour old, over the fifteen-minute limit. No new forecast is made without a new reading; the last one stays visible,
+> marked stale, and the chart leaves the gap empty instead of drawing a line through it.
 
-*Action:* seek to **Day 9 · 11:47**; point at *Forecast inputs*.
-> Readings have resumed — 195 at 11:44 — but the last hour is too sparse, so the twin abstains: *Abstained, no forecast
-> is shown*, with the plain reason. Unavailable is never displayed as low risk.
+*Action:* seek to **Day 9 · 11:47**; point at *Forecast inputs* and the forecast cards
+([screenshot](../reports/ui/journey/06-gap-abstention.png)).
+> Readings have resumed — 195 at 11:44 — but the last hour is too sparse, so the twin abstains: both forecasts read
+> *Not available*, with the plain reason, and *Unavailable is not the same as low risk*. No number is made up.
+
+*Action:* **Step 5 min** four times → **Day 9 · 12:07** ([screenshot](../reports/ui/journey/06b-gap-recovery.png)).
+> Enough new readings have arrived, so the twin forecasts again: 79 milligrams per decilitre at sixty minutes, range 53
+> to 105, labelled *Degraded data* with its reason — recovery is shown as it is, not as a clean success.
 
 ## Chapter 8 — Rewind: nothing from the future leaks in (10:45–11:30)
 

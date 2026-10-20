@@ -52,15 +52,18 @@ computed on synthetic participants is clinical evidence. Recorded-data replays n
 Each click shows one claim, on a local install with CGMacros imported (`make data experiment`). Without the download,
 the synthetic demonstration shows the same screens on fictional participants.
 
-| Time | Click | What it shows | Claim it supports |
+| Time | Step and click | What it shows ([screenshots](../reports/ui/journey/)) | Claim it supports |
 |---|---|---|---|
-| 0:00 | Landing → **Open workspace** → **Open recorded demo** | Participant 01, final test period, Day 9 · 08:14; **View forecast details** names the model `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion` | A replay of recorded data with the exact serving model — never a live sensor |
-| 0:20 | Inspector → **How the twin reached this forecast** | Population forecast + patient correction = final forecast; correction state, matured outcomes and the ±25 mg/dL bound; inputs used | Profile and wearable data are read by the model; personalisation is bounded and past-only |
-| 0:50 | Drag the timeline to **Day 9 · 20:38**, then step to **21:13** | Warning at 20:30 *Outcome pending*, then matched to the 20:45 onset; the two earlier false alarms stay listed | Every warning ends with an outcome, false alarms included |
-| 1:20 | On the 20:30 warning: **Mark as reviewed** with a note → **Review summary** → *Print / Save as PDF* | A frozen record of that revision and cutoff, replay time and wall-clock time labelled separately | The review is traceable and does not change when the replay moves on |
-| 1:50 | **New replay** → Participant 12 → seek to **Day 9 · 10:52**, then **11:47** | Data freshness *Stale* across a real 70-minute sensor gap, then *Abstained* | Missing data is shown, never filled in; no forecast is better than a guessed one |
-| 2:20 | **Review queue** | Replays with unreviewed warnings first; counts stop at each replay's clock | An order of work, not a risk ranking |
-| 2:40 | **Model evidence** → research view | Results with who they were measured on; *Shown*, *Not shown* and *Negative result* tags | Matched baselines and negative results, read from saved files ([evidence manifest](../reports/evidence_manifest.md)) |
+| 0:00 | Landing → **Open workspace** → **Open recorded demo**; drag the timeline to **Day 9 · 20:38** | Participant 01, final test period, glucose 165 and rising | A replay of recorded data — never a live sensor |
+| 0:15 | **1** · *How the twin reached this forecast* → inputs | "Health record: read by this model; 8 values known (Age, Sex (male = 1), BMI, HbA1c, Fasting glucose, Fasting insulin, Triglycerides, HDL cholesterol)"; body weight, height, ethnicity and cholesterol fractions marked context only; wearable 5-minute summaries available and used ([01](../reports/ui/journey/01-inputs-read-by-the-model.png)) | The profile and wearable data are model inputs, and the app says exactly which |
+| 0:35 | **2** · the same panel → forecast table | 20:35 forecast: population 192 / 195, correction −3.0 / −6.7 (713 / 707 observed outcomes, bounded ±25 mg/dL), final 189 / 188; range target 80 %, measured 74.2 % / 74.0 %; rising 3.3 mg/dL/min, 60-min error 35.3 vs 19.5 when steady, range held 46 % at that trend ([02](../reports/ui/journey/02-forecast-components.png)) | Personalisation is bounded and past-only; uncertainty limits are shown, not hidden |
+| 1:00 | **3** · **View forecast details** (pins it) → **Esc** → **Step 1 h** (21:38) → **View forecast details** → *Outcome* | 30 min: observed 189 at 21:05, error +0.0 (population +3.0, correction 3.0 closer); 60 min: observed 169 at 21:35, error +19.1 (population +25.8, correction 6.7 closer) ([03](../reports/ui/journey/03-forecast-outcome.png)) | Each forecast can be checked against the reading that followed |
+| 1:30 | **4** · Warnings list | 20:30 warning → onset 20:45, forecast lead 15 min; 09:15 and 11:25 marked *No onset (false alarm)* ([04](../reports/ui/journey/04-warnings-hit-and-false-alarm.png)) | Every warning ends with an outcome, false alarms included |
+| 1:55 | **5** · **Mark as reviewed** with a note → **Review summary**; step 5 min and reopen it | Participant, session and revision 2, model `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`, cutoff Day 9 · 21:38 (replay time), the note; after the step the copy is unchanged and says the replay has moved to 21:43 ([05](../reports/ui/journey/05-frozen-review-summary.png)) | The review is traceable and frozen at its cutoff |
+| 2:25 | **6** · **New replay** → Participant 12 → seek **10:52**, **11:47**, then **Step 5 min** ×4 | 391 *Stale* across a real sensor gap; at 11:47 both forecasts *Not available* ("Unavailable is not the same as low risk"); at 12:07 a forecast again — 79 mg/dL at 60 min (53–105), *Degraded data* ([06](../reports/ui/journey/06-gap-abstention.png), [06b](../reports/ui/journey/06b-gap-recovery.png)) | Missing data is shown, never filled in; recovery is labelled honestly |
+
+The same six steps run as an automated browser test, [`apps/web/e2e/judge-journey.spec.ts`](../apps/web/e2e/judge-journey.spec.ts),
+which also checks that a rewind clears the pinned forecast and that the review queue never shows an unknown count as zero.
 
 ## 4. Evidence you can verify yourself
 
