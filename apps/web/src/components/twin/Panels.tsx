@@ -14,6 +14,7 @@ import type {
   Alert,
   AlertList,
   EvaluationReport,
+  EvaluationSegment,
   Forecast,
   HorizonEstimate,
   LatestForecast,
@@ -343,7 +344,7 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
  * the 3-hour reset hold for every model in the registry).
  */
 export function guardChecks(session: ReplaySession, latest?: LatestForecast, twin?: TwinState, alerts?: AlertList,
-  report?: EvaluationReport): Guard[] {
+  report?: EvaluationReport, segments?: EvaluationSegment[] | null): Guard[] {
   const out: Guard[] = [];
   const fr = session.freshness;
   out.push(fr.status === "fresh"
@@ -372,7 +373,9 @@ export function guardChecks(session: ReplaySession, latest?: LatestForecast, twi
     out.push({ label: "Forecast inputs", tone: "attention", value: "Degraded: forecast shown with a flag", note: why || undefined });
   } else {
     out.push({ label: "Forecast inputs", tone: "ok", value: "Complete",
-      note: v60 === undefined ? undefined : `${v60} of ~12 expected readings in the last hour` });
+      // twin.history is counted at the replay clock, which can be later than the forecast: say so
+      note: v60 === undefined ? undefined
+        : `${plural(v60, "reading")} in the hour before the replay clock (about 12 expected)` });
   }
 
   const usesProfile = modelUsesProfile(f?.model_version ?? twin?.model_version);
@@ -409,27 +412,42 @@ export function guardChecks(session: ReplaySession, latest?: LatestForecast, twi
     const parts = [by("onset_observed") && plural(by("onset_observed"), "onset"),
       by("no_onset_observed") && plural(by("no_onset_observed"), "false alarm"),
       pending && `${pending} pending`, by("unknown") && `${by("unknown")} unknown (gap)`].filter(Boolean);
+    // the engine replays the whole recording, so the list starts at the recording, not at the period the replay opened on
+    const test = segments?.find((sg) => sg.name === "test");
+    const inTest = test ? alerts.items.filter((a) => ms(a.issued_at) >= ms(test.start_at) && ms(a.issued_at) < ms(test.end_at)).length : null;
+    const scope = inTest === null ? "" : inTest === n ? "All issued in the final test period. "
+      : `${inTest} of them in the final test period; the rest fall in the training, validation or calibration periods. `;
     out.push(n === 0
-      ? { label: "Warnings", tone: "ok", value: "None issued so far in this replay" }
-      : { label: "Warnings", tone: pending ? "attention" : "ok", value: `${plural(n, "research warning")} so far in this replay: ${parts.join(" · ")}`,
-        note: "Each stays “Outcome pending” until it can be judged, then counts as an onset or a false alarm." });
+      ? { label: "Warnings", tone: "ok", value: "None issued since the start of this recording" }
+      : { label: "Warnings", tone: pending ? "attention" : "ok",
+        value: `${plural(n, "research warning")} since the start of this recording: ${parts.join(" · ")}`,
+        note: `${scope}Each stays “Outcome pending” until it can be judged, then counts as an onset or a false alarm.` });
   }
 
   const est = f?.estimates.find((e) => e.interval_level != null);
   if (f && !abstained) {
     const cov = measuredCoverage(report, f.model_version);
+    const target = est?.interval_level as number;
+    const under = !!cov && cov.byHorizon.some((b) => b.coverage != null && b.coverage < target);
+    const where = cov ? `final test period, ${cov.byHorizon.map((b) => b.horizon).join(" / ")} min` : "";
     out.push(!est || est.interval_status !== "calibrated"
       ? { label: "Prediction range", tone: "attention", value: "Unavailable for this forecast" }
-      : { label: "Prediction range", tone: "ok", value: `${Math.round((est.interval_level as number) * 100)}% target coverage`,
-        note: cov ? `Measured on the final test period: ${cov.byHorizon.map((b) => `${fmtPct(b.coverage, 1)} at ${b.horizon} min`).join(", ")}; no guarantee.`
-          : f.mode === "synthetic_demo" ? "The synthetic model has no measured coverage on recorded data."
-            : "No measured coverage for this model in the evaluation report." });
+      : under && cov
+        ? { label: "Prediction range", tone: "attention",
+          value: `Under target: ${cov.byHorizon.map((b) => fmtPct(b.coverage, 1)).join(" / ")} measured vs ${fmtPct(target)} target`,
+          note: `Measured on the ${where}: the ranges are narrower than they should be. Coverage varies by participant; no guarantee.` }
+        : { label: "Prediction range", tone: "ok", value: `${fmtPct(target)} target coverage`,
+          note: cov ? `Measured on the ${where}: ${cov.byHorizon.map((b) => fmtPct(b.coverage, 1)).join(" / ")}; no guarantee.`
+            : f.mode === "synthetic_demo" ? "The synthetic model has no measured coverage on recorded data."
+              : "No measured coverage for this model in the evaluation report." });
   }
   return out;
 }
 
-export function Guardrails({ session, latest, twin, alerts, report, more }: {
+export function Guardrails({ session, latest, twin, alerts, report, segments, more }: {
   session: ReplaySession; latest?: LatestForecast; twin?: TwinState; alerts?: AlertList; report?: EvaluationReport;
+  /** the participant's evaluation segments, to say how many warnings fall in the final test period */
+  segments?: EvaluationSegment[] | null;
   /** a link to the full list, rendered under the checks */
   more?: ReactNode;
 }) {
@@ -442,7 +460,7 @@ export function Guardrails({ session, latest, twin, alerts, report, more }: {
           : <>Checks applied before any forecast is shown.</>}
       </p>
       <ul className="guards">
-        {guardChecks(session, latest, twin, alerts, report).map((g) => {
+        {guardChecks(session, latest, twin, alerts, report, segments).map((g) => {
           const Icon = GUARD_ICON[g.tone];
           return (
             <li key={g.label} className={`guard guard--${g.tone}`}>

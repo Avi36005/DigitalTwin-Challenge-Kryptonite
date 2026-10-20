@@ -173,8 +173,8 @@ describe("guardrails", () => {
     render(<Guardrails session={session()} latest={latest(forecast())} twin={twin(12)} alerts={outcomes()} />);
     expect(screen.getByText(/Fresh · 3 min old/)).toBeInTheDocument();
     expect(screen.getByText("Complete")).toBeInTheDocument();
-    expect(screen.getByText("12 of ~12 expected readings in the last hour")).toBeInTheDocument();
-    expect(screen.getByText("None issued so far in this replay")).toBeInTheDocument();
+    expect(screen.getByText("12 readings in the hour before the replay clock (about 12 expected)")).toBeInTheDocument();
+    expect(screen.getByText("None issued since the start of this recording")).toBeInTheDocument();
     expect(screen.getByText("80% target coverage")).toBeInTheDocument();
     expect(screen.getByText("The synthetic model has no measured coverage on recorded data.")).toBeInTheDocument();
     expect(screen.queryByText("Health record (profile)")).toBeNull(); // the synthetic model's inputs are not encoded in its version
@@ -203,7 +203,30 @@ describe("guardrails", () => {
     expect(screen.getByText("Every value the model reads was known at this time")).toBeInTheDocument();
     expect(screen.getByText("30 min +2.1 · 60 min −3.0 mg/dL")).toBeInTheDocument();
     expect(screen.getByText(/needs 6; capped at ±25 mg\/dL; resets after a 3-hour gap/)).toBeInTheDocument();
-    expect(screen.getByText("3 research warnings so far in this replay: 1 onset · 1 false alarm · 1 pending")).toBeInTheDocument();
+    expect(screen.getByText("3 research warnings since the start of this recording: 1 onset · 1 false alarm · 1 pending")).toBeInTheDocument();
+  });
+
+  it("flags ranges whose measured coverage is under target instead of ticking them", async () => {
+    const { Guardrails } = await import("./Panels");
+    const report = { status: "completed", experiment_id: "exp", protocol: { model_version: FUSION, intervals: { level: 0.8 } },
+      forecast_results: [{ selected_for_serving: true, model_label: "LightGBM", personalization: "adaptive" }],
+      interval_results: [[30, 0.742], [60, 0.74]].map(([h, c]) => ({ split: "test", model_label: "LightGBM (adaptive)", horizon_minutes: h,
+        empirical_coverage: { value: c }, per_patient_coverage_min: 0.5, per_patient_coverage_max: 0.9, interval_level: 0.8 })) } as never;
+    render(<Guardrails session={session()} latest={latest(forecast({ model_version: FUSION, mode: "dataset_replay" }))} report={report} />);
+    expect(screen.getByText("Under target: 74.2% / 74.0% measured vs 80% target")).toBeInTheDocument();
+    expect(screen.getByText(/final test period, 30 \/ 60 min: the ranges are narrower than they should be/)).toBeInTheDocument();
+    expect(screen.getByText("Under target: 74.2% / 74.0% measured vs 80% target").closest("li")).toHaveClass("guard--attention");
+  });
+
+  it("says how many warnings fall in the final test period, so earlier ones are not read as test results", async () => {
+    const { Guardrails } = await import("./Panels");
+    const alerts = { rule_available: true, items: ["2000-01-05T10:00:00Z", "2000-01-06T10:00:00Z", "2000-01-09T10:00:00Z"]
+      .map((t) => ({ state: "closed", issued_at: t, outcome: { status: "no_onset_observed" } })) } as never;
+    const segments = [{ name: "training", start_at: "2000-01-03T00:00:00Z", end_at: "2000-01-08T00:00:00Z" },
+      { name: "test", start_at: "2000-01-08T00:00:00Z", end_at: "2000-01-12T00:00:00Z" }] as never;
+    render(<Guardrails session={session()} latest={latest(forecast())} alerts={alerts} segments={segments} />);
+    expect(screen.getByText("3 research warnings since the start of this recording: 3 false alarms")).toBeInTheDocument();
+    expect(screen.getByText(/^1 of them in the final test period; the rest fall in the training, validation or calibration periods\./)).toBeInTheDocument();
   });
 
   it("lists the eleven guardrails on the evidence page", async () => {

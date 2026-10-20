@@ -147,7 +147,8 @@ test("recorded-data replay in the final test period shows prediction ranges with
   const guards = page.getByRole("region", { name: "Guardrails" });
   await expect(guards).toContainText("Every value the model reads was known at this time");
   await expect(guards).toContainText("capped at ±25 mg/dL");
-  await expect(guards).toContainText("Measured on the final test period");
+  await expect(guards).toContainText(/Under target: [\d.]+% \/ [\d.]+% measured vs 80% target|80% target coverage/);
+  await expect(guards).toContainText("readings in the hour before the replay clock");
   await page.getByRole("button", { name: "View forecast details" }).click();
   await expect(page.getByRole("dialog", { name: "Forecast details" })).toContainText("Final test period (later recordings from a participant represented in training)");
   await page.waitForTimeout(400); // let the drawer finish its short slide-in
@@ -324,6 +325,21 @@ test.describe("mobile", () => {
     const stripBox = await strip.boundingBox();
     const chartBox = await page.getByRole("heading", { name: "Glucose trace" }).boundingBox();
     expect(stripBox!.y).toBeLessThan(chartBox!.y);
+    // a long participant name truncates: the page does not scroll sideways and "New replay" stays on screen
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+    const newBox = await page.locator(".topbar__mobile-action").getByRole("button", { name: "New replay" }).boundingBox();
+    expect(newBox!.x + newBox!.width).toBeLessThanOrEqual(390);
+    // forecast details fit the drawer; only the estimate table may scroll, inside its own region
+    await page.getByRole("button", { name: "View forecast details" }).click();
+    const details = page.getByRole("dialog", { name: "Forecast details" });
+    await expect(details).toBeVisible();
+    await page.waitForTimeout(400); // let the drawer finish its short slide-in
+    const fit = await details.evaluate((d) => {
+      const body = d.querySelector(".dialog__body") as HTMLElement;
+      return { body: body.scrollWidth - body.clientWidth, drawer: d.getBoundingClientRect().right - window.innerWidth };
+    });
+    expect(fit.body).toBeLessThanOrEqual(1);
+    expect(fit.drawer).toBeLessThanOrEqual(1);
   });
 
   test("navigation drawer traps focus, closes on Escape and restores focus", async ({ page }) => {

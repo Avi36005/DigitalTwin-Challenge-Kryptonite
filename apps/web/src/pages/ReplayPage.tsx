@@ -157,6 +157,7 @@ export function ReplayPage({ sid }: { sid: string }) {
         <aside className="workspace__inspector" aria-label="Review and guardrails">
           <ReviewStatus latest={latest.data} alerts={alerts.data} />
           <Guardrails session={session} latest={latest.data} twin={twin.data} alerts={alerts.data} report={evaluation.data}
+            segments={patient.data?.evaluation_segments}
             more={<Link className="text-link guards__more" to={paths.evidence("safety-guardrails")}>All safety guardrails<ArrowRight size={14} aria-hidden /></Link>} />
           {(selected ?? latestF) && (
             <button type="button" className="text-btn inspector__link" onClick={() => setDetailOpen(true)}>

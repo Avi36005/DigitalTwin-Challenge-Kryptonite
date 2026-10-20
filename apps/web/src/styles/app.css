@@ -466,6 +466,12 @@ dialog.drawer[open] {
 .topbar__spacer {
   flex: 1;
 }
+.topbar__mobile-action {
+  flex: none;
+}
+.crumbs {
+  min-width: 0; /* a long participant name shrinks (ellipsis) instead of pushing the top-bar actions off-screen */
+}
 .crumbs ol {
   display: flex;
   align-items: center;
@@ -490,7 +496,11 @@ dialog.drawer[open] {
   color: var(--gt-text);
   text-decoration: underline;
 }
+.crumbs li:not(:last-child) {
+  flex: none;
+}
 .crumbs [aria-current="page"] {
+  display: block;
   color: var(--gt-text);
   font-weight: 500;
   white-space: nowrap;
@@ -1963,6 +1973,7 @@ dialog.dialog::backdrop {
   }
 }
 dialog.dialog--drawer {
+  max-width: 100%; /* the browser's modal max-width would leave a strip and narrow the drawer on phones */
   margin: 0 0 0 auto;
   height: 100vh;
   height: 100dvh;
@@ -2016,7 +2027,12 @@ dialog.dialog--drawer[open] {
 }
 .drawer-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr); /* sections never grow past the drawer; wide tables scroll in .table-scroll */
   gap: 22px;
+}
+.drawer-body .dl dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .drawer-body__h {
   font-size: 14px;
