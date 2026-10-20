@@ -250,6 +250,8 @@ class TwinEngine:
                         "reasons": [{"code": r, "message": QUALITY_MESSAGES.get(r, MODEL_MESSAGES.get(r, r))}
                                     for r in reasons]},
             "explanations": explanations, "split_segment": seg,
+            "glucose_trend_mg_dl_per_min": (float(row["slope_15"]) if "slope_15" in row.index
+                                            and np.isfinite(row["slope_15"]) else None),
             "_origin": t,
         }
 

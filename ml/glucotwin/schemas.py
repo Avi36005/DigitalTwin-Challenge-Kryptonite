@@ -379,6 +379,9 @@ class Forecast(Versioned):
     episode_state: EpisodeState
     quality: ForecastQuality
     explanations: list[Explanation]
+    glucose_trend_mg_dl_per_min: float | None = Field(
+        default=None, description="Least-squares slope of native readings over the 15 minutes before the origin (the "
+                                  "slope_15 feature); null with fewer than three readings.")
     split_segment: SplitSegment | None = Field(
         default=None,
         description="Evaluation segment that contains this origin. 'training' origins are in-sample for the model.",

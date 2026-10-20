@@ -188,7 +188,7 @@ export function ReviewDocument({ s }: { s: ReviewSnapshot }) {
         {s.forecast.reasons.length > 0 && <p className="review-doc__note">Reasons given by the twin: {s.forecast.reasons.join(" ")}</p>}
         <p className="review-doc__note">
           {s.coverage
-            ? <>Prediction ranges, measured on the final test period ({s.coverage.experiment}): {s.coverage.measured.map((m) => `${fmtPct(m.coverage, 1)} at ${m.horizon_minutes} min`).join(", ")} against a {fmtPct(s.coverage.target)} target. Coverage varies by participant; no guarantee.</>
+            ? <>Prediction ranges, measured on the final test period ({s.coverage.experiment}): {s.coverage.measured.map((m) => `${fmtPct(m.coverage, 1)} at ${m.horizon_minutes} min`).join(", ")} against an {fmtPct(s.coverage.target)} target. Coverage varies by participant; no guarantee.</>
             : <>No measured range coverage is available for this model version.</>}
         </p>
         {s.personalization && (

@@ -48,6 +48,16 @@ export interface CoverageLine {
   experiment: string | null;
 }
 
+/** This model's error at the forecast's glucose trend, from its validation segment (scripts/error_by_trend.py). */
+export interface TrendAccuracy {
+  slope: number;
+  label: string;
+  steady: boolean;
+  byHorizon: { horizon: number; mae: number | null; steadyMae: number | null; origins: number }[];
+  peakBias60: number | null;
+  experiment: string | null;
+}
+
 export interface Explanation {
   issuedAt: string;
   modelVersion: string | null;
@@ -56,6 +66,30 @@ export interface Explanation {
   inputs: InputsUsed;
   track: TrackRecord | null;
   coverage: CoverageLine;
+  trend: TrendAccuracy | null;
+}
+
+/**
+ * Error at the current trend for the exact model that issued the forecast, read from the evaluation report; null when
+ * the forecast has no 15-minute trend or the report holds no trend errors for that model version. Never borrowed.
+ */
+export function trendAccuracy(f: Forecast, report: EvaluationReport | undefined): TrendAccuracy | null {
+  const slope = f.glucose_trend_mg_dl_per_min;
+  const t = report?.error_by_trend;
+  if (slope == null || !t || !f.model_version || t.model_version !== f.model_version) return null;
+  const inStratum = (r: (typeof t.rows)[number]) => r.trend !== "all"
+    && (r.slope_min == null || slope > r.slope_min) && (r.slope_max == null || slope <= r.slope_max);
+  const hit = t.rows.find(inStratum);
+  if (!hit) return null;
+  const horizons = [...new Set(t.rows.map((r) => r.horizon))].sort((a, b) => a - b);
+  const row = (h: number, trend: string) => t.rows.find((r) => r.horizon === h && r.trend === trend);
+  return {
+    slope, label: hit.label, steady: hit.trend === "steady",
+    byHorizon: horizons.map((h) => ({ horizon: h, mae: row(h, hit.trend)?.mae_macro ?? null,
+      steadyMae: row(h, "steady")?.mae_macro ?? null, origins: row(h, hit.trend)?.origins ?? 0 })),
+    peakBias60: row(60, "all")?.mean_signed_error_target_above_180 ?? null,
+    experiment: report?.experiment_id ?? null,
+  };
 }
 
 /** Warning outcomes as known at ``cutoff``: an outcome resolved after the cutoff counts as pending. */
@@ -136,5 +170,6 @@ export function explainForecast(f: Forecast, opts: {
     // measured coverage only for the exact model that issued this forecast; never borrowed from another model
     coverage: { target: level, measured: cov ? cov.byHorizon.map((b) => ({ horizon: b.horizon, coverage: b.coverage })) : null,
       experiment: cov?.experiment ?? null },
+    trend: trendAccuracy(f, opts.report),
   };
 }

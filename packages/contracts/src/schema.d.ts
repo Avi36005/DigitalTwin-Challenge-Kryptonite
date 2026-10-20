@@ -1125,6 +1125,11 @@ export interface components {
             /** Explanations */
             explanations: components["schemas"]["Explanation"][];
             /**
+             * Glucose Trend Mg Dl Per Min
+             * @description Least-squares slope of native readings over the 15 minutes before the origin (the slope_15 feature); null with fewer than three readings.
+             */
+            glucose_trend_mg_dl_per_min?: number | null;
+            /**
              * Split Segment
              * @description Evaluation segment that contains this origin. 'training' origins are in-sample for the model.
              */

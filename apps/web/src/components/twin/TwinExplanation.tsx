@@ -110,6 +110,19 @@ function Body({ e, stale, age }: { e: Explanation; stale: boolean; age: number |
             </>
           )}
         </dd>
+        {e.trend && (
+          <>
+            <dt>Accuracy at this trend</dt>
+            <dd>
+              Glucose {e.trend.slope > 0 ? "rising" : e.trend.slope < 0 ? "falling" : "changing"} {Math.abs(e.trend.slope).toFixed(1)} mg/dL per
+              minute over the last 15 min ({e.trend.label.toLowerCase()}). On this model's validation data at this trend:{" "}
+              {e.trend.byHorizon.filter((b) => b.mae != null).map((b) => `${b.horizon}-min error ${b.mae!.toFixed(1)} mg/dL`
+                + (e.trend!.steady || b.steadyMae == null ? "" : ` (steady: ${b.steadyMae.toFixed(1)})`)).join("; ")}.
+              {e.trend.peakBias60 != null && e.trend.peakBias60 < 0 && <> Peaks above 180 mg/dL were under-forecast by {Math.abs(e.trend.peakBias60).toFixed(0)} mg/dL on average at 60 min.</>}
+              <span className="table__sub">Average error over many forecasts ({e.trend.experiment}, validation segment); descriptive, not a guarantee for this forecast.</span>
+            </dd>
+          </>
+        )}
       </dl>
     </>
   );

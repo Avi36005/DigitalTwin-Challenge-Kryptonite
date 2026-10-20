@@ -1,0 +1,126 @@
+GlucoTwin — Team Kryptonite (VESIT)
+Participant 12 · review summary
+Research replay review — not a medical report. A replay of recorded, de-identified data, not a live device; no
+treatment advice.
+Replay cutoff
+Day 9 · 11:45 (replay time)
+Generated
+Oct 20, 08:46 PM (wall clock, this computer)
+Data
+Recorded-data replay · CGMacros 1.0.0 (CC BY-NC-SA 4.0)
+Cohort
+Type 2 diabetes
+Session
+4f5640ca7f1f · revision 2
+Latest glucose
+195 mg/dL, observed Day 9 · 11:44 · 1 min old
+Forecast
+Availability
+Not available
+Issued
+Day 9 · 11:44
+Model
+lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion
+Evaluation context
+Final test period (later recordings from a participant represented in training)
+Input quality
+Insufficient — abstained
+Forecast unavailable — 2 readings in the last hour; more recent history is required. Unavailable is not
+the same as low risk.
+No forecast values: none was usable at the cutoff.
+Reasons given by the twin: The twin abstained at the latest origin. Too few glucose observations in the last
+60 minutes.
+Prediction ranges, measured on the final test period (gt-primary-2026-10-13-fusion): 74.2% at 30 min, 74.0% at
+60 min against a 80% target. Coverage varies by participant; no guarantee.
+Patient correction: active (30 min +3.6 mg/dL; 60 min +6.5 mg/dL). Learned only from forecasts whose
+outcome was observed; capped at ±25 mg/dL.
+
+Research warnings at the cutoff
+30 issued since the start of this recording: 22 onset, 8 false alarm, 0 pending, 0 unknown (gap). The 20
+most recent are listed below.
+Day 9 · 07:29 · Onset 08:39 · forecast lead 60 min · Fired by the 60-min forecast 180 mg/dL ≥ 170
+mg/dL trigger
+Day 8 · 18:54 · Onset 18:59 · forecast lead 5 min · Fired by the 60-min forecast 189 mg/dL ≥ 170
+mg/dL trigger
+Day 8 · 14:14 · No onset (false alarm) · Fired by the 60-min forecast 184 mg/dL ≥ 170 mg/dL trigger
+Day 8 · 04:19 · Onset 08:39 · forecast lead 60 min · Fired by the 60-min forecast 172 mg/dL ≥ 170
+mg/dL trigger
+Day 7 · 21:04 · Onset 21:09 · forecast lead 5 min · Fired by the 60-min forecast 184 mg/dL ≥ 170
+mg/dL trigger
+Day 7 · 19:14 · No onset (false alarm) · Fired by the 30-min forecast 176 mg/dL ≥ 170 mg/dL trigger
+Day 7 · 12:34 · Onset 17:19 · forecast lead 60 min · Fired by the 30-min forecast 178 mg/dL ≥ 170
+mg/dL trigger
+Day 7 · 05:39 · Onset 07:59 · forecast lead 60 min · Fired by the 60-min forecast 180 mg/dL ≥ 170
+mg/dL trigger
+Day 6 · 22:34 · No onset (false alarm) · Fired by the 60-min forecast 171 mg/dL ≥ 170 mg/dL trigger
+Day 6 · 13:09 · Onset 18:59 · forecast lead 50 min · Fired by the 60-min forecast 172 mg/dL ≥ 170
+mg/dL trigger
+Day 6 · 06:54 · Onset 07:54 · forecast lead 60 min · Fired by the 60-min forecast 176 mg/dL ≥ 170
+mg/dL trigger
+Day 5 · 17:44 · Onset 18:09 · forecast lead 25 min · Fired by the 60-min forecast 183 mg/dL ≥ 170
+mg/dL trigger
+Day 5 · 15:59 · Onset 16:09 · forecast lead 10 min · Fired by the 60-min forecast 190 mg/dL ≥ 170
+mg/dL trigger
+Day 5 · 07:29 · Onset 08:34 · forecast lead 60 min · Fired by the 60-min forecast 172 mg/dL ≥ 170
+mg/dL trigger
+Day 4 · 17:54 · Onset 20:39 · forecast lead 60 min · Fired by the 60-min forecast 175 mg/dL ≥ 170
+mg/dL trigger
+Day 4 · 13:29 · Onset 13:49 · forecast lead 20 min · Fired by the 60-min forecast 190 mg/dL ≥ 170
+mg/dL trigger
+Day 4 · 07:29 · Onset 08:14 · forecast lead 45 min · Fired by the 60-min forecast 183 mg/dL ≥ 170
+mg/dL trigger
+Day 4 · 06:14 · No onset (false alarm) · Fired by the 60-min forecast 173 mg/dL ≥ 170 mg/dL trigger
+
+Day 4 · 03:49 · Onset 04:24 · forecast lead 35 min · Fired by the 60-min forecast 170 mg/dL ≥ 170
+mg/dL trigger
+Day 3 · 18:14 · Onset 19:14 · forecast lead 60 min · Fired by the 60-min forecast 174 mg/dL ≥ 170
+mg/dL trigger
+Guardrails at the cutoff
+Data freshness passed
+Fresh · 1 min old (limit 15 min)
+Forecast inputs flagged
+Abstained: no forecast is shown Too few glucose observations in the last 60 minutes.
+Health record (profile) info
+Checked with each forecast; the model abstains if a value is missing
+Patient correction passed
+30 min +3.6 · 60 min +6.5 mg/dL Learns only from forecasts whose outcome was observed, needs 6; capped
+at ±25 mg/dL; resets after a 3-hour gap.
+Warnings passed
+30 research warnings since the start of this recording: 22 onsets · 8 false alarms 0 of them in the final test
+period; the rest fall in the training, validation or calibration periods. Each stays “Outcome pending” until it can be
+judged, then counts as an onset or a false alarm.
+Baseline profile (EHR-like) known at the cutoff
+Baseline (EHR-like) values as known at the cutoff — not live measurements and not a hospital record.
+Age
+60 years
+Sex (male = 1)
+Female
+BMI
+34.0 kg/m²
+Body weight
+81.6 kg
+Height
+154.9 cm
+Self-identified
+ethnicity
+Hispanic/Latino
+HbA1c
+7.6 %
+Fasting glucose
+195 mg/dL
+Fasting insulin
+10.5 µU/mL
+Triglycerides
+249 mg/dL
+Total cholesterol
+226 mg/dL
+HDL cholesterol
+38 mg/dL
+LDL cholesterol
+(calculated)
+143 mg/dL
+VLDL cholesterol
+(calculated)
+50 mg/dL
+glucotwin-review-snapshot/1 · generated by GlucoTwin, a student research prototype. Not a medical device; no
+treatment advice; notes are local research-session annotations, not orders or messages to a patient.

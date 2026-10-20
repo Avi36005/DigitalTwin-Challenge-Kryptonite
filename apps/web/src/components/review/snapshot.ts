@@ -20,7 +20,7 @@ import { fmtProfileValue, modeLabel } from "@/lib/format";
 import { minutesBetween, ms, replayTime } from "@/lib/time";
 
 export const SNAPSHOT_SCHEMA = "glucotwin-review-snapshot/1";
-export const TITLE = "GlucoTwin — Team Kryptonite (VESIT)";
+export const TITLE = "GlucoTwin — Team Kryptonite, VESIT";
 export const DISCLAIMER = "Research replay review — not a medical report";
 /** Most recent warnings listed in full; the total is always stated. */
 export const MAX_WARNINGS = 20;
