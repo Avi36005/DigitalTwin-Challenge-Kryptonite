@@ -1,6 +1,6 @@
 {
- "exported_at": "2026-10-20T14:56:46+00:00",
- "commit": "1d6ba9759618-dirty",
+ "exported_at": "2026-10-20T15:06:23+00:00",
+ "commit": "e5d52ffeec26-dirty",
  "note": "Aggregate-only copy of what the API returns in public demonstration mode, served there only when the saved experiment artifacts are absent. No participant identifiers or per-participant rows.",
  "experiments": [
   "gt-nested-2026-10-12-v1",
