@@ -43,7 +43,7 @@ describe("how the twin reached a forecast", () => {
     ] as SessionProfile["values"]);
     const e = explainForecast(f, { cutoff: CUTOFF, profile: p });
     expect(e.inputs.wearable).toBe("used_missing");
-    expect(e.inputs.profile).toEqual({ use: "used", known: ["Age"], notYet: ["HbA1c"], missing: ["Fasting insulin"] });
+    expect(e.inputs.profile).toEqual({ use: "used", known: ["Age"], notYet: ["HbA1c"], missing: ["Fasting insulin"], context: [] });
     expect(e.inputs.glucose).toEqual({ value: 150, observedAt: "2000-01-03T09:57:00Z" });
   });
 
@@ -54,7 +54,7 @@ describe("how the twin reached a forecast", () => {
     expect(explainForecast(dyn, { cutoff: CUTOFF }).inputs.wearable).toBe("used");
     const fusion = forecast({ model_version: "lightgbm.dyn-prof-v2.x" });
     const other = profile(p.values, { session_revision: 2 });
-    expect(explainForecast(fusion, { cutoff: CUTOFF, profile: other }).inputs.profile).toEqual({ use: "unknown", known: [], notYet: [], missing: [] });
+    expect(explainForecast(fusion, { cutoff: CUTOFF, profile: other }).inputs.profile).toEqual({ use: "unknown", known: [], notYet: [], missing: [], context: [] });
   });
 
   it("counts warning outcomes as known at the cutoff, and only from this session revision", () => {
@@ -80,5 +80,17 @@ describe("how the twin reached a forecast", () => {
     expect(same.coverage).toEqual({ target: 0.8, measured: [{ horizon: 30, coverage: 0.742 }], experiment: "exp" });
     const synthetic = explainForecast(forecast(), { cutoff: CUTOFF, report });
     expect(synthetic.coverage).toEqual({ target: 0.8, measured: null, experiment: null });
+  });
+});
+
+describe("profile values the model reads", () => {
+  it("lists only the issuing model's profile inputs as read and the rest as context", () => {
+    const e = explainForecast(forecast({ model_version: "lightgbm.dyn-prof-v2.x", as_of: "2000-01-03T09:57:00Z" }), {
+      cutoff: CUTOFF, profileInputs: ["age"], profile: profile([
+        { name: "age", label: "Age", value: 50, status: "available", available_at: "2000-01-01T00:00:00Z" },
+        { name: "weight", label: "Body weight", value: 80, status: "available", available_at: "2000-01-01T00:00:00Z" },
+      ] as SessionProfile["values"]) });
+    expect(e.inputs.profile?.known).toEqual(["Age"]);
+    expect(e.inputs.profile?.context).toEqual(["Body weight"]);
   });
 });

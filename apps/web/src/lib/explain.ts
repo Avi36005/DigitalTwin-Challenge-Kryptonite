@@ -31,7 +31,7 @@ export interface InputsUsed {
   glucose: { value: number; observedAt: string } | null;
   wearable: InputUse;
   /** null when the model's feature set is not encoded in its version */
-  profile: { use: InputUse; known: string[]; notYet: string[]; missing: string[] } | null;
+  profile: { use: InputUse; known: string[]; notYet: string[]; missing: string[]; context: string[] } | null;
 }
 
 export interface TrackRecord {
@@ -116,6 +116,8 @@ export function explainForecast(f: Forecast, opts: {
   alerts?: AlertList;
   profile?: SessionProfile;
   report?: EvaluationReport;
+  /** names of the profile values the issuing model reads (from /serving); other values are context only */
+  profileInputs?: string[] | null;
 }): Explanation {
   const issued = ms(f.as_of);
   const p = f.personalization;
@@ -132,14 +134,17 @@ export function explainForecast(f: Forecast, opts: {
     const known: string[] = [];
     const notYet: string[] = [];
     const missing: string[] = [];
+    const context: string[] = [];
+    const reads = opts.profileInputs ? new Set(opts.profileInputs) : null;
     for (const v of prof?.values ?? []) {
+      if (reads && !reads.has(v.name)) { context.push(v.label); continue; }
       // judged at the forecast's own issue time: a value that became available later was not known to this forecast
       if (v.status === "available" && v.available_at && ms(v.available_at) <= issued) known.push(v.label);
       else if (v.status === "available" || v.status === "not_yet_available") notYet.push(v.label);
       else missing.push(v.label);
     }
     const use: InputUse = !usesProfile ? "not_input" : codes.has("profile_unavailable") ? "used_missing" : prof ? "used" : "unknown";
-    profile = { use, known, notYet, missing };
+    profile = { use, known, notYet, missing, context };
   }
 
   const cov = measuredCoverage(opts.report, f.model_version);

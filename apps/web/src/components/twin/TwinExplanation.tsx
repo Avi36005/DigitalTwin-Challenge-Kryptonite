@@ -13,8 +13,10 @@ const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
  * which inputs were available; the warning track record and range coverage at this replay clock. No history curve and
  * no recomputation: the final estimate shown is the API's own.
  */
-export function TwinExplanation({ latest, alerts, profile, report, clockAt }: {
+export function TwinExplanation({ latest, alerts, profile, report, clockAt, profileInputs }: {
   latest?: LatestForecast; alerts?: AlertList; profile?: SessionProfile; report?: EvaluationReport; clockAt: string;
+  /** profile values the issuing model reads, from /serving for the same model version */
+  profileInputs?: string[] | null;
 }) {
   const cutoff = ms(clockAt);
   const f = latest?.forecast && ms(latest.forecast.as_of) <= cutoff ? latest.forecast : null;
@@ -26,7 +28,7 @@ export function TwinExplanation({ latest, alerts, profile, report, clockAt }: {
         : !usable || !f ? (
           <p className="explain__lede">No forecast is shown at this replay time, so there is nothing to explain yet.
             {" "}{latest.forecast?.quality.reasons[0]?.message ?? latest.reasons[0]?.message ?? ""}</p>
-        ) : <Body e={explainForecast(f, { cutoff, alerts, profile, report })} stale={latest.availability === "stale"} age={latest.age_minutes} />}
+        ) : <Body e={explainForecast(f, { cutoff, alerts, profile, report, profileInputs })} stale={latest.availability === "stale"} age={latest.age_minutes} />}
     </section>
   );
 }
@@ -143,5 +145,6 @@ function profileText(p: NonNullable<Explanation["inputs"]["profile"]>): string {
   if (p.use === "not_input") return `not an input of this model; ${known}${rest ? `; ${rest}` : ""} — shown for context only.`;
   if (p.use === "used_missing") return `read by this model; a value it needs was missing or not yet known, so it abstained. ${rest}`.trim();
   if (p.use === "unknown") return "read by this model; the profile has not loaded yet.";
-  return `read by this model; ${known}${rest ? `; ${rest}` : ""}.`;
+  const ctx = p.context.length ? ` Context only, not model inputs: ${list(p.context)}.` : "";
+  return `read by this model; ${known}${rest ? `; ${rest}` : ""}.${ctx}`;
 }

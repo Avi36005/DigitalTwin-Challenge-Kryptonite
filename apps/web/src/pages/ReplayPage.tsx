@@ -11,7 +11,7 @@ import { modeLabel } from "@/lib/format";
 import { paths } from "@/lib/routes";
 import { ms, replayTime } from "@/lib/time";
 import { useDeployment } from "@/state/deployment";
-import { useEvaluation } from "@/state/evaluation";
+import { useEvaluation, useServing } from "@/state/evaluation";
 import { useOpenTwin } from "@/state/open";
 import { usePreferences } from "@/state/preferences";
 import {
@@ -60,6 +60,7 @@ export function ReplayPage({ sid }: { sid: string }) {
   const twin = useTwin(session);
   const profile = useSessionProfile(session);
   const evaluation = useEvaluation();
+  const serving = useServing();
   const { publicDemo } = useDeployment();
   const { events, loaded: eventsLoaded } = useReleasedEvents(session);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -179,7 +180,8 @@ export function ReplayPage({ sid }: { sid: string }) {
       </div>
 
       <TwinExplanation latest={latest.data} alerts={alerts.data} profile={profile.data} report={evaluation.data}
-        clockAt={session.clock_at} />
+        clockAt={session.clock_at}
+        profileInputs={serving.data?.items.find((m) => m.model_version === latest.data?.forecast?.model_version)?.profile_inputs} />
 
       <div className="lower">
         <RecentObservations events={events} clock={clock} loaded={eventsLoaded} />
