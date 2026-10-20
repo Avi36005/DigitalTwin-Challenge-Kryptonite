@@ -56,7 +56,7 @@ def build() -> dict:
         rows[f"{name}|{mode}"] = {
             "horizons": {str(h): {k: v for k, v in forecast_row(df, h, 0).items() if k != "per_participant_mae"}
                          for h in horizons},
-            "coverage": {str(h): interval_rows(df, h, proto)["global"].get("coverage") for h in horizons}}
+            "coverage": {str(h): interval_rows(df, h, proto)["global"].get("coverage_pooled") for h in horizons}}
 
     comps = []
     for title, a, b in [("Selected (personalised) minus persistence", ("selected", "final"), ("persistence:-", "off")),
@@ -111,8 +111,8 @@ def render(s: dict) -> str:
              "ridge:dyn-prof-v2|off": "Ridge, CGM + wearable + profile (EHR-like)"}
     out = [f"# Two-hour benchmark — `{s['experiment_id']}`",
            "",
-           "Research experiment (decision D-043), declared and frozen before any fit, run after the demo video was "
-           f"recorded. Protocol frozen {s['frozen_at']} (hash `{s['protocol_hash'][:12]}`, split `{s['split_hash'][:12]}`); "
+           "Research experiment (decision D-043), declared and frozen before any fit on 20 Oct 2026, the submission day. "
+           f"Protocol frozen {s['frozen_at']} (hash `{s['protocol_hash'][:12]}`, split `{s['split_hash'][:12]}`); "
            f"outer-fold assessment opened once at {s['assessment_opened'].get('opened_at', '—')}. "
            f"{s['participants']} CGMacros Type 2 people, each held out entirely once (5 participant folds, same folds as "
            "`gt-nested-2026-10-12-v1`). These people were already inspected in earlier experiments, so this is internal "

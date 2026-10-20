@@ -331,6 +331,64 @@ def research_slide() -> dict | None:
                 "onsets and false warnings (declared, not run)."]}
 
 
+TWO_HOUR = ROOT / "artifacts/research/gt-2h-2026-10-20/two_hour_summary.json"
+
+
+def two_hour_slide() -> dict | None:
+    """The two-hour research experiment (D-043), from scripts/summarise_two_hour.py's saved summary; omitted until run."""
+    if not TWO_HOUR.exists():
+        return None
+    s = json.loads(TWO_HOUR.read_text())
+    f, comps = s["forecasts"], s["comparisons"]
+    mae = lambda key, h: f[key]["horizons"][str(h)]["mae"]  # noqa: E731
+    cmp = lambda title, h: next(c for c in comps if c["comparison"] == title and c["horizon"] == h)  # noqa: E731
+    ci = lambda c: f"{c['mean_difference']:+.2f} [{c['ci95'][0]:+.2f}, {c['ci95'][1]:+.2f}] mg/dL"  # noqa: E731
+    w = {(x["pipeline"], x["horizon"]): x for x in s["warnings"]}
+
+    def warn(h):
+        x = w.get(("selected", h))
+        if not x or x.get("status") != "ok":
+            return f"{h}-min warning: no threshold met the 2-false-alarm budget."
+        return (f"{h}-min warning: {x['detected_onsets']}/{x['true_onsets']} onsets warned, "
+                f"{x['false_alarms_per_observed_day']:.2f} false alarms per observed day, median forecast lead "
+                f"{x['qualified_lead_median']:.0f} min")
+    prof = cmp("Profile (EHR-like) inputs: LightGBM dyn-prof-v2 minus dyn-v2", 120)
+    sel = cmp("Selected (personalised) minus persistence", 120)
+    return {"kind": "bullets", "title": "Research: warning two hours ahead",
+            "bullets": [
+                "The brief's example is a spike predicted 2 hours ahead. Declared before any fit (decision D-043): the "
+                f"people-held-out procedure above, same folds, plus a 120-minute horizon. {s['participants']} "
+                "people, each held out once; not the demo model, nothing promoted.",
+                f"Forecast error at 120 min: {mae('selected|final', 120):.1f} mg/dL vs persistence "
+                f"{mae('persistence:-|off', 120):.1f} ({ci(sel)}); at 60 min {mae('selected|final', 60):.1f} vs "
+                f"{mae('persistence:-|off', 60):.1f}.",
+                warn(120) + ". For comparison, " + warn(60) + ".",
+                f"Profile (EHR-like) inputs at 120 min, LightGBM with minus without: {ci(prof)} "
+                f"({'no reliable benefit' if prof['ci95'][0] <= 0 <= prof['ci95'][1] else 'better' if prof['ci95'][1] < 0 else 'worse'}"
+                " on people held out).",
+                "Thresholds chosen on development folds only (≤ 2 false alarms per observed day); each test fold opened once. "
+                "The 14 people were inspected in earlier experiments, so this is internal validation."]}
+
+
+def guardrails_slide() -> dict:
+    """Safety guardrails enforced in code (same list as the README's Safety guardrails table)."""
+    return {"kind": "bullets", "title": "Safety guardrails built into the twin",
+            "bullets": [
+                "Abstains instead of guessing: no forecast with under 60 min of history, a sparse last hour or no new reading; "
+                "after 15 min without one the last forecast is marked Stale. Weak inputs (gaps, sensor-limit readings, missing "
+                "wearable data) are flagged Degraded, with the reason.",
+                "The fusion model abstains when a health-record value is missing or not yet available; no input is used before "
+                "the time it became available (native CGM readings only).",
+                "Personal correction bounded: learns only from forecasts whose outcome was observed, needs 6, capped at ±25 mg/dL, "
+                "resets after a 3-hour gap.",
+                "Every warning is a labelled research warning: Outcome pending until it can be judged, then matched to an onset, "
+                "counted as a false alarm or marked unknown; firings within 30 min merge into one episode.",
+                "Uncertainty and limits shown: 80 % prediction ranges with measured coverage; not a medical device, no treatment "
+                "advice, replay only.",
+                "Evaluation cannot be quietly re-run: opened tests are locked; research runs cannot change the demo model; the app "
+                "reproduced all 15,440 saved test forecasts within 0.05 mg/dL."]}
+
+
 def fusion_slide(m: dict, ff: dict, mae, c) -> dict:
     """Why the serving model reads the profile, and what that does not show. Numbers from the two experiments' metrics
     and the nested research report."""
@@ -468,9 +526,10 @@ def slides(m: dict, sub: dict) -> list[dict]:
                   f"Best validation score: {cand.iloc[0]['label']} ({cand.iloc[0]['selection_score']:.2f}). The declared tie-break chose the simpler configuration; we did not switch after seeing test results.")},
         *([fusion_slide(m, ff, mae, c)] if disc and bm else []),
         {"kind": "image", "title": "Clinician workflow: the twin workspace", "image": str(UI / "03-forecast-with-interval-recorded.png"),
-         "caption": "Recorded-data replay in the final test period (later recordings of participants the model was trained on): current glucose, 30/60-minute forecasts with prediction ranges (target coverage 80 %), saved earlier forecasts, research warnings with outcomes, review status and data quality."},
+         "caption": "Recorded-data replay in the final test period (later recordings of participants the model was trained on): current glucose, 30/60-minute forecasts with prediction ranges (target coverage 80 %), saved earlier forecasts, research warnings with outcomes, review status and the live safety guardrails."},
         {"kind": "image", "title": "Demonstration: evidence behind a forecast", "image": str(UI / "04-forecast-evidence-dialog.png"),
          "caption": "Each forecast is immutable and inspectable: information cutoff, model version, evaluation segment, population forecast vs patient correction, factual explanations."},
+        guardrails_slide(),
         {"kind": "image", "title": "Measured evaluation: forecast accuracy (later days)", "image": str(FIGS / "fig_mae_test.png"),
          "caption": f"Later recordings of the same {n_pt} participants the model was trained on — not new patients. "
                     f"Serving − persistence: {c('serving minus persistence', 30)} at 30 min, {c('serving minus persistence', 60)} at 60 min. "
@@ -495,6 +554,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      f"{ivs[ivs['horizon'] == 60]['per_patient_min'].iloc[0] * 100:.0f}–{ivs[ivs['horizon'] == 60]['per_patient_max'].iloc[0] * 100:.0f} % per participant — under-covered; no guarantee claimed.",
                      f"Optimistic meal logging: {sens.loc[60, 'mae']:.2f} vs {sens.loc[60, 'serving_population_mae']:.2f} mg/dL at 60 min — timely meal data would likely help most."]},
         *([research_slide()] if research_slide() else []),
+        *([two_hour_slide()] if two_hour_slide() else []),
         {"kind": "bullets", "title": "Project outcomes",
          "bullets": ["Built: a working personalized glucose twin — replay API with a backend-owned clock, immutable forecasts, research warnings with outcomes — and a clinician workspace (landing page, Overview, Participants, Replay sessions, Model evidence, Data quality).",
                      "Found and corrected a data-provenance problem: the published 1-minute CGM values are interpolated; only native 5-minute readings are used.",

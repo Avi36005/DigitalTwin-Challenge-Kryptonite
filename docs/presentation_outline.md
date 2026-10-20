@@ -21,15 +21,17 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 | 10 | Fusion: what the profile adds, and what it does not show | Brief's fusion requirement; within-cohort profile effect vs dynamic-only; no reliable benefit on people held out entirely (nested experiment); profile as identity code with 14 people; warning trade-off vs the earlier model; the claim we make and the one we do not |
 | 11 | Clinician workflow | Screenshot: recorded-data replay in the final test period (later recordings of the same participants) |
 | 12 | Demonstration | Screenshot: forecast details drawer |
-| 13 | Forecast accuracy | Test MAE chart + paired differences vs persistence; states that the test holds later recordings of the same 14 people, not new patients |
-| 14 | Personalization | Forest plot of paired differences; frozen-state control; cold start |
-| 15 | Every participant | Per-participant chart (14/14 at 30 min, 13/14 at 60 min) |
-| 16 | Early warning and uncertainty | Detected onsets, false alarms per observed patient-day (per eligible day alongside), qualified forecast lead vs a threshold rule; range coverage vs target, overall and per participant; meal sensitivity |
-| 17 | New people and an independent cohort | Research experiment `gt-nested-2026-10-12-v1` from its saved `report.json` (omitted until run): the three models kept separate (v2 recipe — the demo model when the experiment was declared; Ridge five-minute candidate; separate 15-minute LightGBM external check); 145 imported, 14 internal, 98 external; high-glucose trade-off; warning burden; external result with intervals; not promoted |
-| 18 | Project outcomes | What was built, the provenance finding, measured outcomes (computed from `metrics.json`), the corrected re-run and the fusion constraint, reproducibility |
-| 19 | Limitations | Cohort, population, blinded CGM, medication, profile as identity code, thresholds, intervals, retrospective; scores depend on dataset, task and protocol (simulated-patient results do not transfer) |
-| 20 | Next steps | Evidence needed before use with Indian patients; AI-READI under the declared successor protocol |
-| 21 | Team, links, reproducibility and licenses | Team; repository and video links (video at least 20 minutes; added after publication/upload); quick start; data citation; experiment ID |
+| 13 | Safety guardrails built into the twin | Abstention (history, sparse hour, no new reading; Stale after 15 min), Degraded flags, fusion profile gate, availability-time inputs, bounded personal correction (matured residuals, 6, ±25 mg/dL, 3-h reset), warning outcomes and episode merge, ranges with measured coverage, no clinical claims, locked evaluation and 15,440/15,440 parity — same list as the README's Safety guardrails table |
+| 14 | Forecast accuracy | Test MAE chart + paired differences vs persistence; states that the test holds later recordings of the same 14 people, not new patients |
+| 15 | Personalization | Forest plot of paired differences; frozen-state control; cold start |
+| 16 | Every participant | Per-participant chart (14/14 at 30 min, 13/14 at 60 min) |
+| 17 | Early warning and uncertainty | Detected onsets, false alarms per observed patient-day (per eligible day alongside), qualified forecast lead vs a threshold rule; range coverage vs target, overall and per participant; meal sensitivity |
+| 18 | New people and an independent cohort | Research experiment `gt-nested-2026-10-12-v1` from its saved `report.json` (omitted until run): the three models kept separate (v2 recipe — the demo model when the experiment was declared; Ridge five-minute candidate; separate 15-minute LightGBM external check); 145 imported, 14 internal, 98 external; high-glucose trade-off; warning burden; external result with intervals; not promoted |
+| 19 | Research: warning two hours ahead | Research experiment `gt-2h-2026-10-20` (decision D-043, declared before any fit) from `two_hour_summary.json` (omitted until run): 120-minute forecast error vs persistence on people held out, 120- vs 60-minute warnings (onsets, false alarms per observed day, forecast lead), profile (EHR-like) ablation at 120 min; not the demo model, nothing promoted |
+| 20 | Project outcomes | What was built, the provenance finding, measured outcomes (computed from `metrics.json`), the corrected re-run and the fusion constraint, reproducibility |
+| 21 | Limitations | Cohort, population, blinded CGM, medication, profile as identity code, thresholds, intervals, retrospective; scores depend on dataset, task and protocol (simulated-patient results do not transfer) |
+| 22 | Next steps | Evidence needed before use with Indian patients; AI-READI under the declared successor protocol |
+| 23 | Team, links, reproducibility and licenses | Team; repository and video links (video at least 20 minutes; added after publication/upload); quick start; data citation; experiment ID |
 
 The deck follows the prompt's twelve-topic structure (problem, use case, twin definition, data, availability/leakage,
 architecture, models, clinician workflow, demonstration, evaluation, limitations, next steps) with one evidence slide

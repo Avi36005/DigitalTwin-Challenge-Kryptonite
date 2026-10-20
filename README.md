@@ -23,6 +23,7 @@ absolute error (MAE) is in mg/dL, averaged equally over participants: an average
 | Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage (the research procedure, calibrated on people held out, covered 80.1 % / 78.8 %; [§7](#7-ai-and-ml-model-details)) | **Demo model** | Same as the row above |
 | MAE **13.88 / 22.30** (persistence 15.34 / 24.47) | Research candidate procedure (Ridge on CGM only, chosen in 4 of 5 folds), **not** the demo model | 14 CGMacros people, **each held out entirely** once (nested experiment) |
 | MAE **11.15 / 20.11** (persistence 12.14 / 20.44; the 60-minute difference is inconclusive) | A separate 15-minute LightGBM, **not** the demo model | **98 ShanghaiT2DM people**, an independent cohort, evaluated once |
+| **Two hours ahead:** MAE **30.6** at 120 min (persistence 35.9; better for 14 of 14 people); 2-hour warning: **315 of 329** onsets at **1.62** false alarms per observed day, median forecast lead 15 min (IQR 5–65); ranges covered 76.5 % (target 80 %) | Research procedure (rule's choice per fold, CGM-only Ridge or LightGBM), **not** the demo model | 14 CGMacros people, **each held out entirely** once; declared before any fit on 20 Oct ([two-hour benchmark](reports/two_hour_benchmark.md), D-043) |
 
 Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
 establish performance on real patients.
@@ -262,7 +263,10 @@ establishes, and what it does not:
 2. **That may be identity, not physiology.** Profile values are constant within a person, and the test segment holds
    later days of the same 14 people, so the profile can act as a participant identifier.
 3. **On people held out entirely there was no reliable benefit.** Nested experiment, LightGBM `dyn-prof-v2` minus
-   `dyn-v2`: +0.34 [−0.28, +0.89] mg/dL at 30 min and −0.75 [−2.19, +0.61] at 60 min.
+   `dyn-v2`: +0.34 [−0.28, +0.89] mg/dL at 30 min and −0.75 [−2.19, +0.61] at 60 min. Two hours ahead
+   (`gt-2h-2026-10-20`, D-043): −0.86 [−2.60, +1.02] mg/dL, again no reliable benefit; Ridge with the profile was clearly
+   worse (+12.65 [+1.34, +29.24]), consistent with the profile acting as an identity code
+   ([two-hour benchmark](reports/two_hour_benchmark.md)).
 4. **The constraint was added after the test segment had been inspected** (in v1 and v2), so these are retrospective
    results. The validation score, tie margin and tie-break are unchanged
    ([protocol](configs/experiments/gt-primary-2026-10-13-fusion.yaml), decisions D-038 and D-039 in
