@@ -1,0 +1,31 @@
+{
+ "check": "online twin engine replay vs saved offline final-test predictions",
+ "model_version": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+ "experiment_id": "gt-primary-2026-10-13-fusion",
+ "pipeline": "lightgbm:dyn-prof-v2",
+ "personalization": "adaptive",
+ "feature_set_id": "dyn-prof-v2",
+ "transform_fingerprint": "38152f8846c88ed4",
+ "data_fingerprint": "289d296590837618",
+ "split_hash": "b31e8d8c071eb425",
+ "segment": "test",
+ "horizons_minutes": [
+  30,
+  60
+ ],
+ "participants": 14,
+ "offline_forecasts": 15440,
+ "compared": 15440,
+ "missing_online": 0,
+ "tolerance_mg_dl": 0.05,
+ "tolerance_basis": "API displays forecasts rounded to 0.1 mg/dL",
+ "max_abs_diff_mg_dl": 0.049997560197851953,
+ "over_tolerance": 0,
+ "outcome": "pass",
+ "checked_at": "2026-10-20T17:00:54+00:00",
+ "revision": {
+  "commit": "40c3229827f573614ca04eaecd14e735d98f1d3d",
+  "dirty": false
+ },
+ "seconds": 34.9
+}
