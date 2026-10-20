@@ -46,3 +46,5 @@ apps/web/.vite/
 .env.local
 test-results/
 *.tsbuildinfo
+# nothing under data/ is tracked: raw downloads, processed stores, private salt, generated fixtures
+data/
