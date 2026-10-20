@@ -343,6 +343,38 @@ test.describe("recording resolution (1920×1080) — demo sequence on recorded d
     await expect(page.getByText("No onset (false alarm)").first()).toBeVisible();
   });
 
+  test("Participant 01: a forecast's outcome appears only when the replay clock reaches its target time", async ({ page }) => {
+    const p = await byAlias(page, "Participant 01");
+    test.skip(!p, "CGMacros not imported on this machine");
+    await page.goto("/app");
+    const sid = await startReplay(page, "dataset_replay", p.patient_id, true);
+    await seek(page, sid, "2000-01-11T20:35:00Z");
+    await page.getByRole("button", { name: "View forecast details" }).click();
+    const drawer = page.getByRole("dialog", { name: "Forecast details" });
+    await expect(drawer).toContainText("Issued at Day 9 · 20:35");
+    const outcome = drawer.getByRole("region", { name: "Outcome" });
+    await expect(outcome).toContainText("Outcome not yet observed at this replay time.");
+    await expect(outcome).not.toContainText(/observed reading \d/);
+    await page.keyboard.press("Escape");
+    // step past the 30-minute target (21:05); the opened forecast stays pinned
+    for (let i = 0; i < 7; i++) await page.getByRole("button", { name: "Step 5 min forward" }).click();
+    await expect(page.getByText("Day 9 · 21:10").first()).toBeVisible();
+    await page.getByRole("button", { name: "View forecast details" }).click();
+    await expect(drawer).toContainText("Issued at Day 9 · 20:35");
+    await expect(outcome).toContainText(/30 min \(for 21:05\): observed reading \d+ mg\/dL at 21:0\d/);
+    await expect(outcome).toContainText(/60 min \(for 21:35\): Outcome not yet observed at this replay time\./);
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Step 1 h forward" }).click();
+    await expect(page.getByText("Day 9 · 22:10").first()).toBeVisible();
+    await page.getByRole("button", { name: "View forecast details" }).click();
+    await expect(outcome).toContainText(/60 min \(for 21:35\): observed reading \d+ mg\/dL/);
+    await expect(outcome).toContainText(/The patient correction (moved this forecast [\d.]+ mg\/dL (closer to|further from)|made no difference)/);
+    await outcome.scrollIntoViewIfNeeded();
+    await drawer.screenshot({ path: `${SHOTS}/25-forecast-outcome.png` });
+    console.log("OUTCOME_TEXT::" + (await outcome.innerText()).replace(/\n/g, " | "));
+    await page.keyboard.press("Escape");
+  });
+
   test("Participant 12: a real sensor gap makes the forecast stale, then the twin abstains", async ({ page }) => {
     const p = await byAlias(page, "Participant 12");
     test.skip(!p, "CGMacros not imported on this machine");

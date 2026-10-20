@@ -1,6 +1,7 @@
-import type { EvaluationReport, Forecast, PatientSummary } from "@/api/types";
+import type { EvaluationReport, Forecast, ObservationEvent, PatientSummary } from "@/api/types";
 import { measuredCoverage } from "@/lib/forecast";
 import { fmtGlucose, fmtPct, modeLabel } from "@/lib/format";
+import { horizonOutcome, type HorizonOutcome } from "@/lib/outcome";
 import { replayTime } from "@/lib/time";
 import { Button, Dialog } from "../ui";
 
@@ -19,8 +20,10 @@ const KIND: Record<string, string> = {
 };
 
 /** Side drawer with the provenance of one forecast: identity, cutoff, components, range semantics, explanations. */
-export function ForecastDetail({ f, patient, report, open, onClose, publicDemo = false }: {
+export function ForecastDetail({ f, patient, report, open, onClose, publicDemo = false, events = [], clock }: {
   f: Forecast | null; patient?: PatientSummary; report?: EvaluationReport; open: boolean; onClose: () => void; publicDemo?: boolean;
+  /** released observations of the session and the replay clock, for the outcome of each horizon */
+  events?: ObservationEvent[]; clock?: number;
 }) {
   const cov = f ? measuredCoverage(report, f.model_version) : null;
   return (
@@ -73,6 +76,24 @@ export function ForecastDetail({ f, patient, report, open, onClose, publicDemo =
             </p>
           </section>
 
+          {clock != null && (
+            <section aria-labelledby="fd-outcome">
+              <h3 className="drawer-body__h" id="fd-outcome">Outcome</h3>
+              <ul className="facts">
+                {f.estimates.map((e) => (
+                  <li key={e.horizon_minutes}>
+                    <OutcomeLine horizon={e.horizon_minutes} target={e.target_at} o={horizonOutcome(e, events, clock)} />
+                  </li>
+                ))}
+              </ul>
+              <p className="drawer-body__note">
+                The observed reading is the sensor value recorded within 2.5 min of the target time and released by the replay
+                clock — a measurement, not an estimate. Errors are the saved forecast minus that reading; one outcome says
+                nothing about how often the correction helps.
+              </p>
+            </section>
+          )}
+
           <section aria-labelledby="fd-why">
             <h3 className="drawer-body__h" id="fd-why">Factual explanations</h3>
             <ul className="explain-list">
@@ -89,5 +110,26 @@ export function ForecastDetail({ f, patient, report, open, onClose, publicDemo =
         </div>
       )}
     </Dialog>
+  );
+}
+
+const signed = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}`;
+
+function OutcomeLine({ horizon, target, o }: { horizon: number; target: string; o: HorizonOutcome }) {
+  const head = <><strong>{horizon} min</strong> (for {replayTime(target, { day: false })}): </>;
+  if (o.state === "pending") return <>{head}<span className="muted">Outcome not yet observed at this replay time.</span></>;
+  if (o.state === "unknown") return <>{head}<span className="muted">No reading near the target time — outcome unknown.</span></>;
+  return (
+    <>
+      {head}observed reading <strong className="num">{fmtGlucose(o.observed)} mg/dL</strong> at {replayTime(o.observedAt, { day: false })}.
+      {" "}Forecast error {o.finalError == null ? "—" : `${signed(o.finalError)} mg/dL`}
+      {o.populationError != null && <>; population forecast error {signed(o.populationError)} mg/dL</>}.
+      {o.correction && (
+        <span className="table__sub">
+          {o.correction.effect === "none" ? "The patient correction made no difference to this forecast's error (under 0.5 mg/dL)."
+            : `The patient correction moved this forecast ${o.correction.by.toFixed(1)} mg/dL ${o.correction.effect === "closer" ? "closer to" : "further from"} the observed value.`}
+        </span>
+      )}
+    </>
   );
 }
