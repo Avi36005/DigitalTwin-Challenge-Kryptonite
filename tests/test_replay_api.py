@@ -74,6 +74,17 @@ def test_forward_replay_equals_reset_and_seek(client):
     assert [_content(x) for x in _all_forecasts(client, a["id"])] == [_content(x) for x in fa]
 
 
+def test_negative_cursors_are_rejected_not_read_from_the_end(client):
+    s = _session(client)
+    _ctl(client, s["id"], action="step", steps=30)
+    rev = client.get(f"{API}/replay/sessions/{s['id']}/events").json()["session_revision"]
+    for path in ("events", "forecasts"):
+        r = client.get(f"{API}/replay/sessions/{s['id']}/{path}", params={"cursor": f"r{rev}.-5"})
+        assert r.status_code == 422 and r.json()["error"]["code"] == "invalid_cursor", (path, r.text)
+    r = client.get(f"{API}/patients", params={"mode": "synthetic_demo", "cursor": "LTU="})  # base64 of "-5"
+    assert r.status_code == 422 and r.json()["error"]["code"] == "invalid_cursor", r.text
+
+
 def test_seek_backward_removes_future_state_and_invalidates_cursors(client):
     s = _session(client)
     _ctl(client, s["id"], action="step", steps=288)

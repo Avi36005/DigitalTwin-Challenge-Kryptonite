@@ -199,6 +199,8 @@ def create_app() -> FastAPI:
         if cursor:
             try:
                 start = int(base64.urlsafe_b64decode(cursor.encode()).decode())
+                if start < 0:  # a negative index would count back from the end of the list
+                    raise ValueError(start)
             except Exception as exc:
                 raise ApiError(422, "invalid_cursor", "Cursor is not valid.") from exc
         page = ids[start:start + limit]
@@ -276,6 +278,8 @@ def create_app() -> FastAPI:
                 try:
                     rev_s, idx_s = cursor.split(".", 1)
                     rev, start = int(rev_s.lstrip("r")), int(idx_s)
+                    if start < 0:  # a negative index would count back from the end, past the replay clock
+                        raise ValueError(start)
                 except ValueError as exc:
                     raise ApiError(422, "invalid_cursor", "Cursor is not valid.") from exc
                 if rev != s.revision:
@@ -359,6 +363,8 @@ def create_app() -> FastAPI:
                 try:
                     rev_s, idx_s = cursor.split(".", 1)
                     rev, start = int(rev_s.lstrip("r")), int(idx_s)
+                    if start < 0:  # a negative index would count back from the end, past the replay clock
+                        raise ValueError(start)
                 except ValueError as exc:
                     raise ApiError(422, "invalid_cursor", "Cursor is not valid.") from exc
                 if rev != s.revision:
