@@ -45,7 +45,7 @@ path or app-hosting URL. Status: **not yet created** (publication requires the t
 | Folder name `Team Name_College Name` | Challenge page (not on the form) | **Done locally (19 Oct 2026, D-042):** top-level [`Kryptonite_VESIT/`](../Kryptonite_VESIT/README.md) indexes the submission files; repository not renamed. Visible to judges once the repository is public |
 | Repository public; all files and links accessible | Form and challenge page | **Outstanding** (needs explicit approval). Before publishing: `context.md` stays git-ignored (personal email); `git ls-files data artifacts var` lists only `artifacts/README.md` |
 | Team leader submits name, phone, email and repository link | Challenge page / form | **Outstanding** — the team leader submits on Unstop; not automated |
-| Deadline | **Extended to 24 Oct 2026** (organisers' email of 20 Oct 2026, confirmed by the team; no time of day given). Earlier: challenge page 20 Oct 2026, 7:00 PM IST | Submit well before 24 Oct; check the time on Unstop |
+| Deadline | **24 Oct 2026, 7:00 PM IST** (organisers' email of 20 Oct 2026; the Unstop challenge page shows this end time as of 20 Oct). Earlier: 20 Oct 2026, 7:00 PM IST | Submit well before the cutoff |
 
 ## Challenge rules covered by the build
 

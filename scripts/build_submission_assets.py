@@ -386,8 +386,7 @@ def reanalysis_slide() -> dict | None:
     ci = lambda x: f"{x['mean_diff']:+.2f} [{x['ci95'][0]:+.2f}, {x['ci95'][1]:+.2f}]"  # noqa: E731
     return {"kind": "bullets", "title": "Research: what we fixed, and what we could not",
             "bullets": [
-                "Declared and committed before any arm was computed (D-046): the saved two-hour predictions re-analysed, every "
-                "choice made on development people, the outer people read once. Same 14 already-inspected people: internal validation.",
+                "Each test below was declared and committed before computing it; the same 14 already-inspected people (internal validation).",
                 f"Fixed — prediction ranges: calibrating on all development people instead of 2 per fold raised two-hour coverage "
                 f"from {cov('B0_calibration', 120):.1f} % to {cov('B1_pooled', 120):.1f} % (target 80 %; 60 min "
                 f"{cov('B0_calibration', 60):.1f} → {cov('B1_pooled', 60):.1f} %), ranges "
@@ -400,12 +399,25 @@ def reanalysis_slide() -> dict | None:
                 "first 24 hours; the intervals cross zero, so no benefit is claimed.",
                 *([blend_bullet()] if blend_bullet() else []),
                 *([retrain_bullet()] if retrain_bullet() else []),
+                *([tune_bullet()] if tune_bullet() else []),
                 "The demo model's ranges are already pooled over all 14 people; its under-coverage most likely comes from drift between "
                 "time segments, so this fix is not applied to it."]}
 
 
 BLEND = ROOT / "artifacts/research/gt-blend-2026-10-21/development.json"
 RETRAIN = ROOT / "artifacts/research/gt-retrain-2026-10-21/development.json"
+TUNE = ROOT / "artifacts/research/gt-tune-2026-10-21/summary.json"
+
+
+def tune_bullet() -> str | None:
+    """D-051: nested tuning, history vs current features with equal budget."""
+    if not TUNE.exists():
+        return None
+    d = json.loads(TUNE.read_text())
+    p = d["paired"]["C1_with_history|C0_current_features|final|60"]
+    return (f"Small, reliable, below our bar — tuned retraining with 24-hour history (D-051, 1,830 fits, each person held out): "
+            f"{p['mean_diff']:+.2f} [{p['ci95'][0]:+.2f}, {p['ci95'][1]:+.2f}] mg/dL at 60 min, {p['improved']} of {p['n']} people "
+            "better, against a declared −0.5; not adopted.")
 
 
 def retrain_bullet() -> str | None:

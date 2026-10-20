@@ -388,6 +388,15 @@ long-history features changed the population model's 60-minute error by −1.39 
 people) but the personalised error only by −0.41 [−1.07, +0.12] — a lead for a future declared study, not a result
 ([report](reports/retrain_study.md)).
 
+**Tuned retraining, a small reliable gain below our bar** (`gt-tune-2026-10-21`, D-051, declared before any fit). Both
+feature sets got the identical tuning budget (30 shared parameter sets × 3 round counts per horizon, then the patient-
+correction grid), chosen on inner folds and scored once on each held-out person (1,830 fits). Adding causal
+6/12/24-hour glucose history lowered personalised 60-minute error from 22.27 to 21.90 mg/dL: **−0.37 [−0.63, −0.06]**,
+lower for 10 of 14 people (population-only −1.18 [−1.97, −0.52]). The interval excludes zero, but the declared bar was
+−0.5 mg/dL, so it is not adopted and the demo model is unchanged; these 14 people were inspected before, so this is
+internal validation ([report](reports/tune_study.md)).
+
+
 Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:
 [`reports/repair_report.md`](reports/repair_report.md) · model card:
 [`docs/model_card.md`](docs/model_card.md) · data card: [`docs/data_card.md`](docs/data_card.md).
@@ -590,6 +599,7 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
   [Time in warning](reports/warning_time_share.md) · [Cold-start profile](reports/cold_start_profile.md) ·
   [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Model blend (negative)](reports/blend_experiment.md) · [Retraining study (negative)](reports/retrain_study.md) · [Serving parity](reports/serving_parity.md) ·
   [Serving ranges study](reports/serving_ranges_study.md) · [Warning notice](reports/warning_utility.md) ·
+  [Tuned retraining](reports/tune_study.md) ·
   [Error by glucose trend](reports/error_by_trend.md) · [Evidence manifest](reports/evidence_manifest.md) · [Review summary check](reports/review_summary_check.md) · [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
 * **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
   [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·

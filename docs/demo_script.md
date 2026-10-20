@@ -257,6 +257,8 @@ page); scroll through the list.
 > milligram we required, so we kept the current model and never opened the held-out results. We then retrained the
 > model itself four ways — decision D-049 — including twenty-four hours of past glucose history. The best gained 0.41
 > milligrams per decilitre, again short of the bar we set in advance, so the model you saw is still the one we evaluated.
+> With proper tuning, each person held out, the history features gave a small but consistent gain — 0.37 milligrams,
+> better for ten of fourteen people — still under our half-milligram bar, so we report it and do not switch.
 
 ## Chapter 13 — Extension: the evidence inside the app (17:15–18:45)
 

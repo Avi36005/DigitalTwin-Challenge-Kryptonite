@@ -171,6 +171,7 @@
     "mean_signed_error_target_above_180": -7.707077703401636,
     "origins": 3766,
     "participants": 14,
+    "range_coverage": 0.7272968667020712,
     "slope_max": null,
     "slope_min": null,
     "trend": "all"
@@ -182,6 +183,7 @@
     "mean_signed_error_target_above_180": -20.839995123131693,
     "origins": 100,
     "participants": 12,
+    "range_coverage": 0.52,
     "slope_max": -2.0,
     "slope_min": null,
     "trend": "falling_fast"
@@ -193,6 +195,7 @@
     "mean_signed_error_target_above_180": -7.6728967118064135,
     "origins": 332,
     "participants": 14,
+    "range_coverage": 0.6445783132530121,
     "slope_max": -1.0,
     "slope_min": -2.0,
     "trend": "falling"
@@ -204,6 +207,7 @@
     "mean_signed_error_target_above_180": -7.596574010521226,
     "origins": 2947,
     "participants": 14,
+    "range_coverage": 0.7729894808279606,
     "slope_max": 1.0,
     "slope_min": -1.0,
     "trend": "steady"
@@ -215,6 +219,7 @@
     "mean_signed_error_target_above_180": -4.943808203818437,
     "origins": 249,
     "participants": 14,
+    "range_coverage": 0.5622489959839357,
     "slope_max": 2.0,
     "slope_min": 1.0,
     "trend": "rising"
@@ -226,6 +231,7 @@
     "mean_signed_error_target_above_180": -8.519946820772747,
     "origins": 138,
     "participants": 14,
+    "range_coverage": 0.39855072463768115,
     "slope_max": null,
     "slope_min": 2.0,
     "trend": "rising_fast"
@@ -237,6 +243,7 @@
     "mean_signed_error_target_above_180": -16.91941774966915,
     "origins": 3766,
     "participants": 14,
+    "range_coverage": 0.727562400424854,
     "slope_max": null,
     "slope_min": null,
     "trend": "all"
@@ -248,6 +255,7 @@
     "mean_signed_error_target_above_180": -28.92435479662019,
     "origins": 100,
     "participants": 12,
+    "range_coverage": 0.61,
     "slope_max": -2.0,
     "slope_min": null,
     "trend": "falling_fast"
@@ -259,6 +267,7 @@
     "mean_signed_error_target_above_180": -17.47761804383122,
     "origins": 332,
     "participants": 14,
+    "range_coverage": 0.6445783132530121,
     "slope_max": -1.0,
     "slope_min": -2.0,
     "trend": "falling"
@@ -270,6 +279,7 @@
     "mean_signed_error_target_above_180": -18.47788484015975,
     "origins": 2947,
     "participants": 14,
+    "range_coverage": 0.7702748557855447,
     "slope_max": 1.0,
     "slope_min": -1.0,
     "trend": "steady"
@@ -281,6 +291,7 @@
     "mean_signed_error_target_above_180": -10.206423281907542,
     "origins": 249,
     "participants": 14,
+    "range_coverage": 0.5301204819277109,
     "slope_max": 2.0,
     "slope_min": 1.0,
     "trend": "rising"
@@ -292,6 +303,7 @@
     "mean_signed_error_target_above_180": -8.24009833730268,
     "origins": 138,
     "participants": 14,
+    "range_coverage": 0.45652173913043476,
     "slope_max": null,
     "slope_min": 2.0,
     "trend": "rising_fast"
