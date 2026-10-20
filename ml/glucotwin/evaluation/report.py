@@ -255,5 +255,18 @@ def build_report(experiment_id: str | None = None) -> dict[str, Any]:
         },
         "cohort": cohort, "selection": selection, "forecast_results": rows, "per_patient": per_patient,
         "event_results": ev_rows, "interval_results": iv_rows, "optional_experiments": optional,
+        "error_by_trend": _error_by_trend(path.parent, m["model_version"]),
         "limitations": limitations,
     }
+
+
+def _error_by_trend(edir: Path, model_version: str) -> dict[str, Any] | None:
+    """Saved by scripts/error_by_trend.py; ignored unless it was computed for this exact model version."""
+    p = edir / "error_by_trend.json"
+    if not p.exists():
+        return None
+    d = json.loads(p.read_text())
+    if d.get("model_version") != model_version:
+        return None
+    return {k: d[k] for k in ("model_version", "pipeline", "personalization", "segment", "trend_feature",
+                              "min_participants", "rows")}

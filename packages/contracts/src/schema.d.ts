@@ -886,6 +886,8 @@ export interface components {
             optional_experiments?: {
                 [key: string]: unknown;
             }[];
+            /** @description Serving pipeline's error by glucose trend on its validation segment (scripts/error_by_trend.py); descriptive, the test segment is not used. */
+            error_by_trend?: components["schemas"]["TrendErrorReport"] | null;
             /** Limitations */
             limitations?: string[];
         };
@@ -2090,6 +2092,59 @@ export interface components {
             target_at: string;
             /** Predicted Mg Dl */
             predicted_mg_dl: number | null;
+        };
+        /** TrendErrorReport */
+        TrendErrorReport: {
+            /** Model Version */
+            model_version: string;
+            /** Pipeline */
+            pipeline: string;
+            /** Personalization */
+            personalization: string;
+            /**
+             * Segment
+             * @constant
+             */
+            segment: "validation";
+            /** Trend Feature */
+            trend_feature: string;
+            /** Min Participants */
+            min_participants: number;
+            /** Rows */
+            rows: components["schemas"]["TrendErrorRow"][];
+        };
+        /** TrendErrorRow */
+        TrendErrorRow: {
+            /** Horizon */
+            horizon: number;
+            /**
+             * Trend
+             * @enum {string}
+             */
+            trend: "all" | "falling_fast" | "falling" | "steady" | "rising" | "rising_fast";
+            /** Label */
+            label: string;
+            /**
+             * Slope Min
+             * @description Exclusive lower bound, mg/dL per minute.
+             */
+            slope_min?: number | null;
+            /**
+             * Slope Max
+             * @description Inclusive upper bound, mg/dL per minute.
+             */
+            slope_max?: number | null;
+            /**
+             * Mae Macro
+             * @description Macro per-participant MAE; null below min_participants.
+             */
+            mae_macro?: number | null;
+            /** Origins */
+            origins: number;
+            /** Participants */
+            participants: number;
+            /** Mean Signed Error Target Above 180 */
+            mean_signed_error_target_above_180?: number | null;
         };
         /** TwinState */
         TwinState: {

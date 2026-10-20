@@ -578,6 +578,28 @@ class SnapshotMarked(Versioned):
     snapshot_commit: str | None = Field(default=None, description="Git commit the snapshot was exported from.")
 
 
+class TrendErrorRow(Contract):
+    horizon: int
+    trend: Literal["all", "falling_fast", "falling", "steady", "rising", "rising_fast"]
+    label: str
+    slope_min: float | None = Field(default=None, description="Exclusive lower bound, mg/dL per minute.")
+    slope_max: float | None = Field(default=None, description="Inclusive upper bound, mg/dL per minute.")
+    mae_macro: float | None = Field(default=None, description="Macro per-participant MAE; null below min_participants.")
+    origins: int
+    participants: int
+    mean_signed_error_target_above_180: float | None = None
+
+
+class TrendErrorReport(Contract):
+    model_version: str
+    pipeline: str
+    personalization: str
+    segment: Literal["validation"]
+    trend_feature: str
+    min_participants: int
+    rows: list[TrendErrorRow]
+
+
 class EvaluationReport(SnapshotMarked):
     status: Literal["completed", "not_run", "unavailable", "synthetic_only"]
     status_message: str
@@ -600,6 +622,9 @@ class EvaluationReport(SnapshotMarked):
     event_results: list[EventMetricsRow] = Field(default_factory=list)
     interval_results: list[IntervalMetricsRow] = Field(default_factory=list)
     optional_experiments: list[dict[str, Any]] = Field(default_factory=list)
+    error_by_trend: TrendErrorReport | None = Field(
+        default=None, description="Serving pipeline's error by glucose trend on its validation segment "
+                                  "(scripts/error_by_trend.py); descriptive, the test segment is not used.")
     limitations: list[str] = Field(default_factory=list)
 
 

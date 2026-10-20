@@ -2819,6 +2819,17 @@
             "type": "array",
             "title": "Optional Experiments"
           },
+          "error_by_trend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TrendErrorReport"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Serving pipeline's error by glucose trend on its validation segment (scripts/error_by_trend.py); descriptive, the test segment is not used."
+          },
           "limitations": {
             "items": {
               "type": "string"
@@ -6230,6 +6241,143 @@
           "predicted_mg_dl"
         ],
         "title": "TrajectoryPoint"
+      },
+      "TrendErrorReport": {
+        "properties": {
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "pipeline": {
+            "type": "string",
+            "title": "Pipeline"
+          },
+          "personalization": {
+            "type": "string",
+            "title": "Personalization"
+          },
+          "segment": {
+            "type": "string",
+            "const": "validation",
+            "title": "Segment"
+          },
+          "trend_feature": {
+            "type": "string",
+            "title": "Trend Feature"
+          },
+          "min_participants": {
+            "type": "integer",
+            "title": "Min Participants"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TrendErrorRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model_version",
+          "pipeline",
+          "personalization",
+          "segment",
+          "trend_feature",
+          "min_participants",
+          "rows"
+        ],
+        "title": "TrendErrorReport"
+      },
+      "TrendErrorRow": {
+        "properties": {
+          "horizon": {
+            "type": "integer",
+            "title": "Horizon"
+          },
+          "trend": {
+            "type": "string",
+            "enum": [
+              "all",
+              "falling_fast",
+              "falling",
+              "steady",
+              "rising",
+              "rising_fast"
+            ],
+            "title": "Trend"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "slope_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slope Min",
+            "description": "Exclusive lower bound, mg/dL per minute."
+          },
+          "slope_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slope Max",
+            "description": "Inclusive upper bound, mg/dL per minute."
+          },
+          "mae_macro": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mae Macro",
+            "description": "Macro per-participant MAE; null below min_participants."
+          },
+          "origins": {
+            "type": "integer",
+            "title": "Origins"
+          },
+          "participants": {
+            "type": "integer",
+            "title": "Participants"
+          },
+          "mean_signed_error_target_above_180": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Signed Error Target Above 180"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "horizon",
+          "trend",
+          "label",
+          "origins",
+          "participants"
+        ],
+        "title": "TrendErrorRow"
       },
       "TwinState": {
         "properties": {
