@@ -69,6 +69,31 @@
 .rsum__tag[data-verdict="negative"] {
   color: var(--gt-attention);
 }
+.rsum__empty--problem {
+  color: var(--gt-attention);
+}
+.rsum__empty--problem .muted {
+  color: var(--gt-text-3);
+}
+/* How a tag was decided: a quiet disclosure under the finding, opened on demand. */
+.rsum__basis {
+  margin-top: 2px;
+  font-size: var(--gt-fs-meta);
+  color: var(--gt-text-3);
+}
+.rsum__basis summary {
+  cursor: pointer;
+  width: fit-content;
+}
+.rsum__basis summary:focus-visible {
+  outline: 2px solid var(--gt-accent);
+  outline-offset: 2px;
+}
+.rsum__basis > span {
+  display: block;
+  max-width: 720px;
+  margin-top: 2px;
+}
 
 @media (max-width: 760px) {
   .rsum__row {

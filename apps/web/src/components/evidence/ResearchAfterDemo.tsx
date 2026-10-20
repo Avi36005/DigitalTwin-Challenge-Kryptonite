@@ -1,6 +1,6 @@
 import type { ResearchSummaryList } from "@/api/types";
 import { InlineNotice, Section, Skeleton } from "@/components/ui";
-import { evaluatedOn, findingText, openedText, TAG, TITLE } from "@/lib/researchSummaries";
+import { BASIS, evaluatedOn, findingText, openedText, TAG, TITLE, UNREADABLE } from "@/lib/researchSummaries";
 import "@/styles/research-summaries.css";
 
 /** Research run after the demo model was chosen (20 Oct): one row per experiment, one tagged line per finding. */
@@ -21,6 +21,10 @@ export function ResearchAfterDemo({ data, loading, error }: { data?: ResearchSum
               </div>
               {it.status === "not_run" ? (
                 <p className="rsum__empty">Not run on this installation. The research steps need the downloaded datasets.</p>
+              ) : it.status !== "available" ? (
+                <p className="rsum__empty rsum__empty--problem" role="note">
+                  {UNREADABLE[it.status]}{it.status_detail ? <span className="muted"> {it.status_detail}</span> : null}
+                </p>
               ) : (
                 <div className="rsum__body">
                   <p className="rsum__on">{evaluatedOn(it)}{openedText(it) ? <span className="muted">. {openedText(it)}</span> : null}</p>
@@ -30,7 +34,15 @@ export function ResearchAfterDemo({ data, loading, error }: { data?: ResearchSum
                       return (
                         <li key={f.key} className="rsum__finding">
                           <span className="rsum__tag" data-verdict={f.verdict}>{TAG[f.verdict]}</span>
-                          <span><strong>{d.tested}.</strong> <span className="num">{d.result}.</span></span>
+                          <span>
+                            <strong>{d.tested}.</strong> <span className="num">{d.result}.</span>
+                            {f.basis ? (
+                              <details className="rsum__basis">
+                                <summary>{BASIS[f.basis]}</summary>
+                                <span>{f.basis_note}</span>
+                              </details>
+                            ) : null}
+                          </span>
                         </li>
                       );
                     })}

@@ -5149,7 +5149,35 @@
               "negative"
             ],
             "title": "Verdict",
-            "description": "shown: the 95 % interval excludes no change in the favourable direction (ranges: pooled coverage within 1 point of the 80 % target); not_shown: it does not; negative: rejected by its own protocol."
+            "description": "How this page describes the result. shown: the 95 % interval lies wholly on the favourable side (ranges: pooled coverage moved closer to the 80 % target; notice: median lead of at least 60 min); not_shown: it does not; negative: rejected by its own report. See basis: most verdicts are display descriptions, not pass bars a protocol declared."
+          },
+          "basis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "declared_rule",
+                  "display_heuristic"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis",
+            "description": "declared_rule: the protocol fixed this claim rule before computing (only D-046 part C); display_heuristic: this page's description of the saved interval or diagnostic."
+          },
+          "basis_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis Note",
+            "description": "The rule or heuristic in words."
           },
           "estimate": {
             "anyOf": [
@@ -5628,9 +5656,24 @@
             "type": "string",
             "enum": [
               "available",
-              "not_run"
+              "not_run",
+              "malformed",
+              "incompatible"
             ],
-            "title": "Status"
+            "title": "Status",
+            "description": "available: read in full; not_run: no saved summary on this installation; malformed: the file is not readable JSON; incompatible: it belongs to another experiment or lacks fields this page reads."
+          },
+          "status_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Detail",
+            "description": "Why a summary is malformed or incompatible."
           },
           "evaluated_on": {
             "type": "string",

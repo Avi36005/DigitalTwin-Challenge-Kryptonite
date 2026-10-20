@@ -741,8 +741,14 @@ class ResearchFinding(Contract):
     key: str = Field(description="Which result: forecast_120, notice_120, profile_inputs_120, classifier, ranges_120, "
                                  "earlier_warning_120, profile_prior_120.")
     verdict: Literal["shown", "not_shown", "negative"] = Field(
-        description="shown: the 95 % interval excludes no change in the favourable direction (ranges: pooled coverage "
-                    "within 1 point of the 80 % target); not_shown: it does not; negative: rejected by its own protocol.")
+        description="How this page describes the result. shown: the 95 % interval lies wholly on the favourable side "
+                    "(ranges: pooled coverage moved closer to the 80 % target; notice: median lead of at least 60 min); "
+                    "not_shown: it does not; negative: rejected by its own report. See basis: most verdicts are display "
+                    "descriptions, not pass bars a protocol declared.")
+    basis: Literal["declared_rule", "display_heuristic"] | None = Field(
+        default=None, description="declared_rule: the protocol fixed this claim rule before computing (only D-046 part "
+                                  "C); display_heuristic: this page's description of the saved interval or diagnostic.")
+    basis_note: str | None = Field(default=None, description="The rule or heuristic in words.")
     estimate: float | None = None
     ci95: list[float] | None = None
     unit: str | None = None
@@ -754,7 +760,10 @@ class ResearchFinding(Contract):
 class ResearchSummaryItem(Contract):
     decision_id: str
     experiment_id: str
-    status: Literal["available", "not_run"]
+    status: Literal["available", "not_run", "malformed", "incompatible"] = Field(
+        description="available: read in full; not_run: no saved summary on this installation; malformed: the file is "
+                    "not readable JSON; incompatible: it belongs to another experiment or lacks fields this page reads.")
+    status_detail: str | None = Field(default=None, description="Why a summary is malformed or incompatible.")
     evaluated_on: Literal["people_held_out", "independent_cohort", "reanalysis_inspected"]
     participants: int | None = None
     opened_at: str | None = None

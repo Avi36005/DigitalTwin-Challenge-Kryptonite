@@ -1,0 +1,619 @@
+{
+ "claims": [
+  {
+   "id": "serving-identity",
+   "claim": "The app serves the fusion model named in the README (recorded data)",
+   "model": "registry serving entry for dataset_replay",
+   "population": "—",
+   "horizon": "30, 60 min",
+   "type": "software configuration",
+   "protocol": "configs/experiments/gt-primary-2026-10-13-fusion.yaml",
+   "artifact": "artifacts/registry.json",
+   "report": "README.md §7",
+   "split_hash": "—",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "serving model (recorded data)",
+     "artifact": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+     "readme": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "demo-forecast",
+   "claim": "Demo model forecast error vs persistence",
+   "model": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion (fusion LightGBM + patient adaptation)",
+   "population": "14 CGMacros Type 2 people, later recordings of the same people (final test segment)",
+   "horizon": "30, 60 min",
+   "type": "inspected-test retrospective",
+   "protocol": "configs/experiments/gt-primary-2026-10-13-fusion.yaml",
+   "artifact": "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json",
+   "report": "reports/evaluation_report.md",
+   "split_hash": "—",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "MAE 30",
+     "artifact": "12.96",
+     "readme": "12.96",
+     "result": "matches"
+    },
+    {
+     "label": "MAE 60",
+     "artifact": "20.26",
+     "readme": "20.26",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 30",
+     "artifact": "14.84",
+     "readme": "14.84",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 60",
+     "artifact": "23.23",
+     "readme": "23.23",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "demo-warning",
+   "claim": "Demo model 60-minute research warning",
+   "model": "same demo model, margin −10 mg/dL",
+   "population": "same as above",
+   "horizon": "60 min",
+   "type": "inspected-test retrospective",
+   "protocol": "configs/experiments/gt-primary-2026-10-13-fusion.yaml",
+   "artifact": "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json",
+   "report": "reports/evaluation_report.md",
+   "split_hash": "—",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "onsets warned",
+     "artifact": "61",
+     "readme": "61",
+     "result": "matches"
+    },
+    {
+     "label": "onsets",
+     "artifact": "64",
+     "readme": "64",
+     "result": "matches"
+    },
+    {
+     "label": "false alarms",
+     "artifact": "40",
+     "readme": "40",
+     "result": "matches"
+    },
+    {
+     "label": "false alarms per observed day",
+     "artifact": "1.49",
+     "readme": "1.49",
+     "result": "matches"
+    },
+    {
+     "label": "median forecast lead",
+     "artifact": "30",
+     "readme": "30",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "demo-time-in-warning",
+   "claim": "Demo warning active share of eligible times (post-hoc diagnostic)",
+   "model": "same demo model",
+   "population": "same as above",
+   "horizon": "60 min",
+   "type": "inspected-test retrospective",
+   "protocol": "configs/experiments/gt-primary-2026-10-13-fusion.yaml",
+   "artifact": "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet (via scripts/warning_time_share.py)",
+   "report": "reports/warning_time_share.md",
+   "split_hash": "—",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "share of eligible times warning",
+     "artifact": "11.8",
+     "readme": "11.8",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "demo-ranges",
+   "claim": "Demo model ranges under-cover (target 80 %); research procedure for comparison",
+   "model": "same demo model; nested research procedure (selected, personalised)",
+   "population": "demo: final test segment; research: 14 people each held out once",
+   "horizon": "30, 60 min",
+   "type": "inspected-test retrospective (demo); participant-held-out internal (research)",
+   "protocol": "configs/experiments/gt-primary-2026-10-13-fusion.yaml; configs/experiments/gt-nested-2026-10-12-v1.yaml",
+   "artifact": "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json; artifacts/research/gt-nested-2026-10-12-v1/report.json",
+   "report": "reports/evaluation_report.md; reports/nested_benchmark_report.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "demo coverage 30",
+     "artifact": "74.2",
+     "readme": "74.2",
+     "result": "matches"
+    },
+    {
+     "label": "demo coverage 60",
+     "artifact": "74.0",
+     "readme": "74.0",
+     "result": "matches"
+    },
+    {
+     "label": "nested research coverage 30",
+     "artifact": "80.1",
+     "readme": "80.1",
+     "result": "matches"
+    },
+    {
+     "label": "nested research coverage 60",
+     "artifact": "78.8",
+     "readme": "78.8",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "nested-forecast",
+   "claim": "Research candidate procedure forecast error vs persistence",
+   "model": "per-fold selected pipeline (Ridge CGM-only in most folds), v2 patient update",
+   "population": "14 CGMacros Type 2 people, each held out entirely once",
+   "horizon": "30, 60 min",
+   "type": "participant-held-out internal",
+   "protocol": "configs/experiments/gt-nested-2026-10-12-v1.yaml",
+   "artifact": "artifacts/research/gt-nested-2026-10-12-v1/report.json",
+   "report": "reports/nested_benchmark_report.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "MAE 30",
+     "artifact": "13.88",
+     "readme": "13.88",
+     "result": "matches"
+    },
+    {
+     "label": "MAE 60",
+     "artifact": "22.30",
+     "readme": "22.30",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 30",
+     "artifact": "15.34",
+     "readme": "15.34",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 60",
+     "artifact": "24.47",
+     "readme": "24.47",
+     "result": "matches"
+    },
+    {
+     "label": "folds choosing Ridge CGM-only",
+     "artifact": "4",
+     "readme": "4",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "external-15min",
+   "claim": "Separate 15-minute LightGBM on an independent cohort",
+   "model": "lightgbm_l2:cgm15-v1 (CGM only), personalised",
+   "population": "98 ShanghaiT2DM people",
+   "horizon": "30, 60 min",
+   "type": "external cohort",
+   "protocol": "configs/experiments/gt-nested-2026-10-12-v1.yaml",
+   "artifact": "artifacts/research/gt-nested-2026-10-12-v1/report.json",
+   "report": "reports/nested_benchmark_report.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "MAE 30",
+     "artifact": "11.15",
+     "readme": "11.15",
+     "result": "matches"
+    },
+    {
+     "label": "MAE 60",
+     "artifact": "20.11",
+     "readme": "20.11",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 30",
+     "artifact": "12.14",
+     "readme": "12.14",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 60",
+     "artifact": "20.44",
+     "readme": "20.44",
+     "result": "matches"
+    },
+    {
+     "label": "60-minute difference",
+     "artifact": "inconclusive",
+     "readme": "inconclusive",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "profile-ablation-nested",
+   "claim": "Profile (EHR-like) inputs on people held out: no reliable benefit",
+   "model": "LightGBM L2 dyn-prof-v2 minus dyn-v2 (population)",
+   "population": "14 people each held out once",
+   "horizon": "30, 60 min",
+   "type": "participant-held-out internal",
+   "protocol": "configs/experiments/gt-nested-2026-10-12-v1.yaml",
+   "artifact": "artifacts/research/gt-nested-2026-10-12-v1/report.json",
+   "report": "reports/nested_benchmark_report.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "profile minus no profile, 30 min",
+     "artifact": "+0.34 [−0.28, +0.89]",
+     "readme": "+0.34 [−0.28, +0.89]",
+     "result": "matches"
+    },
+    {
+     "label": "profile minus no profile, 60 min",
+     "artifact": "−0.75 [−2.19, +0.61]",
+     "readme": "−0.75 [−2.19, +0.61]",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "two-hour",
+   "claim": "Two hours ahead: forecast, warning, ranges, profile ablation (D-043)",
+   "model": "per-fold selected CGM-only pipeline (Ridge or LightGBM), personalised",
+   "population": "14 people each held out once",
+   "horizon": "120 min (warning: max of 30/60/120)",
+   "type": "participant-held-out internal",
+   "protocol": "configs/experiments/gt-2h-2026-10-20.yaml",
+   "artifact": "artifacts/research/gt-2h-2026-10-20/two_hour_summary.json",
+   "report": "reports/two_hour_benchmark.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "MAE 120",
+     "artifact": "30.6",
+     "readme": "30.6",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 120",
+     "artifact": "35.9",
+     "readme": "35.9",
+     "result": "matches"
+    },
+    {
+     "label": "people better",
+     "artifact": "14 of 14",
+     "readme": "14 of 14",
+     "result": "matches"
+    },
+    {
+     "label": "onsets warned",
+     "artifact": "315 of 329",
+     "readme": "315 of 329",
+     "result": "matches"
+    },
+    {
+     "label": "false alarms per observed day",
+     "artifact": "1.62",
+     "readme": "1.62",
+     "result": "matches"
+    },
+    {
+     "label": "median lead (IQR)",
+     "artifact": "15 min (IQR 5–65)",
+     "readme": "15 min (IQR 5–65)",
+     "result": "matches"
+    },
+    {
+     "label": "coverage 120",
+     "artifact": "76.5",
+     "readme": "76.5",
+     "result": "matches"
+    },
+    {
+     "label": "profile ablation 120 (LightGBM)",
+     "artifact": "−0.86 [−2.60, +1.02]",
+     "readme": "−0.86 [−2.60, +1.02]",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "two-hour-external",
+   "claim": "Two hours ahead on an independent cohort (D-045)",
+   "model": "lightgbm_l2:cgm15-v1 re-fitted with a 120-minute horizon (CGM only)",
+   "population": "98 ShanghaiT2DM people",
+   "horizon": "30, 60, 120 min",
+   "type": "external cohort",
+   "protocol": "configs/experiments/gt-2h-ext-2026-10-20.yaml",
+   "artifact": "artifacts/research/gt-2h-ext-2026-10-20/two_hour_external_summary.json",
+   "report": "reports/two_hour_external.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "MAE 120",
+     "artifact": "29.55",
+     "readme": "29.55",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 120",
+     "artifact": "31.68",
+     "readme": "31.68",
+     "result": "matches"
+    },
+    {
+     "label": "difference (95 % CI)",
+     "artifact": "−2.12 [−2.67, −1.53]",
+     "readme": "−2.12 [−2.67, −1.53]",
+     "result": "matches"
+    },
+    {
+     "label": "people better",
+     "artifact": "78 of 98",
+     "readme": "78 of 98",
+     "result": "matches"
+    },
+    {
+     "label": "MAE 30 / 60",
+     "artifact": "10.90 / 19.31",
+     "readme": "10.90 / 19.31",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 30 / 60",
+     "artifact": "12.14 / 20.44",
+     "readme": "12.14 / 20.44",
+     "result": "matches"
+    },
+    {
+     "label": "coverage 120",
+     "artifact": "87",
+     "readme": "87",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "classifier-negative",
+   "claim": "Negative result: direct two-hour onset classifier rejected (D-044)",
+   "model": "LightGBM classifier, fixed settings",
+   "population": "14 people each held out once (folds of D-043)",
+   "horizon": "onset within 120 min",
+   "type": "participant-held-out internal (negative result)",
+   "protocol": "configs/experiments/gt-2h-clf-2026-10-20.yaml",
+   "artifact": "artifacts/research/gt-2h-clf-2026-10-20/summary.json",
+   "report": "reports/two_hour_classifier.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "onsets warned",
+     "artifact": "329 of 329",
+     "readme": "329 of 329",
+     "result": "matches"
+    },
+    {
+     "label": "false alarms per day",
+     "artifact": "0.18",
+     "readme": "0.18",
+     "result": "matches"
+    },
+    {
+     "label": "share of eligible time warning",
+     "artifact": "99",
+     "readme": "99",
+     "result": "matches"
+    },
+    {
+     "label": "ROC AUC",
+     "artifact": "0.64",
+     "readme": "0.64",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "d046-ranges",
+   "claim": "Ranges calibrated on pooled development people reach the 80 % target (D-046 B)",
+   "model": "two-hour procedure's saved predictions, re-analysed",
+   "population": "same 14 already-inspected people",
+   "horizon": "60, 120 min",
+   "type": "re-analysis (internal validation)",
+   "protocol": "configs/experiments/gt-warn-range-2026-10-20.yaml",
+   "artifact": "artifacts/research/gt-warn-range-2026-10-20/summary.json",
+   "report": "reports/warning_range_experiment.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "coverage 120 before",
+     "artifact": "76.5",
+     "readme": "76.5",
+     "result": "matches"
+    },
+    {
+     "label": "coverage 120 after",
+     "artifact": "79.8",
+     "readme": "79.8",
+     "result": "matches"
+    },
+    {
+     "label": "coverage 60 before → after",
+     "artifact": "78.2 → 79.5",
+     "readme": "78.2 → 79.5",
+     "result": "matches"
+    },
+    {
+     "label": "width increase",
+     "artifact": "7",
+     "readme": "7",
+     "result": "matches"
+    },
+    {
+     "label": "per-person median coverage 120",
+     "artifact": "81.2",
+     "readme": "81.2",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "d046-earlier-warning",
+   "claim": "Negative result: earlier two-hour warning not reliably shown (D-046 A)",
+   "model": "inner-fold-selected warning arm and threshold",
+   "population": "same 14 already-inspected people",
+   "horizon": "120 min",
+   "type": "re-analysis (internal validation, negative result)",
+   "protocol": "configs/experiments/gt-warn-range-2026-10-20.yaml",
+   "artifact": "artifacts/research/gt-warn-range-2026-10-20/summary.json",
+   "report": "reports/warning_range_experiment.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "warned ≥ 30 min ahead, selected vs incumbent",
+     "artifact": "126 vs 123 of 329",
+     "readme": "126 vs 123 of 329",
+     "result": "matches"
+    },
+    {
+     "label": "difference (95 % CI)",
+     "artifact": "+0.9 points [−5.5, +6.6]",
+     "readme": "+0.9 points [−5.5, +6.6]",
+     "result": "matches"
+    },
+    {
+     "label": "median lead",
+     "artifact": "15",
+     "readme": "15",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "d046-profile-prior",
+   "claim": "Negative result: health record as starting correction not shown (D-046 C)",
+   "model": "ridge on 8 profile values + population forecast",
+   "population": "same 14 already-inspected people",
+   "horizon": "120 min",
+   "type": "re-analysis (internal validation, negative result)",
+   "protocol": "configs/experiments/gt-warn-range-2026-10-20.yaml",
+   "artifact": "artifacts/research/gt-warn-range-2026-10-20/summary.json",
+   "report": "reports/warning_range_experiment.md",
+   "split_hash": "e3695ca98334",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "120 min",
+     "artifact": "−0.53 [−1.57, +0.58]",
+     "readme": "−0.53 [−1.57, +0.58]",
+     "result": "matches"
+    },
+    {
+     "label": "120 min, first 24 h",
+     "artifact": "−0.93 [−2.74, +0.48]",
+     "readme": "−0.93 [−2.74, +0.48]",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "scale",
+   "claim": "Participants imported and evaluated",
+   "model": "—",
+   "population": "CGMacros (45 imported, 14 Type 2 evaluated) and ShanghaiT2DM (100 imported, 98 evaluated)",
+   "horizon": "—",
+   "type": "data inventory",
+   "protocol": "configs/experiments/gt-nested-2026-10-12-v1.yaml",
+   "artifact": "reports/dataset_inventory.json",
+   "report": "reports/dataset_expansion_audit.md",
+   "split_hash": "—",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "imported",
+     "artifact": "145",
+     "readme": "145",
+     "result": "matches"
+    },
+    {
+     "label": "evaluated internally",
+     "artifact": "14",
+     "readme": "14",
+     "result": "matches"
+    },
+    {
+     "label": "evaluated externally",
+     "artifact": "98",
+     "readme": "98",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "synthetic",
+   "claim": "Synthetic demonstration model is fitted on fictional data, never evidence",
+   "model": "synthetic-demo.lightgbm.dyn-v2.v1",
+   "population": "fictional synthetic participants",
+   "horizon": "30, 60 min",
+   "type": "synthetic",
+   "protocol": "configs/synthetic.yaml",
+   "artifact": "artifacts/registry.json",
+   "report": "README.md (Public demonstration)",
+   "split_hash": "—",
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "synthetic-demo.lightgbm.dyn-v2.v1 fitted on fictional data (registry synthetic_fitted)",
+     "artifact": "fitted on fictional data",
+     "readme": "fitted on fictional data",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "parity",
+   "claim": "App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
+   "model": "demo model online (TwinEngine) vs offline",
+   "population": "final test segment, 14 people",
+   "horizon": "30, 60 min",
+   "type": "software test",
+   "protocol": "configs/experiments/gt-primary-2026-10-13-fusion.yaml",
+   "artifact": "— (not saved as a file)",
+   "report": "reports/verification.md",
+   "split_hash": "—",
+   "status": "author-reported",
+   "checks": [],
+   "detail": "a one-off replay through TwinEngine recorded in the report, not saved as a file; `uv run pytest tests/test_v2_preserved.py` re-checks offline that the saved model bundles reproduce their saved adaptive forecasts"
+  }
+ ]
+}
