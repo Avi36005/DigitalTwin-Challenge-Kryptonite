@@ -371,6 +371,37 @@ def two_hour_slide() -> dict | None:
                 *([ext_bullet()] if ext_bullet() else [])]}
 
 
+WARN_RANGE = ROOT / "artifacts/research/gt-warn-range-2026-10-20/summary.json"
+
+
+def reanalysis_slide() -> dict | None:
+    """What the D-046 re-analysis fixed and what it did not, from scripts/warning_range_experiment.py's saved summary."""
+    if not WARN_RANGE.exists():
+        return None
+    s = json.loads(WARN_RANGE.read_text())
+    r, w, d = s["ranges"], s["warnings"], s["warning_diff_selected_minus_incumbent"]
+    p = s["profile_prior"]["all"]["120"]["c1_minus_population"]
+    p24 = s["profile_prior"]["first_24h"]["120"]["c1_minus_population"]
+    cov = lambda b, h: 100 * r[b][str(h)]["coverage_pooled"]  # noqa: E731
+    ci = lambda x: f"{x['mean_diff']:+.2f} [{x['ci95'][0]:+.2f}, {x['ci95'][1]:+.2f}]"  # noqa: E731
+    return {"kind": "bullets", "title": "Research: what we fixed, and what we could not",
+            "bullets": [
+                "Declared and committed before any arm was computed (D-046): the saved two-hour predictions re-analysed, every "
+                "choice made on development people, the outer people read once. Same 14 already-inspected people: internal validation.",
+                f"Fixed — prediction ranges: calibrating on all development people instead of 2 per fold raised two-hour coverage "
+                f"from {cov('B0_calibration', 120):.1f} % to {cov('B1_pooled', 120):.1f} % (target 80 %; 60 min "
+                f"{cov('B0_calibration', 60):.1f} → {cov('B1_pooled', 60):.1f} %), ranges "
+                f"{r['B1_pooled']['120']['width_mean'] - r['B0_calibration']['120']['width_mean']:.0f} mg/dL wider.",
+                f"Not shown — earlier warning: {w['selected']['early']} vs {w['incumbent']['early']} of {w['incumbent']['onsets']} "
+                f"onsets warned ≥ 30 min ahead ({100 * d['early_share_diff']:+.1f} points [{100 * d['early_share_ci95'][0]:+.1f}, "
+                f"{100 * d['early_share_ci95'][1]:+.1f}]) at the same workload; median lead still "
+                f"{w['selected']['lead_median']:.0f} min.",
+                f"Not shown — health record as a new person's starting correction: {ci(p)} mg/dL at 120 min, {ci(p24)} in the "
+                "first 24 hours; the intervals cross zero, so no benefit is claimed.",
+                "The demo model's ranges are already pooled over all 14 people; its under-coverage comes from drift between time "
+                "segments, so this fix is not applied to it."]}
+
+
 TWO_HOUR_EXT = ROOT / "artifacts/research/gt-2h-ext-2026-10-20/two_hour_external_summary.json"
 
 
@@ -570,6 +601,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      f"Optimistic meal logging: {sens.loc[60, 'mae']:.2f} vs {sens.loc[60, 'serving_population_mae']:.2f} mg/dL at 60 min — timely meal data would likely help most."]},
         *([research_slide()] if research_slide() else []),
         *([two_hour_slide()] if two_hour_slide() else []),
+        *([reanalysis_slide()] if reanalysis_slide() else []),
         {"kind": "bullets", "title": "Project outcomes",
          "bullets": ["Built: a working personalized glucose twin — replay API with a backend-owned clock, immutable forecasts, research warnings with outcomes — and a clinician workspace (landing page, Overview, Participants, Replay sessions, Model evidence, Data quality).",
                      "Found and corrected a data-provenance problem: the published 1-minute CGM values are interpolated; only native 5-minute readings are used.",

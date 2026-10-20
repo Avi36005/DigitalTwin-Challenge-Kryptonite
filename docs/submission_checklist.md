@@ -26,10 +26,10 @@ Verification date for every row: 20 October 2026 (local repository; `scripts/che
 | 5 | Healthcare use case | [`#5-healthcare-use-case`](../README.md#5-healthcare-use-case) | README (workflow + screenshots); [`product.md`](product.md) | Ready | — |
 | 6 | Technical stack | [`#6-technical-stack`](../README.md#6-technical-stack) | README; `uv.lock`; `apps/web/package-lock.json` | Ready | — |
 | 7 | AI/ML model or framework details | [`#7-ai-and-ml-model-details`](../README.md#7-ai-and-ml-model-details) | README; [`model_card.md`](model_card.md); [`../reports/evaluation_report.md`](../reports/evaluation_report.md) | Ready | — |
-| 8 | Demo video — unlisted YouTube, **minimum 20 min** (target 20:15) | [`#8-demo-video`](../README.md#8-demo-video) | Plan: [`demo_script.md`](demo_script.md); sequence: [`../reports/demo_sequence.md`](../reports/demo_sequence.md); link: — | **Missing** — not recorded; not uploaded | Team (recording, upload needs authorization) |
+| 8 | Demo video — unlisted YouTube, **minimum 20 min** (target 20:30) | [`#8-demo-video`](../README.md#8-demo-video) | Plan: [`demo_script.md`](demo_script.md); sequence: [`../reports/demo_sequence.md`](../reports/demo_sequence.md); link: — | **Missing** — not recorded; not uploaded | Team (recording, upload needs authorization) |
 | 9 | Open-source license details | [`#9-open-source-license`](../README.md#9-open-source-license) | [`../LICENSE`](../LICENSE) (MIT, code); data terms in README and [`data_card.md`](data_card.md) | Ready — holder wording to be confirmed | Team |
 | 10 | Architecture diagram (PDF/PPT) | [`#10-architecture-diagram`](../README.md#10-architecture-diagram) | [`submission/GlucoTwin_Architecture.pdf`](submission/GlucoTwin_Architecture.pdf) (2 pages) | Ready | — |
-| 11 | Presentation with project details and outcomes (PDF/PPT) | [`#11-presentation`](../README.md#11-presentation) | [`submission/GlucoTwin_Presentation.pdf`](submission/GlucoTwin_Presentation.pdf) / `.pptx` (23 slides, incl. “Project outcomes”, “Safety guardrails” and the two research-evidence slides) | Ready — regenerate after adding video/repository URLs | Team |
+| 11 | Presentation with project details and outcomes (PDF/PPT) | [`#11-presentation`](../README.md#11-presentation) | [`submission/GlucoTwin_Presentation.pdf`](submission/GlucoTwin_Presentation.pdf) / `.pptx` (24 slides, incl. “Project outcomes”, “Safety guardrails” and the three research-evidence slides) | Ready — regenerate after adding video/repository URLs | Team |
 | 12 | Files and links accessible without additional permissions | [`#12-accessible-files-and-links`](../README.md#12-accessible-files-and-links) | [`submission_access_audit.md`](submission_access_audit.md) | **Unverified** — local checks pass; public/signed-out checks pending publication | Team |
 
 **Separate form field — GitHub repository URL** (≤ 500 characters): the direct public repository URL, not a local
@@ -41,7 +41,7 @@ path or app-hosting URL. Status: **not yet created** (publication requires the t
 
 | Instruction | Source | Status / note |
 |---|---|---|
-| Video length | Challenge page (rechecked 14 Oct 2026): “Minimum 20-minute video”. Form transcription (11 Oct): 15–20 min, unlisted YouTube | **At least 20:00** by both the rendered file and YouTube's displayed duration; target **20:15** so rounding or trimming cannot drop it below the minimum. The challenge page governs; recheck if organisers clarify (D-040) |
+| Video length | Challenge page (rechecked 14 Oct 2026): “Minimum 20-minute video”. Form transcription (11 Oct): 15–20 min, unlisted YouTube | **At least 20:00** by both the rendered file and YouTube's displayed duration; target **20:30** so rounding or trimming cannot drop it below the minimum. The challenge page governs; recheck if organisers clarify (D-040) |
 | Folder name `Team Name_College Name` | Challenge page (not on the form) | **Done locally (19 Oct 2026, D-042):** top-level [`Kryptonite_VESIT/`](../Kryptonite_VESIT/README.md) indexes the submission files; repository not renamed. Visible to judges once the repository is public |
 | Repository public; all files and links accessible | Form and challenge page | **Outstanding** (needs explicit approval). Before publishing: `context.md` stays git-ignored (personal email); `git ls-files data artifacts var` lists only `artifacts/README.md` |
 | Team leader submits name, phone, email and repository link | Challenge page / form | **Outstanding** — the team leader submits on Unstop; not automated |
@@ -61,7 +61,7 @@ path or app-hosting URL. Status: **not yet created** (publication requires the t
 - [x] Supply the college/incubator → README §2, `configs/submission.yaml`, `team_details.md`; rebuild slides (17 Oct 2026)
 - [x] Team folder `Kryptonite_VESIT/`, README results table and branding, app evaluation wording, hypothetical example (19 Oct 2026, D-042)
 - [ ] Confirm the license holder wording in `LICENSE`
-- [ ] Record the video per [`demo_script.md`](demo_script.md); measure the rendered duration (**at least 20:00**; target 20:15)
+- [ ] Record the video per [`demo_script.md`](demo_script.md); measure the rendered duration (**at least 20:00**; target 20:30)
 - [ ] With authorization: upload to YouTube as **Unlisted**; confirm the displayed duration is at least 20:00; record URL and displayed duration in `configs/submission.yaml` and README §8
 - [ ] With authorization: publish the repository; record its URL; rebuild slides (`uv run --group docs python scripts/build_submission_assets.py`)
 - [ ] `uv run python scripts/check_submission.py --online`; open the repository, PDFs, PPTX and video from a signed-out browser; update README §12 and this table

@@ -355,7 +355,7 @@ Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · 
 ## 8. Demo video
 
 * **Unlisted YouTube link: not yet available** — the recording has not been made or uploaded.
-* The challenge page requires a **minimum 20-minute video** (rechecked 14 Oct 2026); target 20:15 so neither the
+* The challenge page requires a **minimum 20-minute video** (rechecked 14 Oct 2026); target 20:30 so neither the
   rendered file nor YouTube's displayed duration falls below 20:00. The actual rendered and YouTube-displayed durations
   will be recorded here after upload.
 * Recording plan with chapter timestamps: [`docs/demo_script.md`](docs/demo_script.md); replay sequence verified

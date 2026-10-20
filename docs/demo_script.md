@@ -3,7 +3,7 @@
 **Team Kryptonite · VESIT, Mumbai.** The challenge page (rechecked 14 Oct 2026) requires a **minimum 20-minute video**
 explaining and demonstrating the prototype, as a PowerPoint recording or an **unlisted** YouTube video; the form
 transcription said 15–20 minutes, and the challenge page governs (D-040). This plan is **demo first**: about 12 minutes
-in the live app and about 8 minutes of slides. Aim for about **20:15** so that neither the rendered file nor YouTube's
+in the live app and about 8 minutes of slides. Aim for about **20:30** so that neither the rendered file nor YouTube's
 displayed duration falls below 20:00. It is a plan, not a recording: rehearse with a timer, check the finished video is
 at least 20:00, then record the rendered and YouTube-displayed durations in `configs/submission.yaml` and the README.
 
@@ -11,7 +11,7 @@ Every on-screen value in the live chapters was recorded from the running API by 
 [`reports/demo_sequence.md`](../reports/demo_sequence.md) (Scene A = Participant 01, Scene B = Participant 12, Scenes C
 and E = synthetic). The two-hour numbers come from [`reports/two_hour_benchmark.md`](../reports/two_hour_benchmark.md).
 If a value on screen differs (for example after re-running an experiment), narrate what the screen shows — never the
-number written here. The deck has 23 slides; slides not shown in the video stay in the PDF for the judges.
+number written here. The deck has 24 slides; slides not shown in the video stay in the PDF for the judges.
 
 ## Chapter plan
 
@@ -27,12 +27,12 @@ number written here. The deck has 23 slides; slides not shown in the video stay 
 | 11:00–11:45 | Rewind: nothing from the future leaks in | 0:45 | Participant 12 | 50 |
 | 11:45–12:45 | Synthetic edge cases | 1:00 | Synthetic Participants E and C | 86 |
 | 12:45–15:00 | Model evidence and the safety guardrails | 2:15 | Model evidence, Data quality | 166 |
-| 15:00–18:30 | Measured results | 3:30 | Slides 14, 17, 18, 19 | 386 |
-| 18:30–20:15 | Limits, next steps and links | 1:45 | Slides 21–23 | 183 |
+| 15:00–18:45 | Measured results | 3:45 | Slides 14, 17, 18, 19, 20 | 471 |
+| 18:45–20:30 | Limits, next steps and links | 1:45 | Slides 22–24 | 183 |
 
-Narration words are counted from this file (1,918 in total, recounted on 20 Oct 2026). At about 130 words per minute
-that is roughly 14.8 minutes of speech: about 7.4 minutes in the 12 live minutes (966 words), leaving about 4.5 minutes
-for clicks, seeks and pauses, and about 7.4 minutes in the 8 slide minutes (952 words). Chapter 1 is at its slot at
+Narration words are counted from this file (2,003 in total, recounted on 20 Oct 2026). At about 130 words per minute
+that is roughly 15.4 minutes of speech: about 7.4 minutes in the 12 live minutes (966 words), leaving about 4.5 minutes
+for clicks, seeks and pauses, and about 8.0 minutes in the 8¼ slide minutes (1,037 words). Chapter 1 is at its slot at
 that pace, so rehearse it first; if a live chapter runs short, pause on the screen rather than speed up. This is an estimate — only a timed rehearsal and
 the rendered file establish the real duration. YouTube chapters: paste the twelve start times above into the video
 description.
@@ -201,7 +201,7 @@ page); scroll through the list.
 *Action:* sidebar → **Data quality**.
 > This page separates the current replay's data, the dataset's coverage and the limits of the model's inputs.
 
-## Chapter 11 — Measured results (15:00–18:30) · slides 14, 17, 18, 19
+## Chapter 11 — Measured results (15:00–18:45) · slides 14, 17, 18, 19, 20
 
 > *[Slide 14]* Forecast accuracy on later days of the same fourteen people: 13.0 and 20.3 milligrams per decilitre at
 > thirty and sixty minutes, against 14.8 and 23.2 for persistence. That is an average error, not an accuracy
@@ -229,20 +229,26 @@ page); scroll through the list.
 > sixty-five minutes or more ahead. Ranges covered 76.5 percent. The health-record inputs gave no reliable benefit at
 > two hours: minus 0.86, interval minus 2.60 to plus 1.02, and with Ridge they made error worse. These fourteen people
 > were already inspected, so this is internal validation; it is not the demo model, and nothing was promoted.
+>
+> *[Slide 20]* Then we tried to fix three weaknesses, declaring each test before computing it — decision D-046. One
+> worked: calibrating the ranges on all development people instead of two raised two-hour coverage from 76.5 to 79.8
+> percent, against a target of 80. Two did not: no rule warned more onsets at least thirty minutes ahead at the same
+> alarm budget, and using the health record as a new person's starting correction gave minus 0.53 milligrams per
+> decilitre, an interval that crosses zero. We report all three.
 
-## Chapter 12 — Limits, next steps and links (18:30–20:15) · slides 21–23
+## Chapter 12 — Limits, next steps and links (18:45–20:30) · slides 22–24
 
-> *[Slide 21]* The limits are real: fourteen people from one US site, no Indian participants, blinded research sensors
+> *[Slide 22]* The limits are real: fourteen people from one US site, no Indian participants, blinded research sensors
 > replayed with assumed zero delay, unknown medication use, under-covering prediction ranges, a profile that may act as
 > an identity code, and demo-model results on a segment we had already seen. Nothing here is clinical validation. And
 > scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
 > establish performance on real patients.
 >
-> *[Slide 22]* Before use with Indian patients we would need a consented prospective cohort with real-time sensors,
+> *[Slide 23]* Before use with Indian patients we would need a consented prospective cohort with real-time sensors,
 > medications and meal-logging times; evaluation on held-out participants and sites; a warning policy with an alert
 > budget agreed with clinicians; a usability study; and a regulatory and data-protection review.
 >
-> *[Slide 23]* Everything is reproducible: the README runs the synthetic demonstration in three commands, and the
+> *[Slide 24]* Everything is reproducible: the README runs the synthetic demonstration in three commands, and the
 > recorded-data results with three more. Automated backend, frontend and browser tests pass, and every number in this
 > video traces to a saved experiment file. The code is MIT-licensed; the dataset keeps its own license and is
 > downloaded by each user from PhysioNet. We are Team Kryptonite from VESIT. Thank you for watching.
