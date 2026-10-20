@@ -129,7 +129,8 @@ shows it.
 > A second warning at 11:25 also ended without an episode — two false alarms today. We show them on purpose: across
 > the test period this rule raised 1.49 false alarms per observed patient-day.
 
-*Action:* **Step 5 min** seven times → **Day 9 · 20:38**.
+*Action:* **Step 5 min** seven times → **Day 9 · 20:38**; click **View forecast details** once and close it (this keeps
+the 20:35 forecast selected for later).
 > At 20:30 the twin warned again. Glucose is now 165 and the thirty-minute forecast is 189. Outcome pending.
 
 *Action:* **Step 5 min** seven more times → **Day 9 · 21:13**; scroll to the **Warnings** list.
@@ -137,7 +138,13 @@ shows it.
 > two false alarms and one matched onset, with its forecast lead. On the whole test period this rule caught 61 of 64
 > new episodes.
 
-*Action:* on the 20:30 warning click **Mark as reviewed**, type a short note (*"Seen; recheck after dinner"*), save. Click
+*Action:* **Step 1 h** → **Day 9 · 22:13**, then click **View forecast details** (it opens the selected 20:35 forecast);
+point at *Outcome*.
+> Now we can check that forecast against what happened. Thirty minutes ahead it said 189, and the sensor read 189.
+> Sixty minutes ahead it said 188 and the reading was 169 — nineteen too high — but the patient correction had moved
+> it almost seven milligrams closer than the population model alone. One case says nothing about how often that happens.
+
+*Action:* close the drawer; on the 20:30 warning click **Mark as reviewed**, type a short note (*"Seen; recheck after dinner"*), save. Click
 **Review queue** in the sidebar, point at this replay's row, then **Open** to come back; click **Review summary** in the
 header and show **Print / Save as PDF**. Do not seek again in this replay after reviewing: a seek starts a new revision
 and the review count resets.

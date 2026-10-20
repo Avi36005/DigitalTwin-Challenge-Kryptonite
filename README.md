@@ -144,6 +144,12 @@ not been established (§7).
   glucose trend** — on the demo model's validation segment its 60-minute error was 35.3 mg/dL while glucose rose more
   than 2 mg/dL per minute against 19.5 when steady, and peaks above 180 mg/dL were under-forecast by 16.9 mg/dL on
   average ([report](reports/error_by_trend.md)). All values come from the API's recorded forecast; nothing is recomputed.
+* **What actually happened** (forecast details, [screenshot](reports/ui/25-forecast-outcome.png)): once the replay
+  clock passes a forecast's target time, the drawer shows the observed reading (a measurement, matched within 2.5 min),
+  the saved forecast's error, the population forecast's error and whether the patient correction moved it closer or
+  further — for example Participant 01's forecast issued Day 9 · 20:35 was 19 mg/dL too high at 60 minutes and the
+  correction moved it 6.7 mg/dL closer. Before the target time it says the outcome is not yet observed; over a gap,
+  unknown. One outcome says nothing about how often the correction helps.
 * **Research after the demo model** (Model evidence → research view, [screenshot](reports/ui/21-research-after-demo-model.png)):
   the four 20 October experiments (D-043, D-045, D-044, D-046), each with who it was evaluated on, when it was opened,
   and a "Shown", "Not shown" or "Negative result" tag per finding, read from `GET /api/v1/research-summaries`. None is
@@ -583,6 +589,7 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
   [Two hours ahead, external](reports/two_hour_external.md) · [Two-hour classifier (negative)](reports/two_hour_classifier.md) ·
   [Time in warning](reports/warning_time_share.md) · [Cold-start profile](reports/cold_start_profile.md) ·
   [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Model blend (negative)](reports/blend_experiment.md) · [Retraining study (negative)](reports/retrain_study.md) · [Serving parity](reports/serving_parity.md) ·
+  [Serving ranges study](reports/serving_ranges_study.md) · [Warning notice](reports/warning_utility.md) ·
   [Error by glucose trend](reports/error_by_trend.md) · [Evidence manifest](reports/evidence_manifest.md) · [Review summary check](reports/review_summary_check.md) · [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
 * **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
   [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·
