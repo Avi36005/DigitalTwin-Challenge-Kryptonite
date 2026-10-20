@@ -115,7 +115,9 @@ test("missing-data, stale and abstention states are explicit", async ({ page }) 
   await startReplay(page, "synthetic_demo", "SYN-E");
   await page.getByRole("button", { name: "Step 5 min forward" }).click();
   await expect(page.getByRole("region", { name: "60-minute forecast" }).getByText("Not available")).toBeVisible();
-  await expect(page.getByRole("complementary", { name: "Review and data quality" }).getByText("Insufficient information")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Review and guardrails" }).getByText("Insufficient information")).toBeVisible();
+  // the guardrails readout says why there is no forecast instead of showing one
+  await expect(page.getByRole("region", { name: "Guardrails" })).toContainText(/Abstained: no forecast is shown|No forecast yet/);
   // sensor-gap participant: seek into a long gap to see stale data
   await startReplay(page, "synthetic_demo", "SYN-D");
   const slider = page.getByLabel("Seek replay time");
@@ -138,12 +140,27 @@ test("recorded-data replay in the final test period shows prediction ranges with
   await page.getByRole("button", { name: "Details", exact: true }).click();
   await expect(page.getByText(/Measured coverage on the final test period/)).toBeVisible();
   await expect(page.getByText("Recorded-data replay").first()).toBeVisible();
+  await expect(page.getByText(/Loading released observations/).first()).toBeHidden();
+  await expect(page.getByRole("region", { name: "Current glucose" }).getByText("mg/dL", { exact: true })).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/03-forecast-with-interval-recorded.png` });
+  // the fusion model's guardrails: profile gate passed, bounded correction, range with its measured coverage
+  const guards = page.getByRole("region", { name: "Guardrails" });
+  await expect(guards).toContainText("Every value the model reads was known at this time");
+  await expect(guards).toContainText("capped at ±25 mg/dL");
+  await expect(guards).toContainText("Measured on the final test period");
   await page.getByRole("button", { name: "View forecast details" }).click();
   await expect(page.getByRole("dialog", { name: "Forecast details" })).toContainText("Final test period (later recordings from a participant represented in training)");
   await page.waitForTimeout(400); // let the drawer finish its short slide-in
   await page.screenshot({ path: `${SHOTS}/04-forecast-evidence-dialog.png` });
   await page.keyboard.press("Escape");
+  // the full list on the evidence page, reached from the readout
+  await guards.getByRole("link", { name: "All safety guardrails" }).click();
+  await expect(page).toHaveURL(/\/app\/evidence#safety-guardrails$/);
+  const heading = page.getByRole("heading", { name: "Safety guardrails" });
+  await expect(heading).toBeInViewport();
+  await expect(page.locator("#safety-guardrails dt")).toHaveCount(11);
+  await expect(page.getByText(/^Replay started for/)).toBeHidden({ timeout: 6000 }); // toasts close after 3.2 s
+  await page.screenshot({ path: `${SHOTS}/19-safety-guardrails.png` });
 });
 
 test("model evidence and data quality pages render recorded results", async ({ page }) => {
@@ -286,7 +303,7 @@ test.describe("recording resolution (1920×1080) — demo sequence on recorded d
     await page.screenshot({ path: `${SHOTS}/09-recording-1920-recorded-gap-stale.png` });
     await seek(page, sid, "2000-01-11T11:45:00Z");
     await expect(page.getByRole("region", { name: "60-minute forecast" }).getByText("Not available")).toBeVisible();
-    await expect(page.getByRole("complementary", { name: "Review and data quality" }).getByText("Insufficient information")).toBeVisible();
+    await expect(page.getByRole("complementary", { name: "Review and guardrails" }).getByText("Insufficient information")).toBeVisible();
     await expect(page.getByText(/readings? in the last hour; more recent history is required/)).toBeVisible();
     await expect(page.getByRole("region", { name: "Current glucose" })).toContainText("195"); // the reading stays visible
     await page.screenshot({ path: `${SHOTS}/13-insufficient-history-recorded.png` });

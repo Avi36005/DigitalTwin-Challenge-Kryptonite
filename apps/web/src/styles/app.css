@@ -2743,3 +2743,92 @@ fieldset.field {
   display: block;
   white-space: nowrap;
 }
+
+/* ================================================================ Guardrails */
+/* replay inspector: one flat list; the icon marks the state and the text says it */
+.guards__lede {
+  margin: -4px 0 10px;
+  font-size: var(--gt-fs-meta);
+  color: var(--gt-text-3);
+}
+.guards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+}
+.guard {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+.guard__icon {
+  margin-top: 2px;
+  color: var(--gt-text-3);
+}
+.guard--ok .guard__icon {
+  color: var(--gt-accent);
+}
+.guard--attention .guard__icon {
+  color: var(--gt-attention-mark);
+}
+.guard__label {
+  font-size: var(--gt-fs-meta);
+  color: var(--gt-text-2);
+}
+.guard__value {
+  font-size: 13px;
+  color: var(--gt-text);
+}
+.guard--attention .guard__value {
+  color: var(--gt-attention);
+}
+.guard__note {
+  margin-top: 1px;
+  font-size: 12px;
+  color: var(--gt-text-3);
+}
+.guards__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+/* evidence page: the full list as a two-column definition list (stacked on phones) */
+#safety-guardrails {
+  scroll-margin-top: calc(var(--gt-topbar-h) + 16px); /* the hash link lands below the sticky top bar */
+}
+.guardrail-list {
+  display: grid;
+  gap: 12px;
+  max-width: 1000px;
+  margin: 0;
+  font-size: 13.5px;
+}
+.guardrail-list__row {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 4px 24px;
+}
+.guardrail-list dt {
+  font-weight: 600;
+  color: var(--gt-text);
+}
+.guardrail-list dd {
+  margin: 0;
+  color: var(--gt-text-2);
+}
+.guardrail-list__src {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--gt-text-3);
+}
+@media (max-width: 760px) {
+  .guardrail-list__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

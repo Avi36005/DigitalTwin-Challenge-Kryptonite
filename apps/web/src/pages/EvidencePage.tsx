@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useSearchParams } from "react-router";
 import type { EvaluationReport, EventMetricsRow } from "@/api/types";
 import {
   defaultComparison,
@@ -18,6 +18,7 @@ import { fmtNum, fmtPct } from "@/lib/format";
 import { useEvaluation, useEvaluationById, useEvaluations, useResearch, useServing } from "@/state/evaluation";
 import { Disclosure } from "@/components/evidence/Disclosure";
 import { ResearchEvidence } from "@/components/evidence/ResearchEvidence";
+import { SafetyGuardrails } from "@/components/evidence/SafetyGuardrails";
 import { EmptyState, InlineNotice, MetadataLine, PageHeader, Section, Skeleton, SortTh } from "@/components/ui";
 
 export function EvidencePage() {
@@ -35,6 +36,12 @@ export function EvidencePage() {
   const rs = useResearch(research ? chosen : null);
   const r = ev.data;
   const select = (id: string) => setParams((p) => { const n = new URLSearchParams(p); n.set("experiment", id); return n; }, { replace: true });
+  // "#safety-guardrails" (linked from the replay workspace) sits below the results: scroll once they have loaded
+  const { hash } = useLocation();
+  const loaded = !list.isLoading && !(research ? rs.isLoading : ev.isLoading);
+  useEffect(() => {
+    if (loaded && hash === "#safety-guardrails") document.getElementById("safety-guardrails")?.scrollIntoView?.();
+  }, [loaded, hash]);
   return (
     <>
       <PageHeader title="Model evidence"
@@ -72,6 +79,7 @@ export function EvidencePage() {
           {r.status_message}
         </EmptyState>
       ) : r ? <Evidence r={r} /> : null}
+      <SafetyGuardrails />
     </>
   );
 }

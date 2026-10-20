@@ -31,8 +31,8 @@ import { ForecastDetail } from "@/components/twin/ForecastDetail";
 import { GlucoseChart } from "@/components/twin/GlucoseChart";
 import {
   BaselineLine,
-  DataQualitySummary,
   GlucoseSummary,
+  Guardrails,
   ModelDetails,
   RecentObservations,
   ReviewStatus,
@@ -154,9 +154,10 @@ export function ReplayPage({ sid }: { sid: string }) {
             eventsLoaded={eventsLoaded} />
           <ReplayToolbar session={session} segments={patient.data?.evaluation_segments} onAnnounce={setAnnounce} />
         </div>
-        <aside className="workspace__inspector" aria-label="Review and data quality">
+        <aside className="workspace__inspector" aria-label="Review and guardrails">
           <ReviewStatus latest={latest.data} alerts={alerts.data} />
-          <DataQualitySummary session={session} latest={latest.data} twin={twin.data} />
+          <Guardrails session={session} latest={latest.data} twin={twin.data} alerts={alerts.data} report={evaluation.data}
+            more={<Link className="text-link guards__more" to={paths.evidence("safety-guardrails")}>All safety guardrails<ArrowRight size={14} aria-hidden /></Link>} />
           {(selected ?? latestF) && (
             <button type="button" className="text-btn inspector__link" onClick={() => setDetailOpen(true)}>
               View forecast details<ArrowRight size={14} aria-hidden />

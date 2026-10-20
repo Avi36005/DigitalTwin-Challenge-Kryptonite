@@ -163,3 +163,55 @@ describe("warning history", () => {
     expect(screen.getByText(/Fired by the 30-min forecast/)).toHaveTextContent("Fired by the 30-min forecast 172 mg/dL ≥ 170 trigger · 60-min 164");
   });
 });
+
+describe("guardrails", () => {
+  const FUSION = "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion";
+  const outcomes = (...st: string[]) => ({ rule_available: true, items: st.map((s) => ({ state: "closed", outcome: { status: s } })) }) as never;
+
+  it("passes a fresh, complete forecast and states that the synthetic model has no measured coverage", async () => {
+    const { Guardrails } = await import("./Panels");
+    render(<Guardrails session={session()} latest={latest(forecast())} twin={twin(12)} alerts={outcomes()} />);
+    expect(screen.getByText(/Fresh · 3 min old/)).toBeInTheDocument();
+    expect(screen.getByText("Complete")).toBeInTheDocument();
+    expect(screen.getByText("12 of ~12 expected readings in the last hour")).toBeInTheDocument();
+    expect(screen.getByText("None issued so far in this replay")).toBeInTheDocument();
+    expect(screen.getByText("80% target coverage")).toBeInTheDocument();
+    expect(screen.getByText("The synthetic model has no measured coverage on recorded data.")).toBeInTheDocument();
+    expect(screen.queryByText("Health record (profile)")).toBeNull(); // the synthetic model's inputs are not encoded in its version
+  });
+
+  it("shows the fusion model's profile gate and the twin's reasons when it abstains, and no range", async () => {
+    const { Guardrails } = await import("./Panels");
+    const f = forecast({ model_version: FUSION, mode: "dataset_replay", quality: { status: "insufficient", reasons: [
+      { code: "profile_unavailable", message: "A baseline profile value used by this model is missing or not yet available." }] } });
+    render(<Guardrails session={session()} latest={latest(f, { availability: "not_ready" })} />);
+    expect(screen.getByText("Abstained: no forecast is shown")).toBeInTheDocument();
+    expect(screen.getByText("A baseline profile value used by this model is missing or not yet available.")).toBeInTheDocument();
+    expect(screen.getByText("A value is missing or not yet known, so the model abstained")).toBeInTheDocument();
+    expect(screen.queryByText("Prediction range")).toBeNull();
+  });
+
+  it("confirms the profile check, states the correction cap and counts warning outcomes", async () => {
+    const { Guardrails } = await import("./Panels");
+    const f = forecast({ model_version: FUSION, mode: "dataset_replay", quality: { status: "degraded", reasons: [
+      { code: "recent_gap", message: "A gap longer than 15 minutes occurred in the last 60 minutes." }] } });
+    const tw = { ...twin(9), model_version: FUSION, personalization: { enabled: true, status: "active", state_version: 3,
+      horizons: [{ horizon_minutes: 30, matured_residuals: 40, min_required: 6, correction_mg_dl: 2.14 },
+        { horizon_minutes: 60, matured_residuals: 34, min_required: 6, correction_mg_dl: -3 }] } } as unknown as TwinState;
+    render(<Guardrails session={session()} latest={latest(f)} twin={tw} alerts={outcomes("onset_observed", "no_onset_observed", "pending")} />);
+    expect(screen.getByText("Degraded: forecast shown with a flag")).toBeInTheDocument();
+    expect(screen.getByText("Every value the model reads was known at this time")).toBeInTheDocument();
+    expect(screen.getByText("30 min +2.1 · 60 min −3.0 mg/dL")).toBeInTheDocument();
+    expect(screen.getByText(/needs 6; capped at ±25 mg\/dL; resets after a 3-hour gap/)).toBeInTheDocument();
+    expect(screen.getByText("3 research warnings so far in this replay: 1 onset · 1 false alarm · 1 pending")).toBeInTheDocument();
+  });
+
+  it("lists the eleven guardrails on the evidence page", async () => {
+    const { SafetyGuardrails, GUARDRAILS } = await import("@/components/evidence/SafetyGuardrails");
+    render(<SafetyGuardrails />);
+    expect(GUARDRAILS).toHaveLength(11);
+    expect(screen.getByRole("heading", { name: "Safety guardrails" })).toBeInTheDocument();
+    expect(screen.getByText("Abstains instead of guessing")).toBeInTheDocument();
+    expect(screen.getByText(/capped at ±25 mg\/dL and resets after a 3-hour gap/)).toBeInTheDocument();
+  });
+});

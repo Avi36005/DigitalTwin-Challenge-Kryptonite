@@ -9,7 +9,7 @@ import {
   Info,
   TriangleAlert,
 } from "lucide-react";
-import { useId, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 import type {
   Alert,
   AlertList,
@@ -327,34 +327,136 @@ export function ReviewStrip({ latest, alerts }: { latest?: LatestForecast; alert
   );
 }
 
-/* ================================================================ Data quality (inspector) */
-export function DataQualitySummary({ session, latest, twin }: { session: ReplaySession; latest?: LatestForecast; twin?: TwinState }) {
+/* ================================================================ Guardrails (inspector) */
+type GuardTone = "ok" | "attention" | "neutral";
+type Guard = { label: string; tone: GuardTone; value: ReactNode; note?: ReactNode };
+const GUARD_ICON = { ok: CircleCheck, attention: TriangleAlert, neutral: CircleDashed } as const;
+const GUARD_SR = { ok: "Check passed. ", attention: "Check flagged. ", neutral: "" } as const;
+
+const signed = (v: number | null) => (v === null ? "—" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}`);
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * Which safety checks applied at the latest forecast, read from the API: data freshness, input quality (abstained or
+ * degraded, with the twin's own reasons), the fusion model's profile gate, the bounded patient correction, warning
+ * outcomes and the prediction range. Rules the API does not return as values are stated as rules (the ±25 mg/dL cap and
+ * the 3-hour reset hold for every model in the registry).
+ */
+export function guardChecks(session: ReplaySession, latest?: LatestForecast, twin?: TwinState, alerts?: AlertList,
+  report?: EvaluationReport): Guard[] {
+  const out: Guard[] = [];
   const fr = session.freshness;
-  const reasons = latest?.forecast?.quality.reasons ?? [];
-  const q = latest?.forecast?.quality.status;
+  out.push(fr.status === "fresh"
+    ? { label: "Data freshness", tone: "ok",
+      value: <>Fresh · {durationLabel(fr.latest_glucose_age_minutes)} old <span className="muted">(limit {fr.stale_threshold_minutes} min)</span></> }
+    : fr.status === "stale"
+      ? { label: "Data freshness", tone: "attention",
+        value: <>Stale · {durationLabel(fr.latest_glucose_age_minutes)} old, over the {fr.stale_threshold_minutes}-min limit</> }
+      : { label: "Data freshness", tone: "neutral", value: "No glucose reading released yet" });
+
+  const f = latest?.forecast ?? null;
+  const q = f?.quality.status;
+  const reasons = [...(latest?.reasons ?? []), ...(f?.quality.reasons ?? [])];
+  const codes = new Set(reasons.map((r) => r.code));
+  const why = (f?.quality.reasons.length ? f.quality.reasons : latest?.reasons ?? []).map((r) => r.message).join(" ");
   const v60 = twin?.history.valid_samples_60;
+  const abstained = !!latest && (!f || q === "insufficient" || latest.availability === "not_ready");
+  if (!latest) out.push({ label: "Forecast inputs", tone: "neutral", value: "—" });
+  else if (codes.has("model_unavailable")) {
+    out.push({ label: "Forecast inputs", tone: "neutral", value: "No verified model is loaded for this mode" });
+  } else if (abstained && (codes.has("no_glucose_history") || codes.has("no_forecast_yet"))) {
+    out.push({ label: "Forecast inputs", tone: "neutral", value: "No forecast yet: no glucose reading released" });
+  } else if (abstained) {
+    out.push({ label: "Forecast inputs", tone: "attention", value: "Abstained: no forecast is shown", note: why || undefined });
+  } else if (q === "degraded") {
+    out.push({ label: "Forecast inputs", tone: "attention", value: "Degraded: forecast shown with a flag", note: why || undefined });
+  } else {
+    out.push({ label: "Forecast inputs", tone: "ok", value: "Complete",
+      note: v60 === undefined ? undefined : `${v60} of ~12 expected readings in the last hour` });
+  }
+
+  const usesProfile = modelUsesProfile(f?.model_version ?? twin?.model_version);
+  if (usesProfile === true) {
+    out.push(codes.has("profile_unavailable")
+      ? { label: "Health record (profile)", tone: "attention", value: "A value is missing or not yet known, so the model abstained",
+        note: "The fusion model was trained on complete profiles only." }
+      : f && !abstained
+        ? { label: "Health record (profile)", tone: "ok", value: "Every value the model reads was known at this time" }
+        : { label: "Health record (profile)", tone: "neutral", value: "Checked with each forecast; the model abstains if a value is missing" });
+  } else if (usesProfile === false) {
+    out.push({ label: "Health record (profile)", tone: "neutral", value: "Not an input of this model" });
+  }
+
+  const p = twin?.personalization ?? f?.personalization;
+  if (!p || !p.enabled) {
+    out.push({ label: "Patient correction", tone: "neutral", value: "Off for this model" });
+  } else {
+    const need = p.horizons[0]?.min_required;
+    const value = p.status === "active"
+      ? <>{p.horizons.map((h) => `${h.horizon_minutes} min ${signed(h.correction_mg_dl)}`).join(" · ")} mg/dL</>
+      : p.status === "reset_after_gap" ? "Reset after a data gap; learning again"
+        : `Warming up · ${p.horizons.map((h) => `${h.matured_residuals} of ${h.min_required}`).join(" / ") || "0"} observed forecast errors`;
+    out.push({ label: "Patient correction", tone: p.status === "active" ? "ok" : "neutral", value,
+      note: `Learns only from forecasts whose outcome was observed${need ? `, needs ${need}` : ""}; capped at ±25 mg/dL; resets after a 3-hour gap.` });
+  }
+
+  if (alerts && !alerts.rule_available) {
+    out.push({ label: "Warnings", tone: "neutral", value: "No validated warning rule is loaded for this mode" });
+  } else if (alerts) {
+    const n = alerts.items.length;
+    const by = (s: string) => alerts.items.filter((a) => a.outcome.status === s).length;
+    const pending = by("pending");
+    const parts = [by("onset_observed") && plural(by("onset_observed"), "onset"),
+      by("no_onset_observed") && plural(by("no_onset_observed"), "false alarm"),
+      pending && `${pending} pending`, by("unknown") && `${by("unknown")} unknown (gap)`].filter(Boolean);
+    out.push(n === 0
+      ? { label: "Warnings", tone: "ok", value: "None issued so far in this replay" }
+      : { label: "Warnings", tone: pending ? "attention" : "ok", value: `${plural(n, "research warning")} so far in this replay: ${parts.join(" · ")}`,
+        note: "Each stays “Outcome pending” until it can be judged, then counts as an onset or a false alarm." });
+  }
+
+  const est = f?.estimates.find((e) => e.interval_level != null);
+  if (f && !abstained) {
+    const cov = measuredCoverage(report, f.model_version);
+    out.push(!est || est.interval_status !== "calibrated"
+      ? { label: "Prediction range", tone: "attention", value: "Unavailable for this forecast" }
+      : { label: "Prediction range", tone: "ok", value: `${Math.round((est.interval_level as number) * 100)}% target coverage`,
+        note: cov ? `Measured on the final test period: ${cov.byHorizon.map((b) => `${fmtPct(b.coverage, 1)} at ${b.horizon} min`).join(", ")}; no guarantee.`
+          : f.mode === "synthetic_demo" ? "The synthetic model has no measured coverage on recorded data."
+            : "No measured coverage for this model in the evaluation report." });
+  }
+  return out;
+}
+
+export function Guardrails({ session, latest, twin, alerts, report, more }: {
+  session: ReplaySession; latest?: LatestForecast; twin?: TwinState; alerts?: AlertList; report?: EvaluationReport;
+  /** a link to the full list, rendered under the checks */
+  more?: ReactNode;
+}) {
+  const f = latest?.forecast;
   return (
-    <section className="inspector__block" aria-labelledby="dq-title">
-      <h2 className="inspector__title" id="dq-title">Data quality</h2>
-      <dl className="dl dl--compact">
-        <dt>Latest reading</dt>
-        <dd className="num">{fr.latest_glucose_at ? replayTime(fr.latest_glucose_at) : "None released"}</dd>
-        <dt>Freshness</dt>
-        <dd>
-          {fr.status === "fresh" ? <>Fresh · {durationLabel(fr.latest_glucose_age_minutes)} old</>
-            : fr.status === "stale" ? <StatusLabel tone="attention">Stale · {durationLabel(fr.latest_glucose_age_minutes)} old</StatusLabel>
-            : "No data"}
-        </dd>
-        <dt>Last hour</dt>
-        <dd className="num">{v60 === undefined ? "—" : `${v60} of ~12 expected readings`}</dd>
-        <dt>Forecast inputs</dt>
-        <dd>{q === "ok" ? "Complete" : q === "degraded" ? <StatusLabel tone="attention">Degraded</StatusLabel> : q === "insufficient" ? "Insufficient" : "—"}</dd>
-      </dl>
-      {reasons.length > 0 && (
-        <ul className="facts">
-          {reasons.map((r) => <li key={r.code}>{r.message}</li>)}
-        </ul>
-      )}
+    <section className="inspector__block" aria-labelledby="guard-title">
+      <h2 className="inspector__title" id="guard-title">Guardrails</h2>
+      <p className="guards__lede">
+        {f ? <>Checks applied at the latest forecast, issued <span className="num">{replayTime(f.as_of, { day: false })}</span>.</>
+          : <>Checks applied before any forecast is shown.</>}
+      </p>
+      <ul className="guards">
+        {guardChecks(session, latest, twin, alerts, report).map((g) => {
+          const Icon = GUARD_ICON[g.tone];
+          return (
+            <li key={g.label} className={`guard guard--${g.tone}`}>
+              <Icon size={15} aria-hidden strokeWidth={1.9} className="guard__icon" />
+              <div>
+                <p className="guard__label"><span className="visually-hidden">{GUARD_SR[g.tone]}</span>{g.label}</p>
+                <p className="guard__value">{g.value}</p>
+                {g.note && <p className="guard__note">{g.note}</p>}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      {more}
     </section>
   );
 }
