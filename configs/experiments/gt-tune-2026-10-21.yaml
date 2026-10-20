@@ -1,0 +1,53 @@
+# GlucoTwin research protocol gt-tune-2026-10-21 — longer causal history with tuned model AND patient correction, against
+# the current fusion features given the identical tuning budget (decision D-051).
+#
+# Declared on 2026-10-20 BEFORE any fit of this study. Run only by scripts/tune_study.py; never reads or writes the model
+# registry. D-049 (fixed settings, 0.5 mg/dL development gate) is complete and unchanged; this is a new study with its
+# own rules. Motivation, disclosed: D-049's descriptive post-selection result that 6/12/24-hour history lowered the
+# population-only 60-minute error (−1.39 [−2.62, −0.29]) but the personalised error only by −0.41 [−1.07, +0.12] on
+# already-inspected people; one hypothesis is that history and the patient correction need to be tuned together.
+experiment_id: gt-tune-2026-10-21
+kind: nested-tuning-study
+declared_on: "2026-10-20"
+random_seed: 20261022
+base_experiment: gt-2h-2026-10-20   # frozen table, 5 outer participant folds with their inner folds and calibration groups
+
+arms:
+  C0_current_features: dyn-prof-v2 (46 features: glucose, wearable, 8 profile values) — the serving feature set
+  C1_with_history: dyn-prof-v2 + hist-v1 (12 causal 6/12/24-hour glucose-history features, ml/glucotwin/research/history.py)
+  weighting: unweighted rows in both arms (participant balancing showed no gain in D-049)
+
+tuning_budget_identical_for_both_arms:
+  lightgbm_trials: 30 parameter sets per horizon, the SAME seeded sample for both arms, from the space of gt-2h-2026-10-20
+    (learning_rate 0.02–0.1 log, num_leaves 7–63, max_depth 3–8, min_child_samples 20–400, lambda_l2 0–20,
+    feature_fraction 0.6–1, bagging_fraction 0.6–1) plus num_boost_round in {300, 600, 1200}; no early stopping
+  parameter_selection: lowest inner out-of-fold macro per-participant MAE of the POPULATION forecast at that horizon
+  correction_tuning: then, for the selected parameters, the patient correction grid shrinkage_k {24, 48, 96, 192} ×
+    half-life {120, 240, 720} min plus "off", chosen by the lowest inner out-of-fold personalised macro MAE averaged over
+    30 and 60 min (one policy per arm per fold)
+  horizons: [30, 60]
+  threads: 4
+
+procedure: >-
+  Nested: for each of the 5 outer folds, both arms are tuned on that fold's development people only (3 inner folds),
+  refitted on development + calibration people with the chosen parameters, and score the fold's assessment people once
+  with the chosen correction applied causally from an empty state. Assessment people are never used for any choice.
+  Every outer fold is opened once behind a lock file (these 14 people were inspected in earlier experiments: internal
+  validation, not untouched evidence).
+
+primary_comparison: >-
+  C1 minus C0 macro per-participant MAE of the personalised 60-minute forecast over the 14 assessment people, identical
+  origins, paired participant-cluster bootstrap (2000 resamples, seed = random_seed).
+adoption_rule: >-
+  C1 is called better only if the 60-minute mean difference is ≤ −0.5 mg/dL AND the bootstrap 95 % interval lies entirely
+  below 0, AND 30-minute MAE does not worsen by more than 0.25 mg/dL, AND 60-minute MAE on targets above 180 mg/dL
+  does not worsen by more than 1.0 mg/dL. Otherwise the result is reported as not established. Either way the serving
+  model is unchanged by this study: a serving candidate would need its own final refit, warning threshold, ranges,
+  parity and the team's decision.
+also_reported: >-
+  C0 and C1 against the untuned serving recipe refitted on the same folds (frozen serving parameters, v2 correction),
+  persistence, population-only results, rapid-rise / steady / falling strata, first 24 hours, chosen parameters and
+  correction per fold, fit counts and times.
+artifacts:
+  root: artifacts/research/gt-tune-2026-10-21
+  report: reports/tune_study.md
