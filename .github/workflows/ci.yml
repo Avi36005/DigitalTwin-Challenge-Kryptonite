@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      # setup-uv stopped publishing moving major tags after v7, so pin the release tag.
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          enable-cache: true
+
+      # uv reads .python-version (3.12, within requires-python >=3.12,<3.13) and installs that interpreter.
+      # The dev group (pytest, httpx, ruff) is all the tests need; the docs group is only for submission assets.
+      - name: Install dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Lint
+        run: uv run ruff check .
+
+      # Synthetic fixtures and the synthetic demonstration model are built by tests/conftest.py; tests that need
+      # recorded CGMacros/ShanghaiT2DM data or trained research artifacts skip cleanly.
+      - name: Test
+        run: uv run pytest -q
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v7
+
+      # No engines field or .nvmrc; vitest 5 and jsdom 30 need Node ^22.22.2 || ^24.15 || >=26, so Node 20 cannot run them.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      # Unit tests only; the Playwright journeys need recorded data and are not run in CI.
+      - name: Unit tests
+        run: npx vitest run
