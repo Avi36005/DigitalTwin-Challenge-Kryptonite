@@ -110,14 +110,17 @@ class TwinEngine:
 
     def _personalization(self, t: float) -> dict[str, Any]:
         if self.state is None:
-            return {"enabled": False, "status": "disabled", "policy_id": None, "state_version": 0, "horizons": []}
+            return {"enabled": False, "status": "disabled", "policy_id": None, "state_version": 0, "horizons": [],
+                    "cap_mg_dl": None, "reset_gap_minutes": None}
         hz = []
         for h in self.horizons:
             s = self.state.horizon_summary(h, t)
             s["last_matured_at"] = _iso(s["last_matured_at"])
             hz.append(s)
         return {"enabled": self.state.policy.enabled, "status": self.state.status(),
-                "policy_id": self.state.policy.policy_id, "state_version": self.state.version, "horizons": hz}
+                "policy_id": self.state.policy.policy_id, "state_version": self.state.version, "horizons": hz,
+                "cap_mg_dl": self.state.policy.cap_mg_dl if self.state.policy.enabled else None,
+                "reset_gap_minutes": self.state.policy.reset_gap_minutes if self.state.policy.enabled else None}
 
     def _sync_machine(self, prep, t: float, onsets_out: list[Onset]) -> None:
         """Feed the episode machine with released samples observed <= t, in observation order."""

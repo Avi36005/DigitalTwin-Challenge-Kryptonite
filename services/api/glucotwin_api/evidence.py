@@ -94,6 +94,16 @@ def research_report(experiment_id: str) -> dict[str, Any] | None:
     return rep
 
 
+def profile_inputs(feature_set_id: str) -> list[str] | None:
+    """The profile values a feature set reads, named as in the session profile; None if the feature set is unknown."""
+    from glucotwin.features import FEATURE_SETS, PROFILE_FEATURES
+
+    spec = FEATURE_SETS.get(feature_set_id)
+    if spec is None:
+        return None
+    return [name for _, name in PROFILE_FEATURES] if spec.use_profile else []
+
+
 def serving_summaries(serving: dict[str, Any], errors: dict[str, str]) -> dict[str, Any]:
     items = []
     sid = serving_experiment_id()
@@ -117,6 +127,7 @@ def serving_summaries(serving: dict[str, Any], errors: dict[str, str]) -> dict[s
             "warning_threshold_margin_mg_dl": s.alert.get("threshold_margin_mg_dl"),
             "warning_horizon_minutes": s.alert.get("horizon_minutes"),
             "requires_complete_profile": s.profile_gate,
+            "profile_inputs": profile_inputs(s.bundle.feature_set_id),
         })
     return {"schema_version": "1.0", "items": items}
 

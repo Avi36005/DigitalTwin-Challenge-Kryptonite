@@ -640,21 +640,20 @@ export function ModelDetails({ twin, latest, publicDemo = false }: { twin?: Twin
           {publicDemo && synthetic && <span className="table__sub">Synthetic demonstration model, fitted on fictional data — not the evaluated real-data fusion model</span>}</dd>
         <dt>Version</dt><dd className="wrap-id">{twin?.model_version ?? "—"}</dd>
         <dt>Patient adaptation</dt><dd>{status}</dd>
-        {p?.horizons.map((h) => {
-          const est = f?.estimates.find((e) => e.horizon_minutes === h.horizon_minutes);
-          return (
-            <div key={h.horizon_minutes} style={{ display: "contents" }}>
-              <dt>{h.horizon_minutes}-min estimate</dt>
-              <dd className="num">
-                {fmtGlucose(est?.components?.population_mg_dl) ?? "—"} population
-                {h.correction_mg_dl !== null && <> {h.correction_mg_dl >= 0 ? "+" : "−"} {Math.abs(h.correction_mg_dl).toFixed(1)} correction</>}
-                <span className="table__sub">from {h.matured_residuals} matured forecast errors (needs {h.min_required})</span>
-              </dd>
-            </div>
-          );
-        })}
+        {p?.enabled && p.horizons.map((h) => (
+          // the twin's state at the replay clock: it applies to the NEXT forecast; the latest forecast's own population
+          // value and the correction it used are in "How the twin reached this forecast" (never mixed here)
+          <div key={h.horizon_minutes} style={{ display: "contents" }}>
+            <dt>{h.horizon_minutes}-min correction now</dt>
+            <dd className="num">
+              {h.correction_mg_dl !== null ? `${h.correction_mg_dl >= 0 ? "+" : "−"}${Math.abs(h.correction_mg_dl).toFixed(1)} mg/dL` : "—"}
+              <span className="table__sub">from {h.matured_residuals} observed outcomes (needs {h.min_required}); applies to the next forecast</span>
+            </dd>
+          </div>
+        ))}
       </dl>
-      <p className="lower__note">Corrections learn only from earlier forecasts whose outcomes were already observed. Model weights are never refit during replay.</p>
+      <p className="lower__note">Corrections learn only from earlier forecasts whose outcomes were already observed. Model weights are never refit during replay.
+        {f && <> The latest forecast’s population value and the correction it used are shown above, under “How the twin reached this forecast”.</>}</p>
     </section>
   );
 }

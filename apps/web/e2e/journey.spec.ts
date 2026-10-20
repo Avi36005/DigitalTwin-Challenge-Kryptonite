@@ -571,7 +571,7 @@ test.describe("review queue", () => {
     await page.getByRole("link", { name: "Review queue" }).click();
     await expect(page).toHaveURL(/\/app\/review-queue$/);
     await expect(page.getByRole("heading", { name: "Review queue", level: 1 })).toBeVisible();
-    await expect(page.getByText(/Research demonstration,\s+not triage/)).toBeVisible();
+    await expect(page.getByText(/Research demonstration\. Administrative review order, not a risk ranking or triage/)).toBeVisible();
     const table = page.getByRole("table", { name: "Review queue" });
     const row = table.getByRole("row").filter({ has: page.locator(`a[href="/app?session=${sid}"]`) }).first();
     await expect(row).toContainText(`${issued.length} unreviewed0 reviewed`);
@@ -590,10 +590,19 @@ test.describe("review queue", () => {
     await expect(page).toHaveURL(new RegExp(`session=${sid}`));
     // wait until the workspace shows the seeked revision; a warning from an older revision is refused, not saved
     await expect(page.getByText(/Loading released observations/).first()).toBeHidden();
+    // the workspace explains the latest forecast from its own recorded components, at this replay clock
+    const explain = page.getByRole("region", { name: "How the twin reached this forecast" });
+    await expect(explain.getByRole("table", { name: "Forecast components" }).getByRole("row")).toHaveCount(3);
+    await expect(explain).toContainText("Bounded at ±25 mg/dL");
+    await expect(explain).toContainText("Health record: read by this model");
+    await expect(explain).toContainText(/research warnings?: /);
     await page.getByRole("button", { name: "Mark warning issued Day 9 · 20:30 as reviewed" }).click();
     const dialog = page.getByRole("dialog", { name: "Review research warning" });
     await dialog.getByRole("button", { name: "Save review" }).click();
     await expect(dialog).toBeHidden();
+    await expect(explain.getByRole("table", { name: "Forecast components" })).toBeVisible();
+    await explain.scrollIntoViewIfNeeded();
+    await explain.screenshot({ path: `${SHOTS}/24-twin-explanation.png` });
     await page.goto("/app/review-queue");
     await expect(row).toContainText(`${issued.length - 1} unreviewed1 reviewed`);
   });

@@ -910,6 +910,66 @@
         }
       }
     },
+    "/api/v1/replay/sessions/{session_id}/review-snapshot": {
+      "get": {
+        "summary": "Review Snapshot",
+        "description": "Session, warnings and latest forecast from one sync under one lock, so a playing replay cannot advance\nbetween them: every part carries the same revision and clock.",
+        "operationId": "review_snapshot_api_v1_replay_sessions__session_id__review_snapshot_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSnapshot"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
     "/api/v1/replay/sessions/{session_id}/alerts/{alert_id}/acknowledgement": {
       "post": {
         "summary": "Acknowledge",
@@ -4608,6 +4668,30 @@
             },
             "type": "array",
             "title": "Horizons"
+          },
+          "cap_mg_dl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Mg Dl",
+            "description": "Largest correction the policy can apply in either direction (null when disabled)."
+          },
+          "reset_gap_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Gap Minutes",
+            "description": "A gap between readings longer than this clears the learned correction."
           }
         },
         "additionalProperties": false,
@@ -5817,6 +5901,34 @@
         ],
         "title": "ResearchTrack"
       },
+      "ReviewSnapshot": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "session": {
+            "$ref": "#/components/schemas/ReplaySession"
+          },
+          "alerts": {
+            "$ref": "#/components/schemas/AlertList"
+          },
+          "latest_forecast": {
+            "$ref": "#/components/schemas/LatestForecast"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session",
+          "alerts",
+          "latest_forecast"
+        ],
+        "title": "ReviewSnapshot",
+        "description": "One session read under one lock at one replay clock: the session, its warnings and its latest forecast.\n\nUsed by the review queue so that every value in a row describes the same session, revision and cutoff."
+      },
       "SelectionRecord": {
         "properties": {
           "rule": {
@@ -6063,6 +6175,21 @@
             ],
             "title": "Requires Complete Profile",
             "description": "True when the model abstains unless every baseline profile value it reads is available."
+          },
+          "profile_inputs": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Inputs",
+            "description": "Names of the baseline profile values this model reads as inputs (empty when it reads none); other profile values are context only."
           }
         },
         "additionalProperties": false,

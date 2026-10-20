@@ -47,6 +47,7 @@ from glucotwin.schemas import (
     ReplaySessionList,
     ResearchReport,
     ResearchSummaryList,
+    ReviewSnapshot,
     ServingList,
     SessionProfile,
     TwinState,
@@ -393,32 +394,36 @@ def create_app() -> FastAPI:
     def public(f: dict[str, Any]) -> dict[str, Any]:
         return {k: v for k, v in f.items() if not k.startswith("_")}
 
+    def latest_payload(s: Session) -> dict[str, Any]:
+        """The latest forecast at the session's clock; the caller holds ``s.lock`` after one sync."""
+        fc = s.engine.forecasts
+        base = {"schema_version": "1.0", "session_id": s.id, "session_revision": s.revision,
+                "clock_at": from_minutes(s.clock)}
+        if not fc:
+            reasons = [{"code": "no_forecast_yet", "message": "No glucose observation has been released yet."}]
+            if state.serving.get(s.mode) is None:
+                reasons.append({"code": "model_unavailable",
+                                "message": state.serving_errors.get(s.mode, "Model unavailable.")})
+            return {**base, "availability": "not_ready", "age_minutes": None, "reasons": reasons, "forecast": None}
+        last = fc[-1]
+        age = s.clock - last["_origin"]
+        if age > STALE_MINUTES:
+            return {**base, "availability": "stale", "age_minutes": round(age, 1),
+                    "reasons": [{"code": "stale_forecast",
+                                 "message": f"The latest forecast was issued {age:.0f} minutes before the replay "
+                                            "clock; no newer glucose reading is available."}],
+                    "forecast": public(last)}
+        reasons = []
+        if last["quality"]["status"] == "insufficient":
+            reasons = [{"code": "forecast_insufficient", "message": "The twin abstained at the latest origin."}]
+        return {**base, "availability": "available" if not reasons else "not_ready",
+                "age_minutes": round(age, 1), "reasons": reasons, "forecast": public(last)}
+
     @api.get("/replay/sessions/{session_id}/forecast", response_model=LatestForecast, responses=ERRORS)
     def latest_forecast(session_id: str, request: Request):
         s = synced(session_id, request)
         with s.lock:
-            fc = s.engine.forecasts
-            base = {"schema_version": "1.0", "session_id": s.id, "session_revision": s.revision,
-                    "clock_at": from_minutes(s.clock)}
-            if not fc:
-                reasons = [{"code": "no_forecast_yet", "message": "No glucose observation has been released yet."}]
-                if state.serving.get(s.mode) is None:
-                    reasons.append({"code": "model_unavailable",
-                                    "message": state.serving_errors.get(s.mode, "Model unavailable.")})
-                return {**base, "availability": "not_ready", "age_minutes": None, "reasons": reasons, "forecast": None}
-            last = fc[-1]
-            age = s.clock - last["_origin"]
-            if age > STALE_MINUTES:
-                return {**base, "availability": "stale", "age_minutes": round(age, 1),
-                        "reasons": [{"code": "stale_forecast",
-                                     "message": f"The latest forecast was issued {age:.0f} minutes before the replay "
-                                                "clock; no newer glucose reading is available."}],
-                        "forecast": public(last)}
-            reasons = []
-            if last["quality"]["status"] == "insufficient":
-                reasons = [{"code": "forecast_insufficient", "message": "The twin abstained at the latest origin."}]
-            return {**base, "availability": "available" if not reasons else "not_ready",
-                    "age_minutes": round(age, 1), "reasons": reasons, "forecast": public(last)}
+            return latest_payload(s)
 
     @api.get("/replay/sessions/{session_id}/forecasts", response_model=ForecastPage, responses=ERRORS)
     def forecasts(session_id: str, request: Request, cursor: str | None = None,
@@ -462,22 +467,35 @@ def create_app() -> FastAPI:
                                 "note": ack["note"] if ack else None},
         }
 
+    def alerts_payload(s: Session) -> dict[str, Any]:
+        """Warnings issued up to the session's clock; the caller holds ``s.lock`` after one sync."""
+        serving = s.engine.serving
+        items = [alert_view(s, a) for a in s.engine.alerts] if serving else []
+        desc = None
+        if serving:
+            al = serving.alert
+            desc = (f"Fires when the online state is 'normal' and the highest forecast within "
+                    f"{al.get('horizon_minutes')} min exceeds 180 mg/dL by at least "
+                    f"{al.get('threshold_margin_mg_dl')} mg/dL (threshold selected on validation data). "
+                    f"Firings within {al.get('episode_merge_minutes')} min extend one warning.")
+        return {"schema_version": "1.0", "session_id": s.id, "session_revision": s.revision,
+                "clock_at": from_minutes(s.clock), "rule_available": serving is not None,
+                "rule_description": desc, "items": items[::-1]}
+
     @api.get("/replay/sessions/{session_id}/alerts", response_model=AlertList, responses=ERRORS)
     def alerts(session_id: str, request: Request):
         s = synced(session_id, request)
         with s.lock:
-            serving = s.engine.serving
-            items = [alert_view(s, a) for a in s.engine.alerts] if serving else []
-            desc = None
-            if serving:
-                al = serving.alert
-                desc = (f"Fires when the online state is 'normal' and the highest forecast within "
-                        f"{al.get('horizon_minutes')} min exceeds 180 mg/dL by at least "
-                        f"{al.get('threshold_margin_mg_dl')} mg/dL (threshold selected on validation data). "
-                        f"Firings within {al.get('episode_merge_minutes')} min extend one warning.")
-            return {"schema_version": "1.0", "session_id": s.id, "session_revision": s.revision,
-                    "clock_at": from_minutes(s.clock), "rule_available": serving is not None,
-                    "rule_description": desc, "items": items[::-1]}
+            return alerts_payload(s)
+
+    @api.get("/replay/sessions/{session_id}/review-snapshot", response_model=ReviewSnapshot, responses=ERRORS)
+    def review_snapshot(session_id: str, request: Request):
+        """Session, warnings and latest forecast from one sync under one lock, so a playing replay cannot advance
+        between them: every part carries the same revision and clock."""
+        s = synced(session_id, request)
+        with s.lock:
+            return {"schema_version": "1.0", "session": session_view(s), "alerts": alerts_payload(s),
+                    "latest_forecast": latest_payload(s)}
 
     @api.post("/replay/sessions/{session_id}/alerts/{alert_id}/acknowledgement", response_model=Alert,
               responses=ERRORS)

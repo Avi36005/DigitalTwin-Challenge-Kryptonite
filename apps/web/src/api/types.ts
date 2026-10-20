@@ -24,6 +24,8 @@ export type EventRisk = S["EventRisk"];
 export type Explanation = S["Explanation"];
 export type Alert = S["Alert"];
 export type AlertList = S["AlertList"];
+/** Session, warnings and latest forecast read together at one replay clock (review queue rows). */
+export type QueueSnapshot = S["ReviewSnapshot"];
 export type EvaluationReport = S["EvaluationReport"];
 export type ModelResultRow = S["ModelResultRow"];
 export type EventMetricsRow = S["EventMetricsRow"];

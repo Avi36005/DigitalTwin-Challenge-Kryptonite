@@ -26,6 +26,20 @@
 .queue__flag {
   color: var(--gt-attention);
 }
+.queue__problem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.queue__problem .text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.rows--queue .rows__time .rows__secondary {
+  display: block;
+}
 
 @media (max-width: 760px) {
   .queue__counts,

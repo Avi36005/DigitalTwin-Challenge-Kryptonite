@@ -1,0 +1,60 @@
+/* "How the twin reached this forecast": one flat section under the chart. Rows and dividers only, no card. */
+.explain {
+  padding-top: 22px;
+  margin-top: 22px;
+  border-top: 1px solid var(--gt-divider);
+}
+.explain__title {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.explain__lede {
+  font-size: 13.5px;
+  color: var(--gt-text-2);
+  max-width: 900px;
+  margin-bottom: 12px;
+}
+.explain__flag {
+  color: var(--gt-attention);
+}
+.explain__table {
+  display: grid;
+  max-width: 820px;
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+.explain__row {
+  display: grid;
+  grid-template-columns: 90px repeat(3, minmax(0, 1fr)) minmax(0, 1.1fr);
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--gt-divider);
+}
+.explain__row--head {
+  color: var(--gt-text-3);
+  font-size: 12px;
+  padding-top: 0;
+}
+.explain__final {
+  color: var(--gt-text);
+  font-weight: 600;
+}
+.explain__facts {
+  max-width: 900px;
+}
+.explain__facts dd .table__sub {
+  display: block;
+}
+.explain__input {
+  display: block;
+}
+
+@media (max-width: 760px) {
+  .explain__row {
+    grid-template-columns: 60px repeat(3, minmax(0, 1fr));
+  }
+  .explain__row > :last-child {
+    grid-column: 2 / -1;
+    color: var(--gt-text-3);
+  }
+}

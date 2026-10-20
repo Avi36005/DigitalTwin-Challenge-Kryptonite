@@ -12,6 +12,7 @@ import type {
   LatestForecast,
   PatientDetail,
   PatientPage,
+  QueueSnapshot,
   Readiness,
   ReplayMode,
   ReplaySession,
@@ -59,6 +60,8 @@ export function createClient(t: Transport) {
     forecasts: (sid: string, limit: number, signal?: AbortSignal) =>
       get<ForecastPage>(`/replay/sessions/${sid}/forecasts${q({ limit, order: "desc" })}`, signal),
     alerts: (sid: string, signal?: AbortSignal) => get<AlertList>(`/replay/sessions/${sid}/alerts`, signal),
+    reviewSnapshot: (sid: string, signal?: AbortSignal) =>
+      get<QueueSnapshot>(`/replay/sessions/${sid}/review-snapshot`, signal),
     acknowledge: (sid: string, alertId: string, note?: string) =>
       post<Alert>(`/replay/sessions/${sid}/alerts/${alertId}/acknowledgement`, note ? { note } : {}),
     evaluation: (signal?: AbortSignal) => get<EvaluationReport>("/evaluations/latest", signal),

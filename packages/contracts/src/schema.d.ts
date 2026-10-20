@@ -229,6 +229,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/replay/sessions/{session_id}/review-snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Review Snapshot
+         * @description Session, warnings and latest forecast from one sync under one lock, so a playing replay cannot advance
+         *     between them: every part carries the same revision and clock.
+         */
+        get: operations["review_snapshot_api_v1_replay_sessions__session_id__review_snapshot_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/replay/sessions/{session_id}/alerts/{alert_id}/acknowledgement": {
         parameters: {
             query?: never;
@@ -1517,6 +1538,16 @@ export interface components {
             state_version: number;
             /** Horizons */
             horizons: components["schemas"]["HorizonAdaptation"][];
+            /**
+             * Cap Mg Dl
+             * @description Largest correction the policy can apply in either direction (null when disabled).
+             */
+            cap_mg_dl?: number | null;
+            /**
+             * Reset Gap Minutes
+             * @description A gap between readings longer than this clears the learned correction.
+             */
+            reset_gap_minutes?: number | null;
         };
         /** ProfileValue */
         ProfileValue: {
@@ -1936,6 +1967,23 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /**
+         * ReviewSnapshot
+         * @description One session read under one lock at one replay clock: the session, its warnings and its latest forecast.
+         *
+         *     Used by the review queue so that every value in a row describes the same session, revision and cutoff.
+         */
+        ReviewSnapshot: {
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            session: components["schemas"]["ReplaySession"];
+            alerts: components["schemas"]["AlertList"];
+            latest_forecast: components["schemas"]["LatestForecast"];
+        };
         /** SelectionRecord */
         SelectionRecord: {
             /** Rule */
@@ -2013,6 +2061,11 @@ export interface components {
              * @description True when the model abstains unless every baseline profile value it reads is available.
              */
             requires_complete_profile?: boolean | null;
+            /**
+             * Profile Inputs
+             * @description Names of the baseline profile values this model reads as inputs (empty when it reads none); other profile values are context only.
+             */
+            profile_inputs?: string[] | null;
         };
         /** SessionBrief */
         SessionBrief: {
@@ -2788,6 +2841,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AlertList"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    review_snapshot_api_v1_replay_sessions__session_id__review_snapshot_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSnapshot"];
                 };
             };
             /** @description Not Found */
