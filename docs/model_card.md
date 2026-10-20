@@ -56,6 +56,22 @@ diagnosis, screening, or use with real-time patient data.
 * **Online/offline parity:** replaying every test participant through the app's twin engine reproduced all 15,440
   saved test forecasts within 0.05 mg/dL.
 
+## Safety guardrails
+
+Enforced in code and covered by tests (table with file links: [README](../README.md#safety-guardrails)):
+
+* **Abstention:** no forecast when the latest glucose is older than 15 min, history is under 60 min or fewer than half
+  the expected readings arrived in the last hour; *Degraded* (with reasons) after a gap > 15 min, an incomplete last
+  hour, a sensor-limit reading (40 / 400 mg/dL) or a missing wearable summary.
+* **Fusion gate:** the profile model abstains when a profile value is missing or not yet available.
+* **No look-ahead:** native readings only; labs, meals and wearable summaries enter only once available.
+* **Bounded personalisation:** learns only from matured residuals, needs ≥ 6, capped at ±25 mg/dL, resets after a
+  3-hour gap.
+* **Warnings:** labelled *Research warning*, *Outcome pending* until judged, then matched one-to-one to an onset or
+  counted as a false alarm; firings within 30 min merge into one episode.
+* **Evaluation locks:** opened tests write lock files; re-running needs a written reason and is marked exploratory;
+  research runs cannot change the demo model.
+
 ## Data and protocol
 
 * **Data:** CGMacros 1.0.0 (PhysioNet, CC BY-NC-SA 4.0). 14 participants in the dataset's Type 2 group
