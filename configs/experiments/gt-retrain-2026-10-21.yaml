@@ -1,0 +1,100 @@
+# GlucoTwin research protocol gt-retrain-2026-10-21 — retraining the fusion LightGBM: participant balance, rising-regime
+# emphasis and longer causal history (four predeclared arms).
+#
+# Declared on 2026-10-20 at 22:45 IST BEFORE any arm below was fitted (docs/decisions.md D-049). Run only by
+# scripts/retrain_study.py; it never reads or writes the model registry and promotes nothing. The demo model stays
+# lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion unless a qualifying candidate later passes the separate serving checks.
+experiment_id: gt-retrain-2026-10-21
+kind: fixed-arm-retraining-study
+declared_at: "2026-10-20T17:15:00Z"
+random_seed: 20261021
+base_experiment: gt-2h-2026-10-20   # frozen research table (5-minute track), participant folds, eligibility masks
+
+relation_to_earlier_work: >-
+  D-048 re-weighted SAVED predictions of existing models (no fit) and failed its target; it stays a negative result and
+  is not reopened. Earlier experiments compared model families (LightGBM L1/L2, CatBoost, Ridge) with unweighted rows.
+  The baseline already predicts the change from the latest reading (delta target, `predict_delta` + g_last); that is
+  not a new idea here. No training code in this repository passes sample weights (checked 2026-10-20 22:35 IST:
+  `grep weight ml/glucotwin/models ml/glucotwin/research`), so participant balance (A1) is new, not an equivalence check.
+inspection_log:
+  - date: "2026-10-11..2026-10-20"
+    what: >-
+      The 14 CGMacros Type 2 people were inspected in v1, v2, the fusion experiment, gt-nested-2026-10-12-v1, D-043..D-048.
+      Validation-segment errors of the serving model by glucose trend (reports/error_by_trend.md) and D-048's development
+      error analysis (rising glucose and peaks worst) motivated arms A2 and B1. Any outer-fold result here is internal
+      validation on already-inspected people. ShanghaiT2DM is not used (no wearable or profile stream).
+
+estimand: >-
+  Primary: glucose 60 minutes ahead for a person held out entirely, with the declared past-only patient update
+  (shrunk-bias-v1, k = 96, half-life 240 min, cap 25 mg/dL, min 6 matured residuals, reset after 180 min) applied once,
+  starting from an empty state at the person's first origin. Secondary: 30 minutes. 120 minutes not studied here.
+  Forecasting later recordings of known people is a different estimand and is not mixed in.
+
+data:
+  table: frozen 5-minute research table of gt-2h-2026-10-20 (artifacts/research/gt-2h-2026-10-20/tables), 14 people, one recording each
+  development_selection: >-
+    The FINAL plan of gt-2h-2026-10-20: 12 development people in its 3 fixed inner folds (calibration people pt-… of the
+    final plan are not used for selection). Inner out-of-fold: each inner fold's people are predicted by models fitted on
+    the other development people only.
+  assessment_if_qualified: the 5 outer participant folds of gt-2h-2026-10-20; each outer fold fits on its development + calibration people and scores its assessment people once (lock file)
+  training_rows: every forecast-issued origin (quality ok or degraded) of the training people with a matched target at that horizon
+  evaluation_mask: >-
+    Forecast-issued origins with a matched target where every arm and comparator has a final forecast (identical origins
+    for all arms). Availability = share of issued origins with a final forecast, reported per arm.
+
+recipe_fixed_for_all_arms:
+  family: LightGBM 4.7.0 regression (L2), delta target (target − g_last), features as listed per arm
+  params: >-
+    The serving model's frozen per-horizon parameters (artifacts/models/lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion/
+    manifest.json): learning_rate, num_leaves, max_depth, min_child_samples, lambda_l2, feature_fraction,
+    bagging_fraction, bagging_freq 1, deterministic, num_threads 4, seed = random_seed + horizon.
+  rounds: fixed at the serving model's best_iteration per horizon (30 min 397, 60 min 868); no early stopping, so no held-out person is used for stopping
+  search: none (no hyperparameter search in any arm)
+
+arms:
+  B0_control: dyn-prof-v2 features (46), unweighted rows — the current fusion recipe refitted on this study's folds
+  A1_participant_balanced: >-
+    dyn-prof-v2, sample weight w = 1 / n_p for every training row of participant p (n_p = that person's training rows at
+    that horizon, from the training partition of that fit only), then rescaled so the mean weight over the training rows is 1.
+  A2_balanced_rising_2x: >-
+    A1, then rows whose past-only slope_15 > 1 mg/dL/min (feature at the origin; NaN counts as not rising) get raw weight 2,
+    others 1; within each participant the raw weights are rescaled to sum to the same participant total as A1 (each person
+    keeps equal total weight; only the split inside a person changes), then the global mean is rescaled to 1.
+  B1_balanced_long_history: >-
+    A1 weights; dyn-prof-v2 plus 12 history features (feature set id hist-v1, research only): for w in 360, 720, 1440 min:
+    hist_mean_w, hist_std_w, hist_cov_w, hist_dev_w over native readings of the same person with observed and available
+    time in (origin − w, origin], suspect readings excluded. hist_cov_w = readings / (w / 5). When hist_cov_w < 0.5,
+    mean/std/dev are missing (NaN; LightGBM missing-value handling), cov is still given. hist_dev_w = g_last − hist_mean_w.
+    No centred windows, no whole-recording statistics; one recording per person so no cross-recording window. Elapsed
+    past history only — no clock-time or meal-timing claim (source timezone undocumented). The core forecast's
+    availability rules are unchanged (history features are optional).
+comparators: persistence and the bounded linear trend, from the saved inner out-of-fold predictions of gt-2h-2026-10-20 (same people, folds and origins); reported, not candidates
+
+selection:
+  primary_metric: macro per-participant MAE of the final (personalised) 60-minute forecast on development inner out-of-fold
+  gate: at least 0.5 mg/dL lower than B0
+  secondary_gates:
+    mae_30_worsening_max: 0.25        # macro MAE at 30 min, candidate minus B0
+    high_glucose_60_worsening_max: 1.0  # 60-min macro MAE over origins with target > 180, participants with >= 50 such origins in B0's mask
+    availability_drop_max_points: 0.5
+  reported_not_gated: >-
+    60-min macro MAE when slope_15 > 2 (participants with >= 20 such origins), rising 1-2, steady (|slope| <= 1) and
+    falling (< -1); mean signed error when target > 180; first 24 elapsed hours; population-only (no patient update)
+    MAE. A >= 5 % better rapid-rise MAE is a secondary goal only, never an overall win.
+  near_tie_margin_mg_dl: 0.1      # among qualifying arms within 0.1 of the best, prefer A1, then A2, then B1 (simplest first)
+  all_arms_run: true              # every arm is fitted and reported even if an earlier one fails
+  stop_rule: if no arm qualifies, B0 (the incumbent recipe) is retained, the outer folds are not opened and no new arm is added
+
+assessment_if_qualified:
+  run_once: true
+  compare: selected arm vs B0 on identical outer origins, population-only and personalised, 30 and 60 min
+  uncertainty: paired participant-cluster bootstrap, 2000 resamples, seed = random_seed
+  label: internal validation on already-inspected people
+warnings_and_ranges_if_qualified:
+  warning: 60-minute warning, score max(final 30, final 60) − 180, threshold grid [-30, -20, -10, 0, 10], chosen on development inner out-of-fold with the D-043 workload rule (max recall at <= 2 false alarms per observed day); episode merge 30 min; the repository matcher
+  ranges: split-conformal 80 % on the final plan's 2 calibration people for the exact personalised pipeline
+  tolerances_vs_B0: {false_alarms_per_observed_day: 0.1, time_in_warning_points: 2.0, detection_points: -2.0}
+
+artifacts:
+  root: artifacts/research/gt-retrain-2026-10-21
+  report: reports/retrain_study.md
