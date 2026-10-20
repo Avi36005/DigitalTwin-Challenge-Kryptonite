@@ -172,7 +172,11 @@ export function ReplayPage({ sid }: { sid: string }) {
             segments={patient.data?.evaluation_segments}
             more={<Link className="text-link guards__more" to={paths.evidence("safety-guardrails")}>All safety guardrails<ArrowRight size={14} aria-hidden /></Link>} />
           {(selected ?? latestF) && (
-            <button type="button" className="text-btn inspector__link" onClick={() => setDetailOpen(true)}>
+            <button type="button" className="text-btn inspector__link" onClick={() => {
+              // opening the latest forecast pins it, so stepping on keeps this forecast and reveals its outcome
+              if (!selected && latestF) setSelectedId(latestF.forecast_id);
+              setDetailOpen(true);
+            }}>
               View forecast details<ArrowRight size={14} aria-hidden />
             </button>
           )}
@@ -191,7 +195,7 @@ export function ReplayPage({ sid }: { sid: string }) {
       </div>
 
       <ForecastDetail f={selected ?? latestF} patient={patient.data} report={evaluation.data} open={detailOpen} onClose={() => setDetailOpen(false)}
-        publicDemo={publicDemo} />
+        publicDemo={publicDemo} events={events} clock={clock} />
       <div className="visually-hidden" aria-live="polite">{announce}</div>
     </>
   );
