@@ -10,6 +10,11 @@ and compares it with the number the README actually states. Status per claim:
 * ``artifact missing``  — the saved file is not on this installation (git-ignored artifacts; run the experiment);
 * ``author-reported``   — a statement this script cannot re-derive from a saved file (named, never counted as checked).
 
+Every artifact-backed row also records the sha256 of each artifact file it read (``artifact_sha256``), so a later reader
+can tell whether the file behind a checked number has changed. Rows marked ``pending_readme`` belong to a study whose
+README wording has not been written yet; they report ``artifact missing`` or ``not found in README`` until it is, and
+never count as checked.
+
 Nothing is fitted and no assessment is re-opened. Numbers are never copied into the web app from here.
 
 Usage:  uv run python scripts/evidence_manifest.py   (writes reports/evidence_manifest.md and .json)
@@ -17,6 +22,7 @@ Usage:  uv run python scripts/evidence_manifest.py   (writes reports/evidence_ma
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
@@ -35,6 +41,7 @@ TWO_H = "gt-2h-2026-10-20"
 TWO_H_EXT = "gt-2h-ext-2026-10-20"
 CLF = "gt-2h-clf-2026-10-20"
 WARN = "gt-warn-range-2026-10-20"
+JOINT = "gt-joint-2026-10-21"
 
 
 def num(x: float, d: int) -> str:
@@ -326,6 +333,56 @@ def c_tune() -> list[Check]:
             ("adoption", "not adopted" if not d["adoption"]["c1_better"] else "adopted", r"so C1 is\s+(not adopted)")]
 
 
+# D-052 (joint model + correction selection). PLACEHOLDER: the README sentence for this study has not been written yet.
+# The checks below expect it in exactly the form returned by ``readme_sentence_d052()`` (generated from the saved
+# summary, so the lead can paste it); until then these rows are ``not found in README`` (or ``artifact missing`` while
+# the study runs) and are flagged ``pending_readme``. If the wording changes, change these patterns with it.
+D052_RX = {
+    "s_mae": r"personalised 60-minute error ([\d.]+) mg/dL for the selected procedure",
+    "r0_mae": r"for the selected procedure vs ([\d.]+) for the refitted serving recipe",
+    "diff": r"\(S − R0 ([−+\-][\d.]+ \[[−+\-][\d.]+, [−+\-][\d.]+\])\)",
+    "gate": r"\(S − R0 [^)]*\); primary gate (passed|not met)",
+    "guardrails": r"primary gate (?:passed|not met); release guardrails (passed|not met|not evaluated)",
+    "range": r"candidate 80 % range covered ([\d.]+) % at 60 min",
+}
+
+
+def joint() -> dict:
+    return need(ART / "research" / JOINT / "summary.json")
+
+
+def _d052_values(d: dict) -> dict[str, str]:
+    P, g = d["procedures"], d["gate"]
+    ci = f"{sgn(g['mean_diff_60'], 2)} [{sgn(g['ci95_60'][0], 2)}, {sgn(g['ci95_60'][1], 2)}]"
+    rg = d.get("release_guardrails")
+    return {"s_mae": num(P["S"]["60"]["mae"], 2), "r0_mae": num(P["R0"]["60"]["mae"], 2), "diff": ci,
+            "gate": "passed" if g["passed"] else "not met",
+            "guardrails": "not evaluated" if not rg else ("passed" if rg["passed"] else "not met"),
+            "range": pct(d["ranges"]["S"]["60"]["coverage"])}
+
+
+def readme_sentence_d052() -> str:
+    """The README sentence the D-052 checks expect, filled from the saved summary (raises Missing until it exists)."""
+    v = _d052_values(joint())
+    return (f"personalised 60-minute error {v['s_mae']} mg/dL for the selected procedure vs {v['r0_mae']} for the refitted "
+            f"serving recipe (S − R0 {v['diff']}); primary gate {v['gate']}; release guardrails {v['guardrails']}; "
+            f"candidate 80 % range covered {v['range']} % at 60 min.")
+
+
+def c_joint_forecast() -> list[Check]:
+    v = _d052_values(joint())
+    return [("S 60-min personalised MAE", v["s_mae"], D052_RX["s_mae"]),
+            ("R0 60-min personalised MAE (refitted serving recipe)", v["r0_mae"], D052_RX["r0_mae"]),
+            ("S − R0 at 60 min (participant bootstrap)", v["diff"], D052_RX["diff"]),
+            ("primary gate", v["gate"], D052_RX["gate"])]
+
+
+def c_joint_operational() -> list[Check]:
+    v = _d052_values(joint())
+    return [("release guardrails vs R0", v["guardrails"], D052_RX["guardrails"]),
+            ("candidate 80 % range coverage, 60 min", v["range"], D052_RX["range"])]
+
+
 def c_synthetic() -> list[Check]:
     reg = need(ART / "registry.json")
     sid = reg["serving"]["synthetic_demo"]
@@ -422,6 +479,18 @@ CLAIMS: list[dict[str, Any]] = [
          population="14 CGMacros people, each held out once (previously inspected)", horizon="60 min",
          type="participant-held-out internal", protocol="configs/experiments/gt-tune-2026-10-21.yaml",
          split=TWO_H, artifact="artifacts/research/gt-tune-2026-10-21/summary.json", report="reports/tune_study.md", fn=c_tune),
+    dict(id="joint-d052-forecast", claim="Joint model + correction selection vs the refitted serving recipe (D-052)",
+         model="nested selected procedure S (family J0/J1/J2 chosen inside each fold) vs refitted serving recipe R0; research candidate, not serving",
+         population="14 CGMacros Type 2 people, each held out once (previously inspected)", horizon="60 min",
+         type="participant-held-out internal (research candidate)", protocol=f"configs/experiments/{JOINT}.yaml",
+         split=TWO_H, artifact=f"artifacts/research/{JOINT}/summary.json", report="reports/joint_study.md",
+         fn=c_joint_forecast, pending_readme=True),
+    dict(id="joint-d052-operational", claim="D-052 candidate: warning release guardrails and 80 % range coverage",
+         model="nested selected procedure S, thresholds chosen on inner folds, ranges on calibration people; research candidate",
+         population="14 CGMacros Type 2 people, each held out once (previously inspected)", horizon="60 min",
+         type="participant-held-out internal (research candidate)", protocol=f"configs/experiments/{JOINT}.yaml",
+         split=TWO_H, artifact=f"artifacts/research/{JOINT}/summary.json", report="reports/joint_study.md",
+         fn=c_joint_operational, pending_readme=True),
     dict(id="parity", claim="App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
          model="demo model online (TwinEngine) vs offline", population="final test segment, 14 people", horizon="30, 60 min",
          type="software test", protocol=f"configs/experiments/{FUSION}.yaml", artifact="reports/serving_parity.json",
@@ -445,12 +514,29 @@ def split_hash(eid: str | None) -> str:
     return (d.get("split_hash") or "—")[:12]
 
 
+def artifact_paths(spec: str) -> list[str]:
+    """Repository-relative file paths named in an ``artifact`` field ("a; b (via script)" -> ["a", "b"])."""
+    return [part.strip().split(" (")[0].strip() for part in spec.split(";") if part.strip()]
+
+
+def sha256_of(rel: str) -> str | None:
+    p = ROOT / rel
+    if not p.is_file():
+        return None
+    h = hashlib.sha256()
+    with p.open("rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
 def evaluate(readme: str) -> list[dict]:
     text = re.sub(r"\s+", " ", readme)
     out = []
     for c in CLAIMS:
         row = {k: v for k, v in c.items() if k not in ("fn", "split")}
         row["split_hash"] = split_hash(c.get("split"))
+        row["artifact_sha256"] = {a: sha256_of(a) for a in artifact_paths(c["artifact"])}
         try:
             checks = c["fn"]()
         except Missing as exc:
@@ -482,6 +568,7 @@ def render(rows: list[dict]) -> str:
     n = len(rows)
     ok = sum(r["status"] == "matches artifact" for r in rows)
     bad = [r for r in rows if r["status"] == "MISMATCH"]
+    pending = sum(1 for r in rows if r.get("pending_readme") and r["status"] != "matches artifact")
     md = ["# Evidence manifest", "",
           "Selected headline claims in the README (not every number in it), each traced to the saved file it comes from. Generated by "
           "`scripts/evidence_manifest.py`, which re-reads each artifact, formats each number the way the README states it "
@@ -491,12 +578,15 @@ def render(rows: list[dict]) -> str:
           "*synthetic* and *software test*. None of them is clinical validation.", "",
           f"**{ok} of {n} claims match their artifacts; {len(bad)} mismatch; "
           f"{sum(r['status'] == 'artifact missing' for r in rows)} artifact(s) missing on this installation; "
-          f"{sum(r['status'] == 'author-reported' for r in rows)} author-reported only.**", "",
+          f"{sum(r['status'] == 'author-reported' for r in rows)} author-reported only; "
+          f"{pending} awaiting README wording.**", "",
           "| Claim | Model / procedure | Population | Horizon | Evaluation type | Protocol · split | Artifact | Report | Status |",
           "|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
+        shas = " ".join(f"sha256 `{h[:12]}`" if h else "(file missing)" for h in (r.get("artifact_sha256") or {}).values())
+        status = r["status"] + (" (pending README wording)" if r.get("pending_readme") and r["status"] != "matches artifact" else "")
         md.append(f"| {r['claim']} | {r['model']} | {r['population']} | {r['horizon']} | {r['type']} | "
-                  f"`{r['protocol']}` · {r['split_hash']} | `{r['artifact']}` | {r['report']} | **{r['status']}** |")
+                  f"`{r['protocol']}` · {r['split_hash']} | `{r['artifact']}` {shas} | {r['report']} | **{status}** |")
     md += ["", "## Numbers checked", "", "| Claim | Number | Artifact | README | Result |", "|---|---|---|---|---|"]
     for r in rows:
         for c in r["checks"]:
