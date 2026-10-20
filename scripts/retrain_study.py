@@ -368,6 +368,16 @@ def render(dev: dict, ass: dict | None) -> str:
         lines.append(f"| {a} | {c['gain_60']:+.2f} | {c['worsening_30']:+.2f} | {c['high_worsening_60']:+.2f} | "
                      f"{c['availability_drop_points']:+.2f} | {'—' if rf is None else f'{100 * rf:+.1f} %'} | "
                      f"{'**yes**' if sel['by_arm'][a]['qualifies'] else 'no'} |")
+    pd_ = dev.get("development_paired_descriptive")
+    if pd_:
+        lines += ["", "Per-person paired differences on development, arm minus B0 (participant bootstrap, 2,000 resamples; "
+                  "descriptive, computed after selection and not used for it):", "",
+                  "| Arm | 60 min personalised | 60 min population only | 30 min personalised | people better at 60 min (personalised) |",
+                  "|---|---|---|---|---|"]
+        for arm in ("A1", "A2", "B1"):
+            c = lambda k: f"{pd_[k]['mean_diff']:+.2f} [{pd_[k]['ci95'][0]:+.2f}, {pd_[k]['ci95'][1]:+.2f}]"  # noqa: E731
+            lines.append(f"| {arm} | {c(f'{arm}_final_60')} | {c(f'{arm}_pop_60')} | {c(f'{arm}_final_30')} | "
+                         f"{pd_[f'{arm}_final_60']['improved']} of {pd_[f'{arm}_final_60']['n']} |")
     lines += ["", f"**Decision:** {'selected ' + sel['selected'] if sel['selected'] else 'no arm met the gate — B0 (the incumbent recipe) is retained, the outer folds were not opened and no new arm was added (stop rule).'}", ""]
     if ass:
         lines += ["## Assessment (outer folds, opened once)", "",

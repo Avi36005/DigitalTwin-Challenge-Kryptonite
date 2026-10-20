@@ -247,7 +247,9 @@ page); scroll through the list.
 > decilitre, an interval that crosses zero. We report all three.
 > Tonight we also tested blending the two tree models, again declared before scoring — decision D-048. On
 > development people it improved sixty-minute error by only 0.02 milligrams per decilitre, far short of the half a
-> milligram we required, so we kept the current model and never opened the held-out results.
+> milligram we required, so we kept the current model and never opened the held-out results. We then retrained the
+> model itself four ways — decision D-049 — including twenty-four hours of past glucose history. The best gained 0.41
+> milligrams per decilitre, again short of the bar we set in advance, so the model you saw is still the one we evaluated.
 
 ## Chapter 13 — Extension: the evidence inside the app (17:15–18:45)
 

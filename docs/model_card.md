@@ -268,3 +268,9 @@ any arm was computed; every choice made on development and calibration people; o
 * **Health record as a starting correction: not shown.** Ridge on the 8 profile values (development people) predicting
   a new person's average error: −0.53 [−1.57, +0.58] mg/dL at 120 min (10 of 14 better); first 24 hours −0.93
   [−2.74, +0.48]. The declared claim rule (interval below zero) was not met.
+
+**Retraining study — `gt-retrain-2026-10-21` (D-049, not serving).** Fresh LightGBM fits of the fusion recipe (frozen
+serving parameters and rounds, no search) on development inner folds: participant-balanced weights −0.04, 2× rising-glucose
+weights +0.07 and 6/12/24-hour causal history +0.41 mg/dL 60-minute gain over the refitted control, against a declared
+0.5 gate; none adopted, outer folds not opened ([report](../reports/retrain_study.md)). Replay parity of the serving model
+re-run and saved: 15,440 of 15,440 forecasts within 0.05 mg/dL ([serving parity](../reports/serving_parity.md)).

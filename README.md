@@ -373,6 +373,14 @@ scored). Blending the LightGBM and CatBoost fusion models (same profile-plus-wea
 on development people) lowered 60-minute development error by only 0.02 mg/dL (22.28 → 22.26) against a declared
 target of 0.5, so the demo model is unchanged and the held-out folds were never opened ([report](reports/blend_experiment.md)).
 
+**Retraining study, not adopted** (`gt-retrain-2026-10-21`, D-049, protocol committed before any fit). Four fresh fits of
+the fusion LightGBM recipe with the serving model's frozen settings: the control, participant-balanced training,
+2× weight on rising-glucose origins, and 12 causal 6/12/24-hour glucose-history features. On development people none
+reached the declared 0.5 mg/dL gain at 60 minutes (−0.04, +0.07 and +0.41), so the demo model is unchanged and the
+held-out folds were never opened. The long-history features lowered the population model's 60-minute error by 1.39
+[0.29, 2.62] mg/dL for 9 of 12 people, but the patient correction already captured most of that — a lead for a future
+declared study, not a result ([report](reports/retrain_study.md)).
+
 Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:
 [`reports/repair_report.md`](reports/repair_report.md) · model card:
 [`docs/model_card.md`](docs/model_card.md) · data card: [`docs/data_card.md`](docs/data_card.md).
@@ -573,7 +581,7 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
   [Integration audit](reports/integration_audit.md) · [Two-hour benchmark](reports/two_hour_benchmark.md) ·
   [Two hours ahead, external](reports/two_hour_external.md) · [Two-hour classifier (negative)](reports/two_hour_classifier.md) ·
   [Time in warning](reports/warning_time_share.md) · [Cold-start profile](reports/cold_start_profile.md) ·
-  [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Model blend (negative)](reports/blend_experiment.md) ·
+  [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Model blend (negative)](reports/blend_experiment.md) · [Retraining study (negative)](reports/retrain_study.md) · [Serving parity](reports/serving_parity.md) ·
   [Error by glucose trend](reports/error_by_trend.md) · [Evidence manifest](reports/evidence_manifest.md) · [Review summary check](reports/review_summary_check.md) · [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
 * **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
   [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·

@@ -399,11 +399,23 @@ def reanalysis_slide() -> dict | None:
                 f"Not shown — health record as a new person's starting correction: {ci(p)} mg/dL at 120 min, {ci(p24)} in the "
                 "first 24 hours; the intervals cross zero, so no benefit is claimed.",
                 *([blend_bullet()] if blend_bullet() else []),
+                *([retrain_bullet()] if retrain_bullet() else []),
                 "The demo model's ranges are already pooled over all 14 people; its under-coverage most likely comes from drift between "
                 "time segments, so this fix is not applied to it."]}
 
 
 BLEND = ROOT / "artifacts/research/gt-blend-2026-10-21/development.json"
+RETRAIN = ROOT / "artifacts/research/gt-retrain-2026-10-21/development.json"
+
+
+def retrain_bullet() -> str | None:
+    """D-049: four freshly fitted arms of the fusion recipe, development decision only."""
+    if not RETRAIN.exists():
+        return None
+    g = {a: v["checks"]["gain_60"] for a, v in json.loads(RETRAIN.read_text())["selection"]["by_arm"].items()}
+    return ("Not adopted — retraining with participant balance, rising-glucose weights or 24-hour history (D-049, fresh fits): "
+            f"60-min gains {g['A1_participant_balanced']:+.2f}, {g['A2_balanced_rising_2x']:+.2f} and "
+            f"{g['B1_balanced_long_history']:+.2f} mg/dL against a 0.5 target; the demo model is unchanged.")
 
 
 def blend_bullet() -> str | None:
