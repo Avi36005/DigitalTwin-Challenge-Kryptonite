@@ -117,13 +117,13 @@ function Body({ e, stale, age }: { e: Explanation; stale: boolean; age: number |
             <dt>Accuracy at this trend</dt>
             <dd>
               Glucose {e.trend.slope > 0 ? "rising" : e.trend.slope < 0 ? "falling" : "changing"} {Math.abs(e.trend.slope).toFixed(1)} mg/dL per
-              minute over the last 15 min ({e.trend.label.toLowerCase()}). On this model's validation data at this trend:{" "}
+              minute over the last 15 min ({e.trend.label.charAt(0).toLowerCase() + e.trend.label.slice(1)}). On this model's validation data at this trend:{" "}
               {e.trend.byHorizon.filter((b) => b.mae != null).map((b) => `${b.horizon}-min error ${b.mae!.toFixed(1)} mg/dL`
                 + (e.trend!.steady || b.steadyMae == null ? "" : ` (steady: ${b.steadyMae.toFixed(1)})`)).join("; ")}.
               {e.trend.peakBias60 != null && e.trend.peakBias60 < 0 && <> Peaks above 180 mg/dL were under-forecast by {Math.abs(e.trend.peakBias60).toFixed(0)} mg/dL on average at 60 min.</>}
               {(() => {
                 const c = e.trend.byHorizon.filter((b) => b.rangeCoverage != null);
-                return c.length ? <> At this trend the 80 % range held the outcome {c.map((b) => `${fmtPct(b.rangeCoverage!, 0)} of the time at ${b.horizon} min`).join(", ")}.</> : null;
+                return c.length ? <> At this trend the {fmtPct(e.coverage.target ?? 0.8, 0)} range held the outcome {c.map((b) => `${fmtPct(b.rangeCoverage!, 0)} of the time at ${b.horizon} min`).join(", ")}.</> : null;
               })()}
               <span className="table__sub">Average error over many forecasts ({e.trend.experiment}, validation segment); descriptive, not a guarantee for this forecast.</span>
             </dd>
