@@ -13,9 +13,9 @@ random_seed: 20261022
 base_experiment: gt-2h-2026-10-20   # frozen table, 5 outer participant folds with their inner folds and calibration groups
 
 arms:
-  C0_current_features: dyn-prof-v2 (46 features: glucose, wearable, 8 profile values) — the serving feature set
-  C1_with_history: dyn-prof-v2 + hist-v1 (12 causal 6/12/24-hour glucose-history features, ml/glucotwin/research/history.py)
-  weighting: unweighted rows in both arms (participant balancing showed no gain in D-049)
+  C0_current_features: "dyn-prof-v2 (46 features: glucose, wearable, 8 profile values) — the serving feature set"
+  C1_with_history: "dyn-prof-v2 + hist-v1 (12 causal 6/12/24-hour glucose-history features, ml/glucotwin/research/history.py)"
+  weighting: "unweighted rows in both arms (participant balancing showed no gain in D-049)"
 
 tuning_budget_identical_for_both_arms:
   lightgbm_trials: 30 parameter sets per horizon, the SAME seeded sample for both arms, from the space of gt-2h-2026-10-20
