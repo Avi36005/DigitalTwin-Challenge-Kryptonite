@@ -19,13 +19,12 @@ from pathlib import Path
 import lightgbm as lgb
 import numpy as np
 import yaml
-from sklearn.metrics import average_precision_score, roc_auc_score
-
 from glucotwin.features import FEATURE_SETS
 from glucotwin.research import warnings as W
 from glucotwin.research.common import load_ctx
 from glucotwin.research.protocol import FINAL, load_frozen, plans_of
 from glucotwin.research.report import _agg_events, _r
+from sklearn.metrics import average_precision_score, roc_auc_score
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTO = yaml.safe_load((ROOT / "configs/experiments/gt-2h-clf-2026-10-20.yaml").read_text())
@@ -50,7 +49,11 @@ def predict(ctx, m: lgb.LGBMClassifier, rows: np.ndarray, fs: str) -> np.ndarray
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--reopen-reason")
+    ap.add_argument("--render", action="store_true", help="rewrite the report from the saved summary (no fitting)")
     a = ap.parse_args()
+    if a.render:
+        (ROOT / PROTO["artifacts"]["report"]).write_text(render(json.loads((OUT / "summary.json").read_text())))
+        return 0
     OUT.mkdir(parents=True, exist_ok=True)
     lock = OUT / "opened.json"
     if lock.exists() and not a.reopen_reason:
@@ -90,9 +93,13 @@ def main() -> int:
         print(p.fold, choices[p.fold]["feature_set"], thr, why, flush=True)
 
     # ---- open the assessment folds once
-    lock.write_text(json.dumps({"opened_at": datetime.now(UTC).isoformat(timespec="seconds"),
-                                "reopen_reason": a.reopen_reason, "protocol": PROTO["experiment_id"]}, indent=1))
-    per_fs = {fs: {"events": [], "p": np.full(len(t), np.nan)} for fs in fsets + ["selected"]}
+    now = datetime.now(UTC).isoformat(timespec="seconds")
+    doc = json.loads(lock.read_text()) if lock.exists() else {"opened_at": now, "protocol": PROTO["experiment_id"],
+                                                              "reopened": []}
+    if a.reopen_reason:  # a re-open is appended; the first opening time is never overwritten
+        doc.setdefault("reopened", []).append({"at": now, "reason": a.reopen_reason})
+    lock.write_text(json.dumps(doc, indent=1))
+    per_fs = {fs: {"events": [], "p": np.full(len(t), np.nan), "fire": 0, "elig": 0} for fs in fsets + ["selected"]}
     for i, p in enumerate(plans):
         tr = trainable & np.isin(pids, list(p.development) + list(p.calibration))
         te = issued & np.isin(pids, list(p.assessment))
@@ -100,11 +107,15 @@ def main() -> int:
             prob = predict(ctx, fit(ctx, tr, fs, seed + 100 + i), te, fs)
             per_fs[fs]["p"] = np.where(te, prob, per_fs[fs]["p"])
             thr = choices[p.fold]["threshold_by_feature_set"][fs]
+            per_fs[fs]["elig"] += int((te & elig).sum())
+            per_fs[fs]["fire"] += int((te & elig & (prob >= (thr if thr is not None else np.inf))).sum())
             if thr is not None:
                 per_fs[fs]["events"].append({**W.evaluate(t, te, issued, prob, H, thr, MERGE, cad)[0], "fold": p.fold,
                                              "status": "ok"})
             if fs == choices[p.fold]["feature_set"]:
                 per_fs["selected"]["p"] = np.where(te, prob, per_fs["selected"]["p"])
+                per_fs["selected"]["elig"] += int((te & elig).sum())
+                per_fs["selected"]["fire"] += int((te & elig & (prob >= (choices[p.fold]["threshold"] or np.inf))).sum())
                 if choices[p.fold]["threshold"] is not None:
                     per_fs["selected"]["events"].append({**W.evaluate(t, te, issued, prob, H, choices[p.fold]["threshold"],
                                                                       MERGE, cad)[0], "fold": p.fold, "status": "ok"})
@@ -117,6 +128,8 @@ def main() -> int:
         res[name] = {"origin_roc_auc": _r(roc_auc_score(lab[m], d["p"][m]), 3),
                      "origin_average_precision": _r(average_precision_score(lab[m], d["p"][m]), 3),
                      "base_rate": _r(float(lab[m].mean()), 3), "origins": int(m.sum()),
+                     # post-hoc diagnostic (not in the declared protocol): share of eligible origins at which it fires
+                     "share_of_eligible_time_warning": _r(d["fire"] / d["elig"], 3) if d["elig"] else None,
                      **{k: agg.get(k) for k in ("status", "true_onsets", "detected_onsets", "missed_onsets",
                                                  "warning_episodes", "false_alarms", "recall", "precision",
                                                  "false_alarms_per_observed_day", "recall_ci95",
@@ -142,16 +155,27 @@ def render(s: dict) -> str:
            "model; nothing promoted.", "",
            "Feature set chosen per fold on inner folds: " + ", ".join(f"{k} `{v['feature_set']}`" for k, v in s["choices"].items())
            + ". Thresholds chosen on inner folds for at most 2 false alarms per observed forecastable day.", "",
-           "| Classifier (120-min onset) | Onsets warned | False alarms per observed day | Precision | Median forecast lead (IQR), min | ROC AUC | Average precision (base rate) |",
-           "|---|---|---|---|---|---|---|"]
+           "**Result: negative — this classifier is not useful as a warning.** In every fold the inner-fold rule chose the "
+           "lowest threshold on the declared grid (0.02), so the classifier fires at almost every eligible moment (share "
+           "column, a post-hoc diagnostic). Firings within 30 minutes merge into one episode, so a near-constant alarm "
+           "becomes a few long episodes that each contain an onset: the episode counts below look perfect while the "
+           "warning carries little information (origin-level ROC AUC 0.62–0.66). Episode-based workload alone can be "
+           "gamed this way; time spent in warning has to be read beside it. The regression-derived warning of "
+           "`gt-2h-2026-10-20` stays the two-hour result we report.", "",
+           f"Assessment first opened at {s['opened']['opened_at']}"
+           + "".join(f"; re-opened at {r['at']} ({r['reason']})" for r in s["opened"].get("reopened", []))
+           + ". The models are deterministic, so the declared metrics did not change.", "",
+           "| Classifier (120-min onset) | Onsets warned | False alarms per observed day | Precision | Median forecast lead (IQR), min | Share of eligible time warning | ROC AUC | Average precision (base rate) |",
+           "|---|---|---|---|---|---|---|---|"]
     for k, label in names.items():
         x = r[k]
         if x.get("status") != "ok":
-            out.append(f"| {label} | no feasible threshold | — | — | — | {x['origin_roc_auc']} | {x['origin_average_precision']} ({x['base_rate']}) |")
+            out.append(f"| {label} | no feasible threshold | — | — | — | — | {x['origin_roc_auc']} | {x['origin_average_precision']} ({x['base_rate']}) |")
             continue
         iqr = x["qualified_lead_iqr"]
         out.append(f"| {label} | {x['detected_onsets']} of {x['true_onsets']} ({100 * x['recall']:.1f} %) | "
                    f"{x['false_alarms_per_observed_day']} | {x['precision']} | {x['qualified_lead_median']} ({iqr[0]}–{iqr[1]}) | "
+                   f"{100 * x['share_of_eligible_time_warning']:.0f} % | "
                    f"{x['origin_roc_auc']} | {x['origin_average_precision']} ({x['base_rate']}) |")
     out += ["", "Comparator (same people and folds, `gt-2h-2026-10-20`): the regression-derived 120-minute warning warned 315 "
             "of 329 onsets at 1.62 false alarms per observed day, median forecast lead 15 min (IQR 5–65) "

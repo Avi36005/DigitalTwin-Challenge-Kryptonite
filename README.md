@@ -319,6 +319,11 @@ external cohort, ShanghaiT2DM (FreeStyle Libre H at 15-minute cadence, China), o
   [full research report](reports/nested_benchmark_report.md), [data expansion audit](reports/dataset_expansion_audit.md)).
   AI-READI was not accessed; no Indian participants were evaluated.
 
+**A negative two-hour result, kept.** A classifier trained directly on "a new onset within two hours" (`gt-2h-clf-2026-10-20`,
+D-044, declared before fitting) looked perfect on episode counts (329 of 329 onsets, 0.18 false alarms per day) only
+because its inner-fold threshold made it warn at 99 % of eligible times; its ROC AUC was 0.64. It is not used
+([report](reports/two_hour_classifier.md)), and it shows why time spent in warning must be read beside alarm counts.
+
 Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:
 [`reports/repair_report.md`](reports/repair_report.md) · model card:
 [`docs/model_card.md`](docs/model_card.md) · data card: [`docs/data_card.md`](docs/data_card.md).
