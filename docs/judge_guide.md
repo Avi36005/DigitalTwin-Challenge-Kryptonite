@@ -75,6 +75,7 @@ scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an e
 | D-038 | [`gt-primary-2026-10-13-fusion`](../configs/experiments/gt-primary-2026-10-13-fusion.yaml): the demo model | 13 Oct 2026, **after** the test segment had been inspected (retrospective) | [evaluation report](../reports/evaluation_report.md) · [model card](model_card.md) |
 | D-043 | [`gt-2h-2026-10-20`](../configs/experiments/gt-2h-2026-10-20.yaml): two-hour benchmark | Before any fit, 20 Oct 2026 | [two-hour benchmark](../reports/two_hour_benchmark.md) |
 | D-044 | [`gt-2h-clf-2026-10-20`](../configs/experiments/gt-2h-clf-2026-10-20.yaml): direct two-hour onset classifier | Before any fit, 20 Oct 2026 | [classifier report](../reports/two_hour_classifier.md) — **negative result, kept** |
+| D-045 | [`gt-2h-ext-2026-10-20`](../configs/experiments/gt-2h-ext-2026-10-20.yaml): two hours ahead on 98 ShanghaiT2DM people | Before any fit, 20 Oct 2026; assessed once at 2026-10-20T10:10:25+00:00 | [external two-hour check](../reports/two_hour_external.md) |
 
 * **The negative result (D-044):** the classifier looked perfect on episode counts (329 of 329 onsets, 0.18 false
   alarms per day) only because its inner-fold threshold made it warn at 99 % of eligible times; its ROC AUC was 0.64.

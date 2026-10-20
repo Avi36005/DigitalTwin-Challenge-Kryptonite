@@ -9,13 +9,13 @@ unlisted YouTube); deadlines unchanged (registration 18 Oct, submission 20 Oct, 
 transcription and the challenge page differ, the challenge page governs. Recheck both live pages before submitting and
 record any change below.
 
-**Overall status (rechecked 19 October 2026): ready for local review — not ready to submit.** Submission-ready requires every
+**Overall status (rechecked 20 October 2026): ready for local review — not ready to submit.** Submission-ready requires every
 row below to be *Ready*: today the recorded and uploaded video and the public-access checks are outstanding (the
 college was supplied on 17 October 2026). Cloud deployment is not required by the form and is not part of this gate.
 
 ## The twelve mandatory README items
 
-Verification date for every row: 19 October 2026 (local repository; `scripts/check_submission.py`).
+Verification date for every row: 20 October 2026 (local repository; `scripts/check_submission.py`).
 
 | # | Form item | README anchor | Evidence (files / URLs) | Status | Owner |
 |---|---|---|---|---|---|
@@ -29,7 +29,7 @@ Verification date for every row: 19 October 2026 (local repository; `scripts/che
 | 8 | Demo video — unlisted YouTube, **minimum 20 min** (target 20:15) | [`#8-demo-video`](../README.md#8-demo-video) | Plan: [`demo_script.md`](demo_script.md); sequence: [`../reports/demo_sequence.md`](../reports/demo_sequence.md); link: — | **Missing** — not recorded; not uploaded | Team (recording, upload needs authorization) |
 | 9 | Open-source license details | [`#9-open-source-license`](../README.md#9-open-source-license) | [`../LICENSE`](../LICENSE) (MIT, code); data terms in README and [`data_card.md`](data_card.md) | Ready — holder wording to be confirmed | Team |
 | 10 | Architecture diagram (PDF/PPT) | [`#10-architecture-diagram`](../README.md#10-architecture-diagram) | [`submission/GlucoTwin_Architecture.pdf`](submission/GlucoTwin_Architecture.pdf) (2 pages) | Ready | — |
-| 11 | Presentation with project details and outcomes (PDF/PPT) | [`#11-presentation`](../README.md#11-presentation) | [`submission/GlucoTwin_Presentation.pdf`](submission/GlucoTwin_Presentation.pdf) / `.pptx` (21 slides, incl. “Project outcomes” and the research-evidence slide) | Ready — regenerate after adding video/repository URLs | Team |
+| 11 | Presentation with project details and outcomes (PDF/PPT) | [`#11-presentation`](../README.md#11-presentation) | [`submission/GlucoTwin_Presentation.pdf`](submission/GlucoTwin_Presentation.pdf) / `.pptx` (23 slides, incl. “Project outcomes”, “Safety guardrails” and the two research-evidence slides) | Ready — regenerate after adding video/repository URLs | Team |
 | 12 | Files and links accessible without additional permissions | [`#12-accessible-files-and-links`](../README.md#12-accessible-files-and-links) | [`submission_access_audit.md`](submission_access_audit.md) | **Unverified** — local checks pass; public/signed-out checks pending publication | Team |
 
 **Separate form field — GitHub repository URL** (≤ 500 characters): the direct public repository URL, not a local

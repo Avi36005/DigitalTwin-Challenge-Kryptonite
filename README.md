@@ -25,7 +25,7 @@ absolute error (MAE) is in mg/dL, averaged equally over participants: an average
 | MAE **13.88 / 22.30** (persistence 15.34 / 24.47) | Research candidate procedure (Ridge on CGM only, chosen in 4 of 5 folds), **not** the demo model | 14 CGMacros people, **each held out entirely** once (nested experiment) |
 | MAE **11.15 / 20.11** (persistence 12.14 / 20.44; the 60-minute difference is inconclusive) | A separate 15-minute LightGBM, **not** the demo model | **98 ShanghaiT2DM people**, an independent cohort, evaluated once |
 | **Two hours ahead:** MAE **30.6** at 120 min (persistence 35.9; better for 14 of 14 people); 2-hour warning: **315 of 329** onsets at **1.62** false alarms per observed day, median forecast lead 15 min (IQR 5–65); ranges covered 76.5 % (target 80 %) | Research procedure (rule's choice per fold, CGM-only Ridge or LightGBM), **not** the demo model | 14 CGMacros people, **each held out entirely** once; declared before any fit on 20 Oct ([two-hour benchmark](reports/two_hour_benchmark.md), D-043) |
-| **Two hours ahead, independent cohort:** MAE **29.55** at 120 min (persistence 31.68; −2.12 [−2.67, −1.53] mg/dL, better for **78 of 98** people); 10.90 / 19.31 at 30 / 60 min (persistence 12.14 / 20.44); ranges covered 87 % | A separate 15-minute LightGBM on CGM only, **not** the demo model | **98 ShanghaiT2DM people**, assessed once; no 120-minute result had been computed there before (declared before any fit, [external two-hour check](reports/two_hour_external.md), D-045) |
+| **Two hours ahead, independent cohort:** MAE **29.55** at 120 min (persistence 31.68; −2.12 [−2.67, −1.53] mg/dL, better for **78 of 98** people); 10.90 / 19.31 at 30 / 60 min (persistence 12.14 / 20.44); ranges covered 87 % | A 15-minute LightGBM on CGM only, re-fitted with a 120-minute horizon (`gt-2h-ext-2026-10-20`; a separate fit from the row above), **not** the demo model | **98 ShanghaiT2DM people**, assessed once; no 120-minute result had been computed there before (declared before any fit, [external two-hour check](reports/two_hour_external.md), D-045) |
 
 Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
 establish performance on real patients.
@@ -68,7 +68,7 @@ Built into the code and covered by tests, not just stated:
 
 ## Submission checklist (Unstop form)
 
-The twelve mandatory items, where each is answered below, and its status on **19 October 2026**. Status is updated
+The twelve mandatory items, where each is answered below, and its status on **20 October 2026**. Status is updated
 only when the evidence exists; details and owners: [`docs/submission_checklist.md`](docs/submission_checklist.md).
 
 | # | Form item | Section | Status |
@@ -204,6 +204,10 @@ Results come from three separately labelled models, all reproducible with the co
   it reads CGM only, so it does not meet the two-stream requirement and is not a replacement for the demo model.
 * **External check — a separate 15-minute LightGBM** (`lightgbm.cgm15-v1.gt-nested-2026-10-12-v1`). Trained on
   CGMacros and evaluated once on an independent Chinese cohort; it is not the demo model and not the Ridge candidate.
+* **Two-hour research (20 Oct)** — `gt-2h-2026-10-20` (5-minute procedure, 14 people held out), `gt-2h-ext-2026-10-20`
+  (15-minute LightGBM re-fitted with a 120-minute horizon, assessed on ShanghaiT2DM) and the rejected classifier
+  `gt-2h-clf-2026-10-20`; none is the demo model ([two-hour](reports/two_hour_benchmark.md) ·
+  [external](reports/two_hour_external.md) · [classifier](reports/two_hour_classifier.md)).
 
 **145 participants imported; 14 evaluated internally and 98 evaluated externally.**
 
@@ -373,7 +377,7 @@ artifact by [`scripts/build_submission_assets.py`](scripts/build_submission_asse
 ## 12. Accessible files and links
 
 All submission links above are relative paths to files tracked in this repository; none points to a private drive,
-authenticated notebook or local-only file. Last local check: **19 October 2026** — every README link target and every link in the team folder index exists, is
+authenticated notebook or local-only file. Last local check: **20 October 2026** — every README link target and every link in the team folder index exists, is
 tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** public repository visibility,
 signed-out access and the YouTube link, because the repository has not been published and the video has not been
 uploaded. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
@@ -478,7 +482,7 @@ Latest results: [`reports/verification.md`](reports/verification.md) · integrat
 │   ├── data.yaml             availability and data policies
 │   ├── sources.yaml          dataset source registry (URLs, checksums, licences)
 │   ├── experiment.yaml       v2 protocol (gt-primary-2026-10-11-v2), the base of the serving protocol
-│   ├── experiments/          v1; fusion-constrained gt-primary-2026-10-13-fusion (serving model); nested v1/v2
+│   ├── experiments/          v1; fusion-constrained gt-primary-2026-10-13-fusion (serving model); nested v1/v2; two-hour gt-2h-*
 │   └── submission.yaml       team, links and video metadata for the submission assets
 ├── docs/                     product, system, model/data and submission documents — index: docs/README.md
 │   └── submission/           presentation (PDF, PPTX) and architecture diagram (PDF)
@@ -503,7 +507,10 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
 * **Evidence:** [Evaluation report](reports/evaluation_report.md) · [Repair report](reports/repair_report.md) ·
   [Nested benchmark report](reports/nested_benchmark_report.md) · [Model upgrade review](reports/model_upgrade_review.md) ·
   [Dataset expansion audit](reports/dataset_expansion_audit.md) · [Verification](reports/verification.md) ·
-  [Integration audit](reports/integration_audit.md) · [Screenshots](reports/ui/README.md)
+  [Integration audit](reports/integration_audit.md) · [Two-hour benchmark](reports/two_hour_benchmark.md) ·
+  [Two hours ahead, external](reports/two_hour_external.md) · [Two-hour classifier (negative)](reports/two_hour_classifier.md) ·
+  [Time in warning](reports/warning_time_share.md) · [Cold-start profile](reports/cold_start_profile.md) ·
+  [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
 * **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
   [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·
   [Presentation outline](docs/presentation_outline.md) · [Jury questions](docs/jury_questions.md)
