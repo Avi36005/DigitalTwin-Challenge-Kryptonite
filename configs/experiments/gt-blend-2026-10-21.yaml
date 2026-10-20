@@ -1,0 +1,101 @@
+# GlucoTwin research protocol gt-blend-2026-10-21 — LightGBM–CatBoost population blend on the fusion feature set.
+#
+# Written on 2026-10-20 at 20:36 IST (15:06 UTC), BEFORE any blend weight other than alpha = 1 (LightGBM alone, the matched
+# incumbent) was scored on any participant (docs/decisions.md D-048). Run only by scripts/blend_experiment.py; it never
+# reads or writes the model registry and promotes nothing. The demo model stays
+# lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion.
+experiment_id: gt-blend-2026-10-21
+kind: saved-prediction-blend
+declared_at: "2026-10-20T15:06:00Z"
+random_seed: 20261021
+base_experiment: gt-2h-2026-10-20   # frozen table, participant folds and saved population predictions
+
+motivation: >-
+  The eight-hour sprint asks for a defensible accuracy improvement using existing infrastructure. Both families already
+  exist with the same profile-plus-wearable inputs. The idea is motivated partly by results ALREADY SEEN: on the demo
+  model's inspected final-test segment (gt-primary-2026-10-13-fusion, later recordings of the same 14 people) CatBoost
+  dyn-prof-v2 with adaptation scored 12.93 / 19.80 mg/dL against LightGBM's 12.96 / 20.26, while the declared validation
+  rule chose LightGBM (17.36 vs 17.44, within the tie margin). That is not permission to switch; this protocol asks the
+  question on participant-held-out development data.
+inspection_log:
+  - date: "2026-10-11..2026-10-20"
+    what: >-
+      The 14 CGMacros Type 2 people were inspected in v1, v2, gt-nested-2026-10-12-v1, the fusion experiment, D-043, D-044
+      and D-046. The outer-fold assessment of gt-2h-2026-10-20 (D-043) computed and saved outer-fold population
+      predictions and summary metrics for every candidate, including lightgbm_l2:dyn-prof-v2 and catboost:dyn-prof-v2
+      (artifacts/research/gt-2h-2026-10-20/assessment/summary.json); those per-candidate outer numbers were saved, so they
+      count as seen. Any outer-fold result here is internal validation on already-inspected people.
+  - date: "2026-10-20 (this sprint, before this file)"
+    what: >-
+      Development (inner out-of-fold) error analysis of the matched incumbent only (alpha = 1, LightGBM L2 dyn-prof-v2 +
+      v2-policy patient update) on the final development set, by glucose range, rate of change, cold start and input
+      status (artifacts/research/gt-blend-2026-10-21/analysis.json). Dominant failure: rising glucose and peaks
+      (60-min MAE 39.5 mg/dL when rising > 2 mg/dL/min vs 20.5 when steady; mean signed error -23.4 mg/dL when the
+      60-min target is above 180). No blend (alpha < 1) and no CatBoost-alone score had been computed in this sprint.
+
+estimand: >-
+  Glucose 60 minutes ahead for a person held out entirely, with the declared past-only patient update applied once.
+  Secondary: 30 minutes (guardrail) and 120 minutes (reported, not selected on). Forecasting later segments of known
+  people is a different question and is not mixed into this selection.
+
+data:
+  population: the 14 CGMacros Type 2 people of gt-2h-2026-10-20 (no other cohort; ShanghaiT2DM has no wearable data)
+  folds: the five outer participant folds, their calibration groups and 3 inner folds each, plus the `final` development set (12 development + 2 calibration people), all from artifacts/research/gt-2h-2026-10-20/splits.json
+  cadence_minutes: 5
+  horizons_minutes: [30, 60, 120]
+  eligible_origins: forecast-issued origins (quality not insufficient) with a matched target, exactly the masks of gt-2h-2026-10-20
+  availability_rule: profile and wearable values enter only when available at the origin (as frozen in the base table)
+
+candidates:
+  population_predictions: saved mode-off predictions of lightgbm_l2:dyn-prof-v2 and catboost:dyn-prof-v2 (inner_oof.parquet, calibration_predictions.parquet, assessment/predictions.parquet); no model is refitted
+  alpha_grid: [0.0, 0.25, 0.5, 0.75, 1.0]
+  blend: alpha * LightGBM + (1 - alpha) * CatBoost on the population forecast (alpha = 1 is LightGBM alone = matched incumbent; alpha = 0 is CatBoost alone)
+  hyperparameters: as frozen in gt-2h-2026-10-20 (each family's best of 6 seeded trials on the same inner folds; both families carry the same small selection optimism)
+  patient_update: >-
+    adaptation v2_policy (shrinkage k = 96, half-life 240 min, cap 25 mg/dL, 6 matured residuals, reset after 180 min),
+    applied ONCE to the blended population forecast with glucotwin.research.adapt.prequential; every held-out person
+    starts from an empty state. The same policy for every alpha (the base protocol assessed no adaptation mode for the
+    dyn-prof-v2 candidates).
+  compute: no fitting; threads <= 4
+
+selection:
+  stage: inner out-of-fold predictions only
+  score: equal-weight mean of the 30- and 60-minute macro per-participant MAE after the patient update
+  one_alpha_for_all_horizons: true
+  tie_mg_dl: 0.01   # ties go to the larger alpha (closer to the incumbent)
+  development_decision_set: final   # the deployment-candidate development set (all 12 development people)
+  nested_assessment: each outer fold uses the alpha chosen on its own inner folds (no outer person informs its own fold's choice)
+
+development_target:   # sprint engineering choices, not clinical standards
+  min_improvement_60_mg_dl: 0.5      # selected alpha vs alpha = 1, 60-min macro MAE, final development set
+  max_worsening_30_mg_dl: 0.25
+  max_high_worsening_60_mg_dl: 1.0   # 60-min macro MAE on origins with target > 180, people with >= 30 such origins
+  max_availability_drop_points: 0.5
+  stop_rule: >-
+    If the selected alpha is 1 or any check fails, the LightGBM incumbent is retained, the outer folds are NOT opened,
+    and the negative development result is reported. No replacement candidate is launched and no threshold is changed.
+
+intervals:
+  level: 0.8
+  method: split-conformal, finite-sample quantile of |residual| of the blended FINAL forecast on the fold's 2 calibration people (patient update applied causally)
+  report: pooled coverage, per-person median coverage and mean width together
+
+warnings:
+  horizon_minutes: 60
+  score: max(final forecasts for 30 and 60 min) - 180 mg/dL
+  threshold_grid: [-30, -20, -10, 0, 10, 20, 30, 40]
+  episode_merge_minutes: 30
+  workload_budget_per_observed_day: 2.0
+  rule: D-043 workload rule on inner out-of-fold predictions (maximum recall with at most 2.0 false alarms per observed forecastable day; ties precision, fewer episodes, higher threshold)
+  report: eligible onsets, detected, missed, share warned >= 30 min ahead, false alarms per observed day with observed and eligible hours, share of eligible time in warning, qualified lead median and IQR, precision
+
+assessment:
+  runs_only_if: development_target met
+  once: lock file artifacts/research/gt-blend-2026-10-21/opened.json; a re-run needs --reopen-reason and is then exploratory
+  comparisons: blend (nested alpha) minus LightGBM incumbent, blend minus persistence, incumbent minus persistence; per-person MAE, paired participant bootstrap (2000 resamples)
+  claim_rule: a gain is called reliable only if the 95 % interval of blend minus incumbent at 60 min is below zero
+  not_a_selection_grid: no variant is chosen on assessment results
+
+artifacts:
+  root: artifacts/research/gt-blend-2026-10-21
+  report: reports/blend_experiment.md
