@@ -390,7 +390,7 @@ uploaded. Results per link: [`docs/submission_access_audit.md`](docs/submission_
 
 ### Synthetic demonstration (no download, ~3 minutes)
 
-Requirements: [uv](https://docs.astral.sh/uv/) and Node.js ≥ 20.
+Requirements: [uv](https://docs.astral.sh/uv/) and Node.js 24 (as in CI; 22.22 or later also works). The frontend tests need it: vitest 5 and jsdom 30 do not run on Node 20.
 
 ```bash
 make setup        # Python + web dependencies

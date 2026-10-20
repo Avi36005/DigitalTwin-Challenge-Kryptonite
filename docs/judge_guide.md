@@ -35,7 +35,7 @@ simulated patients.
    each row is a different model and a different test.
 4. **Safety guardrails** ([table](../README.md#safety-guardrails)): abstention, degraded-input flags, no look-ahead,
    bounded personalisation, an outcome for every warning and locked tests, each linked to its code and tests.
-5. **Run the synthetic demo** (no download, ~3 minutes; needs [uv](https://docs.astral.sh/uv/) and Node.js ≥ 20):
+5. **Run the synthetic demo** (no download, ~3 minutes; needs [uv](https://docs.astral.sh/uv/) and Node.js 24; 22.22 or later also works):
 
 ```bash
 make setup        # Python + web dependencies
