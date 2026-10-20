@@ -22,7 +22,7 @@ number written here. The deck has 24 slides; slides not shown in the video stay 
 | 03:00–04:00 | Live demo: opening a recorded replay | 1:00 | Landing → Overview → workspace | 84 |
 | 04:00–05:30 | The twin workspace and its guardrails | 1:30 | Workspace, *Review and guardrails* | 174 |
 | 05:30–06:30 | Evidence behind one forecast | 1:00 | Forecast details drawer | 97 |
-| 06:30–09:00 | Warnings with honest outcomes (Day 9) | 2:30 | Participant 01 | 171 |
+| 06:30–09:00 | Warnings with honest outcomes (Day 9), review note, review queue and review summary | 2:30 | Participant 01, Review queue | 232 |
 | 09:00–11:00 | Guardrails in action: a real sensor gap | 2:00 | Participant 12 | 138 |
 | 11:00–11:45 | Rewind: nothing from the future leaks in | 0:45 | Participant 12 | 50 |
 | 11:45–12:45 | Synthetic edge cases | 1:00 | Synthetic Participants E and C | 86 |
@@ -30,8 +30,8 @@ number written here. The deck has 24 slides; slides not shown in the video stay 
 | 15:00–18:45 | Measured results | 3:45 | Slides 14, 17, 18, 19, 20 | 471 |
 | 18:45–20:30 | Limits, next steps and links | 1:45 | Slides 22–24 | 183 |
 
-Narration words are counted from this file (2,003 in total, recounted on 20 Oct 2026). At about 130 words per minute
-that is roughly 15.4 minutes of speech: about 7.4 minutes in the 12 live minutes (966 words), leaving about 4.5 minutes
+Narration words are counted from this file (2,064 in total, recounted on 20 Oct 2026). At about 130 words per minute
+that is roughly 15.9 minutes of speech: about 7.9 minutes in the 12 live minutes (1,027 words), leaving about 4 minutes
 for clicks, seeks and pauses, and about 8.0 minutes in the 8¼ slide minutes (1,037 words). Chapter 1 is at its slot at
 that pace, so rehearse it first; if a live chapter runs short, pause on the screen rather than speed up. This is an estimate — only a timed rehearsal and
 the rendered file establish the real duration. YouTube chapters: paste the twelve start times above into the video
@@ -147,6 +147,14 @@ shows it.
 > Glucose is 190. A sustained episode began at 20:45 — fifteen minutes after the warning. The top three entries are today's:
 > two false alarms and one matched onset, with its forecast lead. On the whole test period this rule caught 61 of 64
 > new episodes.
+
+*Action:* on the 20:30 warning click **Mark as reviewed**, type a short note (*"Seen; recheck after dinner"*), save. Click
+**Review queue** in the sidebar, point at this replay's row, then **Open** to come back; click **Review summary** in the
+header and show **Print / Save as PDF**. Do not seek again in this replay after reviewing: a seek starts a new revision
+and the review count resets.
+> A clinician records that they reviewed the warning, with a note. The review queue lists every replay with its unreviewed
+> warnings first — an order of work, not a risk ranking — and its counts stop at each replay's own clock. The review
+> summary freezes what was known at this moment into a printable page.
 
 ## Chapter 7 — Guardrails in action: a real sensor gap (09:00–11:00)
 

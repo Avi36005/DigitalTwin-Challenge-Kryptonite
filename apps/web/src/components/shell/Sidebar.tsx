@@ -4,6 +4,7 @@ import {
   FlaskConical,
   History,
   LayoutGrid,
+  ListChecks,
   Monitor,
   PanelLeftClose,
   PanelLeftOpen,
@@ -28,6 +29,7 @@ export const NAV: { to: string; label: string; icon: LucideIcon }[] = [
   { to: paths.overview(), label: "Overview", icon: LayoutGrid },
   { to: paths.participants(), label: "Participants", icon: Users },
   { to: paths.sessions(), label: "Replay sessions", icon: History },
+  { to: paths.reviewQueue(), label: "Review queue", icon: ListChecks },
   { to: paths.evidence(), label: "Model evidence", icon: FlaskConical },
   { to: paths.dataQuality(), label: "Data quality", icon: Database },
 ];

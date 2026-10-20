@@ -62,6 +62,7 @@ export const routes: RouteObject[] = [
           { index: true, lazy: () => import("./pages/WorkspaceIndex").then((m) => ({ Component: m.WorkspaceIndex })) },
           { path: "participants", lazy: () => import("./pages/ParticipantsPage").then((m) => ({ Component: m.ParticipantsPage })) },
           { path: "sessions", lazy: () => import("./pages/SessionsPage").then((m) => ({ Component: m.SessionsPage })) },
+          { path: "review-queue", lazy: () => import("./pages/ReviewQueuePage").then((m) => ({ Component: m.ReviewQueuePage })) },
           { path: "evidence", lazy: () => import("./pages/EvidencePage").then((m) => ({ Component: m.EvidencePage })) },
           { path: "data-quality", lazy: () => import("./pages/DataQualityPage").then((m) => ({ Component: m.DataQualityPage })) },
           { path: "*", element: <NotFound /> },

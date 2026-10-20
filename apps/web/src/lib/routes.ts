@@ -10,6 +10,7 @@ export const paths = {
   session: (id: string) => `${APP}?session=${encodeURIComponent(id)}`,
   participants: (focus?: string) => `${APP}/participants${focus ? `?focus=${encodeURIComponent(focus)}` : ""}`,
   sessions: () => `${APP}/sessions`,
+  reviewQueue: () => `${APP}/review-queue`,
   evidence: (hash?: string) => `${APP}/evidence${hash ? `#${hash}` : ""}`,
   dataQuality: () => `${APP}/data-quality`,
 };

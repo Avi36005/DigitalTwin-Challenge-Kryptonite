@@ -529,7 +529,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
         {"kind": "bullets", "title": "Use case and boundaries",
          "bullets": ["Hypothetical example (an illustration, not a deployment): a diabetes educator in Mumbai follows adults with Type 2 diabetes who wear CGMs between quarterly visits, and opens one person’s replay to see forecasts, warnings and the data behind them.",
                      "User: a clinician reviewing a small monitored cohort; secondary user: a reviewer inspecting evidence.",
-                     "Workflow (proposed): baseline labs at a visit → CGM + wearable measurements → twin forecasts → warnings reviewed one person at a time (no multi-patient queue yet).",
+                     "Workflow (proposed): baseline labs at a visit → CGM + wearable measurements → twin forecasts → a review queue lists replays with unreviewed warnings first (an order of work, not triage) → each person reviewed in their own workspace.",
                      "Shows: observed vs predicted glucose, uncertainty, data freshness, factual reasons, research warnings.",
                      "Never: insulin or medication advice, triage, live device claims, LLM-generated predictions.",
                      "Potential fit with diagnostics + outpatient services is a proposal — no partnership or pilot is claimed."]},

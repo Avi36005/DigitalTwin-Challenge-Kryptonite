@@ -1,0 +1,38 @@
+/* Review queue: the shared session rows with six columns. Flat rows and dividers; unreviewed rows get a thin blue rule. */
+.rows--queue .rows__head,
+.rows--queue .rows__row {
+  grid-template-columns: minmax(170px, 1.3fr) minmax(110px, 0.8fr) minmax(150px, 1fr) minmax(200px, 1.6fr) minmax(150px, 1fr) 80px;
+}
+.rows--queue .rows__head,
+.rows--queue .rows__row {
+  padding-left: 12px;
+}
+.rows--queue .rows__row[data-unreviewed="true"] {
+  box-shadow: inset 2px 0 0 var(--gt-accent);
+}
+.queue__counts,
+.queue__last,
+.queue__data {
+  min-width: 0;
+  color: var(--gt-text-2);
+}
+.queue__open {
+  color: var(--gt-accent-text);
+  font-weight: 600;
+}
+.queue__outcome {
+  color: var(--gt-text);
+}
+.queue__flag {
+  color: var(--gt-attention);
+}
+
+@media (max-width: 760px) {
+  .queue__counts,
+  .queue__last,
+  .queue__data {
+    order: 3;
+    flex-basis: 100%;
+    font-size: 13px;
+  }
+}

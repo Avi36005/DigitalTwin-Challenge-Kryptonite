@@ -524,3 +524,57 @@ test.describe("review summary", () => {
     await expect(page.getByRole("button", { name: "Review summary" })).toBeFocused();
   });
 });
+
+test.describe("review queue", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("replays with unreviewed warnings come first; counts stop at each replay's clock", async ({ page }) => {
+    const p = await byAlias(page, "Participant 01");
+    test.skip(!p, "CGMacros not imported on this machine");
+    await page.goto("/app");
+    const sid = await startReplay(page, "dataset_replay", p.patient_id, true);
+    await page.request.post(`${API}/replay/sessions/${sid}/control`, { data: { action: "seek", seek_to: "2000-01-11T20:38:00Z" } });
+    const alerts = await (await page.request.get(`${API}/replay/sessions/${sid}/alerts`)).json();
+    const clock = Date.parse(alerts.clock_at);
+    const issued: number[] = alerts.items.map((a: { issued_at: string }) => Date.parse(a.issued_at));
+    expect(issued.length).toBeGreaterThan(0);
+    expect(Math.max(...issued)).toBeLessThanOrEqual(clock); // nothing after the replay clock
+
+    await page.getByRole("link", { name: "Review queue" }).click();
+    await expect(page).toHaveURL(/\/app\/review-queue$/);
+    await expect(page.getByRole("heading", { name: "Review queue", level: 1 })).toBeVisible();
+    await expect(page.getByText(/Research demonstration,\s+not triage/)).toBeVisible();
+    const table = page.getByRole("table", { name: "Review queue" });
+    const row = table.getByRole("row").filter({ has: page.locator(`a[href="/app?session=${sid}"]`) }).first();
+    await expect(row).toContainText(`${issued.length} unreviewed0 reviewed`);
+    await expect(row).toContainText("Day 9 · 20:30");
+    await expect(row).toContainText("Outcome pending");
+    await expect(row).toContainText(/Fired by the (30|60)-min forecast \d+ mg\/dL/);
+    await expect(row).toHaveAttribute("data-unreviewed", "true");
+    // every row with unreviewed warnings is listed before every row without
+    const flags = await table.getByRole("row").evaluateAll((rs) => rs.slice(1).map((r) => r.getAttribute("data-unreviewed") === "true"));
+    expect(flags.indexOf(false) === -1 || flags.lastIndexOf(true) < flags.indexOf(false)).toBe(true);
+    await expect(page.getByText(/^Replay started for/)).toBeHidden({ timeout: 6000 }); // toasts close after 3.2 s
+    await page.screenshot({ path: `${SHOTS}/20-review-queue.png` });
+
+    // review the latest warning in the workspace; the queue then counts it as reviewed
+    await row.getByRole("link", { name: "Open replay for Participant 01" }).click();
+    await expect(page).toHaveURL(new RegExp(`session=${sid}`));
+    // wait until the workspace shows the seeked revision; a warning from an older revision is refused, not saved
+    await expect(page.getByText(/Loading released observations/).first()).toBeHidden();
+    await page.getByRole("button", { name: "Mark warning issued Day 9 · 20:30 as reviewed" }).click();
+    const dialog = page.getByRole("dialog", { name: "Review research warning" });
+    await dialog.getByRole("button", { name: "Save review" }).click();
+    await expect(dialog).toBeHidden();
+    await page.goto("/app/review-queue");
+    await expect(row).toContainText(`${issued.length - 1} unreviewed1 reviewed`);
+  });
+
+  test("fits a 390 px phone without horizontal scrolling", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/app/review-queue");
+    await expect(page.getByRole("heading", { name: "Review queue", level: 1 })).toBeVisible();
+    await expect(page.getByRole("table", { name: "Review queue" }).or(page.getByText("Nothing to review yet"))).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  });
+});

@@ -11,7 +11,7 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 |---|---|---|
 | 1 | Title | GlucoTwin — personalized glucose forecasting between clinic visits; **Team Kryptonite · VESIT** (brand line from `configs/submission.yaml`); Avinash Gehi, leader; Hardik Hinduja; full college name |
 | 2 | The problem | HbA1c vs between-visit excursions; clinician question; target definition |
-| 3 | Use case and boundaries | Hypothetical Mumbai example, labelled as an illustration; users; proposed workflow (warnings reviewed one person at a time, no multi-patient queue); what it never does; fit as proposal |
+| 3 | Use case and boundaries | Hypothetical Mumbai example, labelled as an illustration; users; proposed workflow (a review queue lists replays with unreviewed warnings first — an order of work, not triage — and each person is reviewed in their own workspace); what it never does; fit as proposal |
 | 4 | What makes it a twin | Operational definition + twin loop figure |
 | 5 | Data and provenance | CGMacros facts, cohort, interpolation finding, synthetic fixtures |
 | 6 | Availability and leakage controls | Two timestamps, meals excluded, split figure, frozen protocol |

@@ -128,8 +128,13 @@ not been established (§7).
   Mumbai follows adults with Type 2 diabetes who wear CGMs and activity trackers between quarterly visits. One sensor
   produces about 288 readings a day, too many to read by hand. The educator opens one person's replay and sees the
   current reading, the 30- and 60-minute forecasts with their ranges, any research warning with the forecast that fired
-  it, and the data each forecast was allowed to use. GlucoTwin reviews one person at a time; it has no multi-patient
-  queue, and no Indian participants were evaluated.
+  it, and the data each forecast was allowed to use. A **review queue** lists every replay with its unreviewed warnings
+  first; it orders work, it does not rank risk. No Indian participants were evaluated.
+* **Review queue** (`/app/review-queue`, [screenshot](reports/ui/20-review-queue.png)): every replay held by the local
+  API, unreviewed research warnings first, then the most recent warning. Each row shows unreviewed and reviewed warning
+  counts, the latest warning's time, outcome and the forecast that fired it, data freshness, and whether the latest
+  forecast's inputs were complete, degraded or abstained. Counts stop at each replay's own clock: nothing after it is
+  shown, and an outcome settled after the clock reads "Outcome pending at the cutoff". Not triage.
 * **Who:** a clinician or diabetes educator reviewing a small cohort of adults with Type 2 diabetes who wear CGMs and
   activity trackers between visits; a second user is a reviewer inspecting the evidence.
 * **Question answered:** “Which monitored patient's glucose pattern merits review, and what observations support that

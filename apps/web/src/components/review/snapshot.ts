@@ -130,7 +130,7 @@ export function nodeText(node: ReactNode): string {
 
 const after = (iso: string | null | undefined, cutoff: number) => !!iso && ms(iso) > cutoff;
 
-function outcomeText(a: AlertList["items"][number], cutoff: number): string {
+export function outcomeText(a: AlertList["items"][number], cutoff: number): string {
   const o = a.outcome;
   // an outcome resolved after the cutoff was not known at the cutoff
   if ((o.status === "onset_observed" || o.status === "no_onset_observed") && (after(o.confirmed_at, cutoff) || after(o.onset_at, cutoff))) {
@@ -145,7 +145,7 @@ function outcomeText(a: AlertList["items"][number], cutoff: number): string {
   return "Outcome pending";
 }
 
-function triggerText(a: AlertList["items"][number]): string | null {
+export function triggerText(a: AlertList["items"][number]): string | null {
   const preds = Object.entries(a.evidence.predicted_mg_dl)
     .map(([h, v]) => ({ h: Number(h), v }))
     .filter((p): p is { h: number; v: number } => p.v != null && p.h <= a.horizon_minutes);
