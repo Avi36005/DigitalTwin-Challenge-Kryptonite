@@ -15,7 +15,18 @@ initialisation). Meals are excluded because their logging time is unknown. Calen
 
 **Why 30 and 60 minutes?** They are long enough to act on a review list and short enough for CGM history to be
 informative; they are the prompt pack's declared horizons. The challenge's "two hours" is an example, and our data
-would make two-hour claims weaker; we did not evaluate it.
+would make two-hour claims weaker; the demo model does not forecast it (a separate research benchmark does — next
+question).
+
+**Can it warn two hours ahead, as the brief's example asks?** Not the demo model, which forecasts 30 and 60 minutes. A
+separate research benchmark (`gt-2h-2026-10-20`, declared before any fit on 20 Oct, D-043;
+`reports/two_hour_benchmark.md`) added a 120-minute horizon to the nested procedure, with each of the 14 people held out
+entirely once (internal validation: these people were already inspected). The rule's per-fold choice (CGM-only Ridge or
+LightGBM, personalised) had a 120-minute MAE of 30.617 mg/dL vs persistence 35.869: −5.25 [−6.44, −4.05], lower for
+14/14 people. Its 120-minute warning caught 315 of 329 onsets with 1.623 false alarms per observed day (precision
+0.5844), against 313 of 329, 1.478 and 0.6054 for the 60-minute warning. The median forecast lead was only 15.0 minutes
+(IQR 5.0–65.0), so this is a two-hour forecast, not two hours of notice. Ranges covered 76.5 % (target 80 %). Nothing
+was promoted; the demo model is unchanged.
 
 **How do you avoid future leakage?** Two timestamps per record; trailing features only; chronological within-person
 splits with 82.5-minute purges; scalers/models/thresholds/calibration fit only on earlier segments; protocol frozen
@@ -27,6 +38,11 @@ that the served predictions equal the evaluated ones.
 **How many independent participants and events?** 14 participants (Type 2 group, CGMacros). Test segment: 7,730
 forecast origins (~644 hours) and 64 distinct new high-glucose onsets. Overlapping windows are not independent, so
 uncertainty uses a participant-cluster bootstrap.
+
+**Why only 14 people?** The brief asks for one condition, so every result is on people with Type 2 diabetes: the 14 in
+CGMacros' Type 2 group (its other 31 participants have pre-diabetes or no diabetes and are outside the intended
+population) and 98 ShanghaiT2DM people as an independent external check (`docs/data_card.md`). With 14 people,
+fold-level results are noisy, so we report participant-bootstrap intervals and how many people improved.
 
 **How accurate is it?** Mean absolute error — an average error in mg/dL, not an accuracy percentage — was 12.96
 (30 min) and 20.26 (60 min) on test, vs persistence 14.84 / 23.23. Paired difference −1.88 [−2.53, −1.32] and −2.96
@@ -77,6 +93,13 @@ people it can act as an identity code. On people held out entirely (nested exper
 [−0.28, +0.89] at 30 min and −0.75 [−2.19, +0.61] at 60 min — no reliable benefit. We selected a model that implements
 the required fusion; we have not established that profile features improve forecasting for unseen patients.
 
+**Does the health record (EHR) actually help?** Not shown for new people. On people held out entirely, LightGBM with
+minus without the 8 profile values was +0.34 [−0.28, +0.89] mg/dL at 30 min and −0.75 [−2.19, +0.61] at 60 min (nested
+experiment), and −0.86 [−2.60, +1.02] at 120 min (two-hour benchmark, `gt-2h-2026-10-20`; 8/14 people better). All
+three intervals include zero. Ridge with the profile was worse at 120 min: +12.65 [+1.34, +29.24] (4/14 better). The
+small within-person gain (previous question) may be identity, not physiology. The demo model reads the profile because
+the brief requires fusion, not because it was shown to help.
+
 **What does the 99.9 % on the evidence page mean?** Forecast availability: the share of test origins with an observed
 target at which the twin issued a forecast. It is not accuracy and not range coverage.
 
@@ -87,6 +110,18 @@ stale or the twin abstains; gaps longer than 7.5 minutes break episode continuit
 **Is uncertainty calibrated?** Split-conformal prediction ranges with a target coverage of 80 % covered 74.2 % (30 min)
 and 74.0 % (60 min) on test, ranging 51–88 % across participants. We report this as under-coverage and claim no guarantee. The warning
 score is uncalibrated and never shown as a probability.
+
+**What stops the twin from giving a wrong answer confidently?** Guardrails built into the code and covered by tests
+(README, *Safety guardrails*). It abstains instead of guessing: no forecast with less than 60 min of history, fewer than
+half the expected readings in the last hour or no new reading, and after 15 min without one the last forecast is shown
+marked *Stale*, with the reason. It flags weak inputs: *Degraded*, with reasons, after a gap longer than 15 min, an
+incomplete last hour, a reading at the sensor limit (40 or 400 mg/dL) or a missing wearable summary. The fusion model
+abstains when a profile value is missing or not yet available; implausible readings and impossible timestamps are
+marked invalid and never used. Personalisation learns only from forecasts whose outcome has been observed, needs at
+least 6, is capped at ±25 mg/dL and resets after a 3-hour gap. Every forecast carries an 80 % prediction range with its
+measured coverage (74 %), and every warning is labelled *Research warning*, stays *Outcome pending* until it can be
+judged, then is matched to an onset, counted as a false alarm or marked *Outcome unknown (gap)*. These limit
+overconfidence; they do not remove error — ranges under-cover and false alarms remain (*How many alerts are false?*).
 
 **What distinguishes this from existing metabolic monitoring products?** We do not claim novelty of glucose twins or
 predictive alerts (commercial programs and CGM alerts exist). Our contribution is a transparent, reproducible
