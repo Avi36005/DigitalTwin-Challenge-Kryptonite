@@ -20,12 +20,16 @@ absolute error (MAE) is in mg/dL, averaged equally over participants: an average
 |---|---|---|
 | MAE **12.96 / 20.26** at 30 / 60 min (persistence 14.84 / 23.23) | **Demo model**: fusion LightGBM with patient adaptation | Later recordings of the **same 14 CGMacros people it was trained on**; a test over time, not on new patients (retrospective, [details](#7-ai-and-ml-model-details)) |
 | **61 of 64** new high-glucose onsets warned; **40 false alarms, 1.49 per observed patient-day**; median forecast lead 30 min | **Demo model**, 60-minute warning | Same as the row above |
-| Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage | **Demo model** | Same as the row above |
+| Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage (the research procedure, calibrated on people held out, covered 80.1 % / 78.8 %; [§7](#7-ai-and-ml-model-details)) | **Demo model** | Same as the row above |
 | MAE **13.88 / 22.30** (persistence 15.34 / 24.47) | Research candidate procedure (Ridge on CGM only, chosen in 4 of 5 folds), **not** the demo model | 14 CGMacros people, **each held out entirely** once (nested experiment) |
 | MAE **11.15 / 20.11** (persistence 12.14 / 20.44; the 60-minute difference is inconclusive) | A separate 15-minute LightGBM, **not** the demo model | **98 ShanghaiT2DM people**, an independent cohort, evaluated once |
 
 Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
 establish performance on real patients.
+
+**Why 14 people.** The brief asks for one condition, so every result is on people with Type 2 diabetes: the 14 in
+CGMacros' Type 2 group (its other 31 participants have pre-diabetes or no diabetes and are outside the intended
+population) and 98 ShanghaiT2DM people as an independent external check ([data card](docs/data_card.md)).
 
 Research demonstration only: not a medical device, no treatment advice, and a replay of recorded or synthetic data,
 never a live device. The demo model was chosen to meet the brief's fusion requirement, under a constraint declared
@@ -37,8 +41,8 @@ unseen patients ([the three models](#the-three-models-behind-these-numbers) ·
 
 *Recorded CGMacros data (de-identified), Participant 01, final test period: later recordings of a participant
 represented in training, replayed 5 minutes at a time (not a live device). A research warning is issued at Day 9 ·
-20:30 while its outcome is pending; the onset follows at 20:45 (forecast lead 15 min). The same participant had a
-false alarm earlier that day (11:25), and across the test 40 of 101 warning episodes were false alarms (1.49 per
+20:30 while its outcome is pending; the onset follows at 20:45 (forecast lead 15 min). The same participant had two
+false alarms earlier that day (09:15 and 11:25), and across the test 40 of 101 warning episodes were false alarms (1.49 per
 observed patient-day). Re-record with `make demo-gif` (needs ffmpeg).*
 
 ## Safety guardrails
@@ -47,16 +51,16 @@ Built into the code and covered by tests, not just stated:
 
 | Guardrail | What it does | Where |
 |---|---|---|
-| **Abstains instead of guessing** | No forecast when the latest glucose reading is older than 15 min, there is less than 60 min of history, or fewer than half the expected readings arrived in the last hour. The app shows the reason. | [`features.py`](ml/glucotwin/features.py) · [`test_replay_api.py`](tests/test_replay_api.py) |
+| **Abstains instead of guessing** | No forecast is issued with less than 60 min of history or fewer than half the expected readings in the last hour, and none without a new reading; after 15 min without one, the last forecast is shown marked *Stale*. The app shows the reason. | [`features.py`](ml/glucotwin/features.py) · [`test_replay_api.py`](tests/test_replay_api.py) |
 | **Flags weak inputs** | A forecast is marked *Degraded*, with reasons, after a gap longer than 15 min, an incomplete last hour, a reading at the sensor limit (40 or 400 mg/dL) or a missing wearable summary. | [`features.py`](ml/glucotwin/features.py) |
 | **Fusion model needs its health record** | The profile model was trained on complete profiles only, so it abstains when a profile value is missing or not yet available. | [`test_leakage.py`](tests/test_leakage.py) |
 | **No look-ahead** | Only native sensor readings are used, never the dataset's interpolated 1-minute rows. Labs, meals and wearable summaries enter only after the time they became available. | [`data_card.md`](docs/data_card.md) · [`test_leakage.py`](tests/test_leakage.py) |
 | **Bounded personalisation** | The per-patient correction learns only from forecasts whose outcome has been observed, needs at least 6 of them, is capped at ±25 mg/dL and resets after a 3-hour gap. | [`adaptation.py`](ml/glucotwin/models/adaptation.py) |
 | **Implausible data rejected** | Readings outside the device's reporting range and impossible timestamps are marked invalid and never used; readings at the limit are marked suspect. | [`cgmacros.py`](ml/glucotwin/data/cgmacros.py) · [`canonical.py`](ml/glucotwin/data/canonical.py) |
-| **Every warning shows its outcome** | Each warning is labelled *Research warning*, stays *Outcome pending* until it can be judged, and is then matched to an onset or counted as a false alarm. Firings within 30 min merge into one episode, so one rise cannot flood the screen. The false-alarm rate is published next to the hit rate. | [`alerts.py`](ml/glucotwin/evaluation/alerts.py) |
+| **Every warning shows its outcome** | Each warning is labelled *Research warning*, stays *Outcome pending* until it can be judged, and is then matched to an onset, counted as a false alarm or marked *Outcome unknown (gap)* when missing data hides the outcome. Firings within 30 min merge into one episode, so one rise cannot flood the screen. The false-alarm rate is published next to the hit rate. | [`alerts.py`](ml/glucotwin/evaluation/alerts.py) |
 | **Uncertainty shown** | Every forecast carries an 80 % prediction range, and the app states the measured coverage (74 %). | [Results at a glance](#results-at-a-glance) |
-| **No clinical claims** | Research demonstration only: not a medical device, no treatment or dosing advice, a replay and never a live device. | [About dialog](apps/web/src/components/shell/Dialogs.tsx) |
-| **Tests cannot be quietly re-run** | An opened test writes a lock file; re-running needs a written reason and is then marked exploratory. Research runs cannot change the demo model; promotion and rollback are separate, explicit commands. | [`assess.py`](ml/glucotwin/research/assess.py) |
+| **No clinical claims** | Research demonstration only: not a medical device, no treatment advice, a replay and never a live device. | [Help & demo guide](apps/web/src/components/shell/Dialogs.tsx) |
+| **Tests cannot be quietly re-run** | An opened test writes a lock file; re-running needs a written reason and is then marked exploratory. Research runs cannot change the demo model; promotion and rollback are separate, explicit commands. | [`assess.py`](ml/glucotwin/research/assess.py) · [`promote.py`](ml/glucotwin/research/promote.py) |
 | **App matches the evaluation** | Replaying every test participant through the app reproduced all 15,440 saved test forecasts within 0.05 mg/dL. | [`verification.md`](reports/verification.md) |
 
 ## Submission checklist (Unstop form)

@@ -204,7 +204,7 @@ period* → seek to **Day 9 · 10:25**.
 > untouched test evidence. The earlier results are preserved.
 >
 > On the test period — the later part of each recording from the same fourteen people the model was trained on, so a
-> test over time, not on new patients; about 640 hours and 64 new high-glucose onsets — the serving model's mean
+> test over time, not on new patients; about 644 hours and 64 new high-glucose onsets — the serving model's mean
 > absolute error was 13.0 milligrams per decilitre at thirty minutes and 20.3 at sixty, against 14.8 and 23.2 for
 > carrying the last reading forward. That is an average error, not an accuracy percentage. The paired differences are
 > minus 1.9 and minus 3.0, and the participant-level bootstrap intervals exclude zero.

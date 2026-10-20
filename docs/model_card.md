@@ -60,15 +60,15 @@ diagnosis, screening, or use with real-time patient data.
 
 Enforced in code and covered by tests (table with file links: [README](../README.md#safety-guardrails)):
 
-* **Abstention:** no forecast when the latest glucose is older than 15 min, history is under 60 min or fewer than half
-  the expected readings arrived in the last hour; *Degraded* (with reasons) after a gap > 15 min, an incomplete last
+* **Abstention:** no forecast with under 60 min of history, fewer than half the expected readings in the last hour or
+  no new reading; after 15 min without one the last forecast is shown marked *Stale*; *Degraded* (with reasons) after a gap > 15 min, an incomplete last
   hour, a sensor-limit reading (40 / 400 mg/dL) or a missing wearable summary.
 * **Fusion gate:** the profile model abstains when a profile value is missing or not yet available.
 * **No look-ahead:** native readings only; labs, meals and wearable summaries enter only once available.
 * **Bounded personalisation:** learns only from matured residuals, needs ≥ 6, capped at ±25 mg/dL, resets after a
   3-hour gap.
-* **Warnings:** labelled *Research warning*, *Outcome pending* until judged, then matched one-to-one to an onset or
-  counted as a false alarm; firings within 30 min merge into one episode.
+* **Warnings:** labelled *Research warning*, *Outcome pending* until judged, then matched one-to-one to an onset,
+  counted as a false alarm or marked *Outcome unknown (gap)*; firings within 30 min merge into one episode.
 * **Evaluation locks:** opened tests write lock files; re-running needs a written reason and is marked exploratory;
   research runs cannot change the demo model.
 
