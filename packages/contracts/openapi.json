@@ -1149,6 +1149,25 @@
         }
       }
     },
+    "/api/v1/research-summaries": {
+      "get": {
+        "summary": "Research Summaries",
+        "description": "Headline results of the research run after the demo model was chosen; none of it is the demo model.",
+        "operationId": "research_summaries_api_v1_research_summaries_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchSummaryList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/serving": {
       "get": {
         "summary": "Serving Models",
@@ -4964,6 +4983,108 @@
         ],
         "title": "ResearchExternal"
       },
+      "ResearchFinding": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "description": "Which result: forecast_120, notice_120, profile_inputs_120, classifier, ranges_120, earlier_warning_120, profile_prior_120."
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "shown",
+              "not_shown",
+              "negative"
+            ],
+            "title": "Verdict",
+            "description": "shown: the 95 % interval excludes no change in the favourable direction (ranges: pooled coverage within 1 point of the 80 % target); not_shown: it does not; negative: rejected by its own protocol."
+          },
+          "estimate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimate"
+          },
+          "ci95": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ci95"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "better_for": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Better For"
+          },
+          "n": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Values"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "verdict"
+        ],
+        "title": "ResearchFinding",
+        "description": "One headline result of a research experiment, read from its saved summary (numbers only; the UI words them)."
+      },
       "ResearchHorizonResult": {
         "properties": {
           "horizon": {
@@ -5303,6 +5424,104 @@
         ],
         "title": "ResearchReport",
         "description": "Nested participant-level research experiment (internal folds + reserved external cohort)."
+      },
+      "ResearchSummaryItem": {
+        "properties": {
+          "decision_id": {
+            "type": "string",
+            "title": "Decision Id"
+          },
+          "experiment_id": {
+            "type": "string",
+            "title": "Experiment Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "not_run"
+            ],
+            "title": "Status"
+          },
+          "evaluated_on": {
+            "type": "string",
+            "enum": [
+              "people_held_out",
+              "independent_cohort",
+              "reanalysis_inspected"
+            ],
+            "title": "Evaluated On"
+          },
+          "participants": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participants"
+          },
+          "opened_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opened At"
+          },
+          "reopened_at": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reopened At"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchFinding"
+            },
+            "type": "array",
+            "title": "Findings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision_id",
+          "experiment_id",
+          "status",
+          "evaluated_on"
+        ],
+        "title": "ResearchSummaryItem"
+      },
+      "ResearchSummaryList": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSummaryItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ResearchSummaryList",
+        "description": "Research experiments run after the demo model was chosen (20 Oct 2026). None of them is the demo model."
       },
       "ResearchTrack": {
         "properties": {

@@ -293,3 +293,55 @@ def test_unknown_research_experiment_and_inventory_shapes(client):
         # imported != trained on: the inventory never claims assessment without the research report
         assert d["access_status"] in ("planned", "access_required", "available_locally", "imported",
                                       "failed_validation", "eligible_for_experiment")
+
+
+def _write_research_summaries(root):
+    import json as _json
+
+    def put(eid, name, doc):
+        d = root / "research" / eid
+        d.mkdir(parents=True)
+        (d / name).write_text(_json.dumps(doc))
+
+    cmp = lambda title, m, lo, hi: {"comparison": title, "horizon": 120, "mean_difference": m, "ci95": [lo, hi],  # noqa: E731
+                                    "better_for": 14, "participants": 14}
+    put("gt-2h-2026-10-20", "two_hour_summary.json", {
+        "participants": 14, "assessment_opened": {"opened_at": "2026-10-20T09:35:52+00:00", "reopened": []},
+        "forecasts": {"selected|final": {"horizons": {"120": {"mae": 30.6}}},
+                      "persistence:-|off": {"horizons": {"120": {"mae": 35.9}}}},
+        "comparisons": [cmp("Selected (personalised) minus persistence", -5.25, -6.44, -4.05),
+                        cmp("Profile (EHR-like) inputs: LightGBM dyn-prof-v2 minus dyn-v2", -0.86, -2.6, 1.02)],
+        "warnings": [{"pipeline": "selected", "horizon": 120, "detected_onsets": 315, "true_onsets": 329,
+                      "false_alarms_per_observed_day": 1.62, "qualified_lead_median": 15.0, "qualified_lead_iqr": [5.0, 65.0],
+                      "_per_participant": {"pt-secret": {}}}]})
+    put("gt-2h-clf-2026-10-20", "summary.json", {
+        "opened": {"opened_at": "2026-10-20T09:57:29+00:00", "reopened": [{"at": "2026-10-20T09:58:18+00:00", "reason": "x"}]},
+        "results": {"selected": {"detected_onsets": 329, "true_onsets": 329, "false_alarms_per_observed_day": 0.18,
+                                 "share_of_eligible_time_warning": 0.99, "origin_roc_auc": 0.64}}})
+
+
+def test_research_summaries_report_saved_headlines_without_participant_data(client, tmp_path, monkeypatch):
+    root = tmp_path / "artifacts"
+    _write_research_summaries(root)
+    monkeypatch.setenv("GLUCOTWIN_ARTIFACTS_DIR", str(root))
+    r = client.get("/api/v1/research-summaries")
+    assert r.status_code == 200
+    items = {x["decision_id"]: x for x in r.json()["items"]}
+    assert set(items) == {"D-043", "D-044", "D-045", "D-046"}
+    assert items["D-045"]["status"] == items["D-046"]["status"] == "not_run"
+    two = items["D-043"]
+    assert two["status"] == "available" and two["opened_at"] == "2026-10-20T09:35:52+00:00"
+    f = {x["key"]: x for x in two["findings"]}
+    assert f["forecast_120"]["verdict"] == "shown" and f["forecast_120"]["ci95"] == [-6.44, -4.05]
+    assert f["notice_120"]["verdict"] == "not_shown"          # a 15-minute median lead is not two hours of notice
+    assert f["profile_inputs_120"]["verdict"] == "not_shown"  # interval crosses zero
+    clf = items["D-044"]
+    assert clf["findings"][0]["verdict"] == "negative" and clf["reopened_at"] == ["2026-10-20T09:58:18+00:00"]
+    assert "pt-" not in r.text  # no pseudonymous participant IDs or per-participant data
+
+
+def test_research_summaries_say_not_run_when_nothing_is_saved(client, tmp_path, monkeypatch):
+    monkeypatch.setenv("GLUCOTWIN_ARTIFACTS_DIR", str(tmp_path / "empty"))
+    items = client.get("/api/v1/research-summaries").json()["items"]
+    assert [x["status"] for x in items] == ["not_run"] * 4
+    assert all(x["findings"] == [] and x["opened_at"] is None for x in items)

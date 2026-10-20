@@ -236,7 +236,35 @@ test("research evidence is separate from the serving model, and data scale is au
   await page.screenshot({ path: `${SHOTS}/16-data-sources.png`, fullPage: false });
 });
 
+test("research after the demo model is tagged, and says when it was not run here", async ({ page }) => {
+  const sums = (await (await page.request.get(`${API}/research-summaries`)).json()) as {
+    items: { decision_id: string; status: string }[] };
+  await page.goto("/app/evidence?experiment=gt-nested-2026-10-12-v1");
+  const section = page.getByRole("region", { name: "Research after the demo model (20 Oct)" });
+  await expect(section).toBeVisible();
+  const rows = section.getByRole("list", { name: "Research after the demo model" }).locator(":scope > li");
+  await expect(rows).toHaveCount(4);
+  await expect(section.getByText("Not the demo model")).toHaveCount(4);
+  const run = sums.items.filter((x) => x.status === "available").map((x) => x.decision_id);
+  await expect(section.getByText(/Not run on this installation/)).toHaveCount(4 - run.length);
+  if (run.includes("D-046")) {
+    const d046 = rows.filter({ hasText: "D-046" });
+    await expect(d046.locator("li", { hasText: "Prediction ranges calibrated on more people" })).toContainText("Shown");
+    await expect(d046.locator("li", { hasText: "Earlier two-hour warning" })).toContainText("Not shown");
+    await expect(d046.locator("li", { hasText: "starting correction" })).toContainText("Not shown");
+  }
+  if (run.includes("D-044")) await expect(rows.filter({ hasText: "D-044" })).toContainText("Negative result");
+  await section.scrollIntoViewIfNeeded();
+  await section.screenshot({ path: `${SHOTS}/21-research-after-demo-model.png` });
+});
+
 test.describe("mobile research evidence", () => {
+  test("research after the demo model fits a phone", async ({ page }) => {
+    await page.goto("/app/evidence?experiment=gt-nested-2026-10-12-v1");
+    await expect(page.getByRole("region", { name: "Research after the demo model (20 Oct)" })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
   test.use({ viewport: { width: 390, height: 844 } });
   test("tables scroll inside their region instead of clipping the page", async ({ page }) => {
     const rep = await (await page.request.get(`${API}/research/gt-nested-2026-10-12-v1`)).json();

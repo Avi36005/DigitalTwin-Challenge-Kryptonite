@@ -39,6 +39,7 @@ from glucotwin.schemas import (
     ReplaySession,
     ReplaySessionList,
     ResearchReport,
+    ResearchSummaryList,
     ServingList,
     SessionProfile,
     TwinState,
@@ -445,6 +446,11 @@ def create_app() -> FastAPI:
         if rep is None:
             raise ApiError(404, "experiment_not_found", f"Unknown research experiment {experiment_id!r}.")
         return rep
+
+    @api.get("/research-summaries", response_model=ResearchSummaryList)
+    def research_summaries():
+        """Headline results of the research run after the demo model was chosen; none of it is the demo model."""
+        return evidence.research_summaries()
 
     @api.get("/serving", response_model=ServingList)
     def serving_models():

@@ -170,3 +170,101 @@ def dataset_inventory() -> dict[str, Any]:
     return {"schema_version": "1.0", "status": "available", "generated_at": inv.get("generated_at"),
             "canonical_schema": inv.get("canonical_schema"), "datasets": out, "summary_sentence": sentence,
             "overlap_check": inv.get("overlap_check"), "synthetic": inv.get("synthetic")}
+
+
+# Research run after the demo model was chosen (20 Oct 2026): (decision, experiment, saved summary, evaluated on)
+SUMMARIES = (
+    ("D-043", "gt-2h-2026-10-20", "two_hour_summary.json", "people_held_out"),
+    ("D-045", "gt-2h-ext-2026-10-20", "two_hour_external_summary.json", "independent_cohort"),
+    ("D-044", "gt-2h-clf-2026-10-20", "summary.json", "people_held_out"),
+    ("D-046", "gt-warn-range-2026-10-20", "summary.json", "reanalysis_inspected"),
+)
+
+
+def _lower(ci: list[float]) -> str:
+    """Verdict for a difference where lower is better: shown only when the whole 95 % interval is below zero."""
+    return "shown" if ci[1] < 0 else "not_shown"
+
+
+def _finding(key: str, verdict: str, c: dict[str, Any] | None = None, unit: str | None = None, **values: Any) -> dict:
+    out = {"key": key, "verdict": verdict, "unit": unit, "values": values}
+    if c is not None:
+        out.update({"estimate": c.get("mean_diff", c.get("mean_difference")), "ci95": c["ci95"],
+                    "better_for": c.get("better_for", c.get("improved")), "n": c.get("n", c.get("participants", c.get("n_participants")))})
+    return out
+
+
+def _two_hour(s: dict[str, Any]) -> tuple[int | None, dict, list[dict]]:
+    f, comps = s["forecasts"], s["comparisons"]
+    cmp = lambda title: next(c for c in comps if c["comparison"] == title and c["horizon"] == 120)  # noqa: E731
+    sel = cmp("Selected (personalised) minus persistence")
+    prof = cmp("Profile (EHR-like) inputs: LightGBM dyn-prof-v2 minus dyn-v2")
+    w = next(x for x in s["warnings"] if x["pipeline"] == "selected" and x["horizon"] == 120)
+    iqr = w.get("qualified_lead_iqr") or [None, None]
+    lead = w.get("qualified_lead_median")
+    return s.get("participants"), s["assessment_opened"], [
+        _finding("forecast_120", _lower(sel["ci95"]), sel, "mg/dL", mae=f["selected|final"]["horizons"]["120"]["mae"],
+                 persistence_mae=f["persistence:-|off"]["horizons"]["120"]["mae"]),
+        _finding("notice_120", "shown" if lead is not None and lead >= 60 else "not_shown", None, "min",
+                 detected=w["detected_onsets"], onsets=w["true_onsets"], false_alarms_per_day=w["false_alarms_per_observed_day"],
+                 lead_median=lead, lead_q1=iqr[0], lead_q3=iqr[1]),
+        _finding("profile_inputs_120", _lower(prof["ci95"]), prof, "mg/dL")]
+
+
+def _external(s: dict[str, Any]) -> tuple[int | None, dict, list[dict]]:
+    c = s["minus_persistence"]["120"]
+    return s.get("participants"), s["opened"], [
+        _finding("forecast_120", _lower(c["ci95"]), c, "mg/dL", mae=s["mae"]["120"], persistence_mae=s["persistence_mae"]["120"])]
+
+
+def _classifier(s: dict[str, Any]) -> tuple[int | None, dict, list[dict]]:
+    r = s["results"]["selected"]
+    share = r.get("share_of_eligible_time_warning")
+    # rejected by its own report: near-constant firing makes episode counts meaningless (D-044)
+    return None, s["opened"], [
+        _finding("classifier", "negative" if share is not None and share > 0.5 else "not_shown", None, None,
+                 detected=r.get("detected_onsets"), onsets=r.get("true_onsets"),
+                 false_alarms_per_day=r.get("false_alarms_per_observed_day"), share_time_warning=share,
+                 roc_auc=r.get("origin_roc_auc"))]
+
+
+def _warn_range(s: dict[str, Any]) -> tuple[int | None, dict, list[dict]]:
+    r, w, d = s["ranges"], s["warnings"], s["warning_diff_selected_minus_incumbent"]
+    b0, b1 = r["B0_calibration"], r["B1_pooled"]
+    p, p24 = s["profile_prior"]["all"]["120"], s["profile_prior"]["first_24h"]["120"]
+    pooled = b1["120"]["coverage_pooled"]
+    closer = abs(pooled - 0.8) < abs(b0["120"]["coverage_pooled"] - 0.8)
+    early = {"mean_diff": 100 * d["early_share_diff"], "ci95": [100 * x for x in d["early_share_ci95"]], "n": d["people"]}
+    return d.get("people"), s["opened"], [
+        _finding("ranges_120", "shown" if closer and abs(pooled - 0.8) <= 0.01 else "not_shown", None, "%",
+                 before=b0["120"]["coverage_pooled"], after=pooled, before_60=b0["60"]["coverage_pooled"],
+                 after_60=b1["60"]["coverage_pooled"], width_before=b0["120"]["width_mean"], width_after=b1["120"]["width_mean"]),
+        _finding("earlier_warning_120", "shown" if early["ci95"][0] > 0 else "not_shown", early, "points",
+                 early_selected=w["selected"]["early"], early_incumbent=w["incumbent"]["early"], onsets=w["incumbent"]["onsets"],
+                 lead_median=w["selected"]["lead_median"]),
+        _finding("profile_prior_120", _lower(p["c1_minus_population"]["ci95"]), p["c1_minus_population"], "mg/dL",
+                 first_24h_estimate=p24["c1_minus_population"]["mean_diff"],
+                 first_24h_ci_low=p24["c1_minus_population"]["ci95"][0],
+                 first_24h_ci_high=p24["c1_minus_population"]["ci95"][1])]
+
+
+_READERS = {"D-043": _two_hour, "D-045": _external, "D-044": _classifier, "D-046": _warn_range}
+
+
+def research_summaries() -> dict[str, Any]:
+    """Headline results of the 20 Oct research experiments, when their saved summaries exist on this installation.
+    Only pooled numbers are returned: no per-participant values and no pseudonymous IDs."""
+    items = []
+    for dec, eid, fname, on in SUMMARIES:
+        p = paths().artifacts / "research" / eid / fname
+        item = {"decision_id": dec, "experiment_id": eid, "evaluated_on": on, "status": "not_run"}
+        if p.exists():
+            try:
+                n, opened, findings = _READERS[dec](json.loads(p.read_text()))
+            except (KeyError, StopIteration, TypeError, ValueError):
+                findings = None  # an incomplete or older summary is reported as not run, never half-read
+            if findings is not None:
+                item.update({"status": "available", "participants": n, "opened_at": opened.get("opened_at"),
+                             "reopened_at": [r["at"] for r in opened.get("reopened", [])], "findings": findings})
+        items.append(item)
+    return {"schema_version": "1.0", "items": items}

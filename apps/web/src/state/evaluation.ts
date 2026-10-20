@@ -25,6 +25,13 @@ export function useResearch(id: string | null) {
     staleTime: 60_000 });
 }
 
+/** Headline results of the research run after the demo model was chosen (20 Oct); never the demo model. */
+export function useResearchSummaries(enabled = true) {
+  const client = useClient();
+  return useQuery({ queryKey: ["research-summaries"], queryFn: ({ signal }) => client.researchSummaries(signal), enabled,
+    staleTime: 60_000 });
+}
+
 /** The models replay sessions actually use, independent of whichever report is being read. */
 export function useServing() {
   const client = useClient();

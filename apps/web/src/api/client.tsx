@@ -16,6 +16,7 @@ import type {
   ReplaySession,
   ReplaySessionList,
   ResearchReport,
+  ResearchSummaryList,
   ServingList,
   SessionProfile,
   TwinState,
@@ -63,6 +64,7 @@ export function createClient(t: Transport) {
     evaluationById: (id: string, signal?: AbortSignal) =>
       get<EvaluationReport>(`/evaluations/${encodeURIComponent(id)}`, signal),
     research: (id: string, signal?: AbortSignal) => get<ResearchReport>(`/research/${encodeURIComponent(id)}`, signal),
+    researchSummaries: (signal?: AbortSignal) => get<ResearchSummaryList>("/research-summaries", signal),
     serving: (signal?: AbortSignal) => get<ServingList>("/serving", signal),
     datasets: (signal?: AbortSignal) => get<DatasetInventory>("/datasets", signal),
   };

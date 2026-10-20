@@ -15,8 +15,9 @@ import {
   type Pipeline,
 } from "@/lib/evidence";
 import { fmtNum, fmtPct } from "@/lib/format";
-import { useEvaluation, useEvaluationById, useEvaluations, useResearch, useServing } from "@/state/evaluation";
+import { useEvaluation, useEvaluationById, useEvaluations, useResearch, useResearchSummaries, useServing } from "@/state/evaluation";
 import { Disclosure } from "@/components/evidence/Disclosure";
+import { ResearchAfterDemo } from "@/components/evidence/ResearchAfterDemo";
 import { ResearchEvidence } from "@/components/evidence/ResearchEvidence";
 import { SafetyGuardrails } from "@/components/evidence/SafetyGuardrails";
 import { EmptyState, InlineNotice, MetadataLine, PageHeader, Section, Skeleton, SortTh } from "@/components/ui";
@@ -34,6 +35,7 @@ export function EvidencePage() {
   const byId = useEvaluationById(research || !chosen ? null : chosen);
   const ev = chosen && !research ? byId : latest;
   const rs = useResearch(research ? chosen : null);
+  const summaries = useResearchSummaries(research);
   const r = ev.data;
   const select = (id: string) => setParams((p) => { const n = new URLSearchParams(p); n.set("experiment", id); return n; }, { replace: true });
   // "#safety-guardrails" (linked from the replay workspace) sits below the results: scroll once they have loaded
@@ -79,6 +81,9 @@ export function EvidencePage() {
           {r.status_message}
         </EmptyState>
       ) : r ? <Evidence r={r} /> : null}
+      {research && !list.isLoading && (
+        <ResearchAfterDemo data={summaries.data} loading={summaries.isLoading} error={summaries.error as Error | null} />
+      )}
       <SafetyGuardrails />
     </>
   );

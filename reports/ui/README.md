@@ -25,6 +25,7 @@ noted). All recorded-data screenshots were recaptured on 13 Oct 2026 after the s
 | `16-data-sources.png` | Data quality page, "Data sources and scale": dataset inventory (CGMacros, ShanghaiT2DM, AI-READI access required) |
 | `17-research-evidence-mobile.png` | 390 px phone: research evidence tables scroll inside their region instead of clipping the page |
 | `18-model-evidence-fusion-disclosures.png` | Model evidence for the serving experiment `gt-primary-2026-10-13-fusion`: serving-model line, the short fusion-constraint notice, results at a glance and the start of its five disclosures (from the API) |
+| `21-research-after-demo-model.png` | Model evidence, research view: "Research after the demo model (20 Oct)" — D-043, D-045, D-044 and D-046 with who each was evaluated on, when it was opened and a Shown / Not shown / Negative result tag per finding; none is the demo model |
 | `20-review-queue.png` | Review queue: the 50 most recent replays held by the local API, unreviewed research warnings first, then the most recent warning; per row the warning counts, latest warning with its outcome and trigger, data freshness and input state. Counts stop at each replay's clock. Not triage |
 | `19-safety-guardrails.png` | Model evidence, "Safety guardrails": the eleven guardrails enforced in code, reached from the replay workspace's Guardrails readout (which shows the checks applied at the latest forecast: freshness, input quality or abstention, the fusion model's profile gate, the bounded patient correction, warning outcomes and the prediction range) |
 

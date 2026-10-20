@@ -314,6 +314,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/research-summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Research Summaries
+         * @description Headline results of the research run after the demo model was chosen; none of it is the demo model.
+         */
+        get: operations["research_summaries_api_v1_research_summaries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/serving": {
         parameters: {
             query?: never;
@@ -1608,6 +1628,37 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /**
+         * ResearchFinding
+         * @description One headline result of a research experiment, read from its saved summary (numbers only; the UI words them).
+         */
+        ResearchFinding: {
+            /**
+             * Key
+             * @description Which result: forecast_120, notice_120, profile_inputs_120, classifier, ranges_120, earlier_warning_120, profile_prior_120.
+             */
+            key: string;
+            /**
+             * Verdict
+             * @description shown: the 95 % interval excludes no change in the favourable direction (ranges: pooled coverage within 1 point of the 80 % target); not_shown: it does not; negative: rejected by its own protocol.
+             * @enum {string}
+             */
+            verdict: "shown" | "not_shown" | "negative";
+            /** Estimate */
+            estimate?: number | null;
+            /** Ci95 */
+            ci95?: number[] | null;
+            /** Unit */
+            unit?: string | null;
+            /** Better For */
+            better_for?: number | null;
+            /** N */
+            n?: number | null;
+            /** Values */
+            values?: {
+                [key: string]: number | null;
+            };
+        };
         /** ResearchHorizonResult */
         ResearchHorizonResult: {
             /** Horizon */
@@ -1727,6 +1778,45 @@ export interface components {
             };
             /** Limitations */
             limitations?: string[];
+        };
+        /** ResearchSummaryItem */
+        ResearchSummaryItem: {
+            /** Decision Id */
+            decision_id: string;
+            /** Experiment Id */
+            experiment_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "not_run";
+            /**
+             * Evaluated On
+             * @enum {string}
+             */
+            evaluated_on: "people_held_out" | "independent_cohort" | "reanalysis_inspected";
+            /** Participants */
+            participants?: number | null;
+            /** Opened At */
+            opened_at?: string | null;
+            /** Reopened At */
+            reopened_at?: string[];
+            /** Findings */
+            findings?: components["schemas"]["ResearchFinding"][];
+        };
+        /**
+         * ResearchSummaryList
+         * @description Research experiments run after the demo model was chosen (20 Oct 2026). None of them is the demo model.
+         */
+        ResearchSummaryList: {
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /** Items */
+            items: components["schemas"]["ResearchSummaryItem"][];
         };
         /** ResearchTrack */
         ResearchTrack: {
@@ -2767,6 +2857,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    research_summaries_api_v1_research_summaries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchSummaryList"];
                 };
             };
         };

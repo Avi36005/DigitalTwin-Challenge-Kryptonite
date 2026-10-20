@@ -135,6 +135,10 @@ not been established (§7).
   counts, the latest warning's time, outcome and the forecast that fired it, data freshness, and whether the latest
   forecast's inputs were complete, degraded or abstained. Counts stop at each replay's own clock: nothing after it is
   shown, and an outcome settled after the clock reads "Outcome pending at the cutoff". Not triage.
+* **Research after the demo model** (Model evidence → research view, [screenshot](reports/ui/21-research-after-demo-model.png)):
+  the four 20 October experiments (D-043, D-045, D-044, D-046), each with who it was evaluated on, when it was opened,
+  and a "Shown", "Not shown" or "Negative result" tag per finding, read from `GET /api/v1/research-summaries`. None is
+  the demo model; a fresh copy without the datasets says "Not run on this installation".
 * **Who:** a clinician or diabetes educator reviewing a small cohort of adults with Type 2 diabetes who wear CGMs and
   activity trackers between visits; a second user is a reviewer inspecting the evidence.
 * **Question answered:** “Which monitored patient's glucose pattern merits review, and what observations support that

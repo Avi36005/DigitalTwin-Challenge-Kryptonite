@@ -724,6 +724,39 @@ class ResearchReport(Versioned):
     limitations: list[str] = Field(default_factory=list)
 
 
+class ResearchFinding(Contract):
+    """One headline result of a research experiment, read from its saved summary (numbers only; the UI words them)."""
+
+    key: str = Field(description="Which result: forecast_120, notice_120, profile_inputs_120, classifier, ranges_120, "
+                                 "earlier_warning_120, profile_prior_120.")
+    verdict: Literal["shown", "not_shown", "negative"] = Field(
+        description="shown: the 95 % interval excludes no change in the favourable direction (ranges: pooled coverage "
+                    "within 1 point of the 80 % target); not_shown: it does not; negative: rejected by its own protocol.")
+    estimate: float | None = None
+    ci95: list[float] | None = None
+    unit: str | None = None
+    better_for: int | None = None
+    n: int | None = None
+    values: dict[str, float | int | None] = Field(default_factory=dict)
+
+
+class ResearchSummaryItem(Contract):
+    decision_id: str
+    experiment_id: str
+    status: Literal["available", "not_run"]
+    evaluated_on: Literal["people_held_out", "independent_cohort", "reanalysis_inspected"]
+    participants: int | None = None
+    opened_at: str | None = None
+    reopened_at: list[str] = Field(default_factory=list)
+    findings: list[ResearchFinding] = Field(default_factory=list)
+
+
+class ResearchSummaryList(Versioned):
+    """Research experiments run after the demo model was chosen (20 Oct 2026). None of them is the demo model."""
+
+    items: list[ResearchSummaryItem]
+
+
 class DatasetEntry(Contract):
     dataset_id: str
     name: str

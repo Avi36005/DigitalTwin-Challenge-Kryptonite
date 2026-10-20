@@ -1,0 +1,82 @@
+/* Research after the demo model: flat rows divided by hairlines; verdicts are words with a small mark, never boxes. */
+.rsum {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-width: 1120px;
+}
+.rsum__row {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.9fr) minmax(0, 2.6fr);
+  gap: 6px 32px;
+  padding: 16px 0;
+  border-top: 1px solid var(--gt-divider);
+}
+.rsum__row:first-child {
+  border-top: 0;
+}
+.rsum__title {
+  font-weight: 600;
+}
+.rsum__meta,
+.rsum__on .muted {
+  font-size: var(--gt-fs-meta);
+  color: var(--gt-text-3);
+}
+.rsum__on {
+  color: var(--gt-text-2);
+}
+.rsum__empty {
+  color: var(--gt-text-2);
+}
+.rsum__findings {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.rsum__finding {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  padding: 4px 0;
+  line-height: 1.5;
+}
+.rsum__finding strong {
+  font-weight: 600;
+}
+.rsum__tag {
+  font-size: var(--gt-fs-small);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--gt-text-2);
+}
+.rsum__tag::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  vertical-align: 1px;
+}
+.rsum__tag[data-verdict="shown"] {
+  color: var(--gt-accent-text);
+}
+.rsum__tag[data-verdict="shown"]::before {
+  background: currentColor;
+}
+.rsum__tag[data-verdict="negative"] {
+  color: var(--gt-attention);
+}
+
+@media (max-width: 760px) {
+  .rsum__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rsum__finding {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 6px 0;
+  }
+}
