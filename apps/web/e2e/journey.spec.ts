@@ -51,9 +51,10 @@ test("clinician replay journey on a synthetic participant", async ({ page }) => 
   await expect.poll(async () => (await session(page, sid)).clock_at).not.toBe(c1);
 
   // acknowledge a research warning (local only)
-  const ack = page.getByRole("button", { name: "Mark as reviewed" }).first();
+  const ack = page.getByRole("button", { name: /Mark warning issued .* as reviewed/ }).first();
   if (await ack.isVisible()) {
     await ack.click();
+    await page.getByRole("dialog", { name: "Review research warning" }).getByRole("button", { name: "Save review" }).click();
     await expect(page.getByText(/no message was sent/i).first()).toBeVisible();
   }
   await page.screenshot({ path: `${SHOTS}/01-twin-workspace-synthetic.png` });
@@ -288,6 +289,28 @@ test.describe("recording resolution (1920×1080) — demo sequence on recorded d
     expect(sizes.length).toBeGreaterThan(4); // axis tick labels (times and mg/dL values)
     expect(Math.min(...sizes)).toBeGreaterThanOrEqual(12);
     await page.screenshot({ path: `${SHOTS}/08-recording-1920-warning-pending.png` });
+
+    // review the pending warning with a note: cancel saves nothing; save keeps the note (as text) across a reload
+    const reviewBtn = page.getByRole("button", { name: /Mark warning issued .* as reviewed/ }).first();
+    const dialog = page.getByRole("dialog", { name: "Review research warning" });
+    await reviewBtn.click();
+    await expect(dialog).toContainText("Participant 01 · issued");
+    await expect(dialog).toContainText("Outcome pending");
+    await dialog.getByLabel("Review note (optional)").fill("Draft that must not be saved");
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText("Draft that must not be saved")).toHaveCount(0);
+    await reviewBtn.click();
+    await expect(dialog.getByLabel("Review note (optional)")).toHaveValue(""); // a cancelled draft is not carried over
+    const note = "Checked trace <b>no sensor issue</b>; discuss at visit.";
+    await dialog.getByLabel("Review note (optional)").fill(note);
+    await expect(dialog).toContainText(`${note.length} / 500`);
+    await dialog.getByRole("button", { name: "Save review" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText(note).first()).toBeVisible();
+    await page.reload();
+    await expect(page.getByText(note).first()).toBeVisible(); // saved in the local API, not only in the page
+    await expect(page.locator(".warn b")).toHaveCount(0); // rendered as text, never HTML
     await seek(page, sid, "2000-01-11T11:24:00Z");
     await expect(page.getByText("No onset (false alarm)").first()).toBeVisible();
   });
@@ -461,5 +484,43 @@ test.describe("first replay experience on recorded data", () => {
     await page.getByRole("button", { name: "Go to final test period" }).click();
     await expect.poll(async () => Date.parse((await session(page, sid)).clock_at)).toBe(Date.parse(testStart));
     await expect(page.getByText("No readings released yet.")).toBeHidden();
+  });
+});
+
+test.describe("review summary", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("Participant 01: a frozen review summary with its cutoff and model, printing only the report", async ({ page }, info) => {
+    const p = await byAlias(page, "Participant 01");
+    test.skip(!p, "CGMacros not imported on this machine");
+    await page.goto("/app");
+    const sid = await startReplay(page, "dataset_replay", p.patient_id);
+    await page.request.post(`${API}/replay/sessions/${sid}/control`, { data: { action: "seek", seek_to: "2000-01-11T20:35:00Z" } });
+    await page.reload();
+    await expect(page.getByText(/Loading released observations/).first()).toBeHidden();
+    await page.getByRole("button", { name: "Review summary" }).click();
+    const dialog = page.getByRole("dialog", { name: "Review summary" });
+    const report = dialog.getByRole("article", { name: "Review summary report" });
+    await expect(report).toContainText("Day 9 · 20:35 (replay time)");
+    await expect(report).toContainText("Research replay review — not a medical report");
+    await expect(report).toContainText("lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion");
+    await expect(report).toContainText("Final test period (later recordings from a participant represented in training)");
+    await expect(report).toContainText("Outcome pending");
+    // the copy is frozen: stepping the replay on does not change it
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Step 1 h forward" }).click();
+    await expect(page.getByText("Day 9 · 21:35").first()).toBeVisible();
+    await page.getByRole("button", { name: "Review summary" }).click();
+    await expect(dialog.getByText(/The replay has moved to Day 9 · 21:35 since this copy/)).toBeVisible();
+    await expect(report).toContainText("Day 9 · 20:35 (replay time)");
+    // print: only the report, not the app shell or the dialog
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator(".review-print-root")).toBeVisible();
+    await expect(page.locator("#root")).toBeHidden();
+    await page.screenshot({ path: info.outputPath("review-print.png"), fullPage: true });
+    await page.emulateMedia({ media: "screen" });
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole("button", { name: "Review summary" })).toBeFocused();
   });
 });

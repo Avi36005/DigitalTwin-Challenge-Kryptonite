@@ -1,0 +1,76 @@
+/* Warning review dialog and saved review notes (WarningReview.tsx). Flat rows and dividers, app tokens only. */
+.wreview {
+  display: grid;
+  gap: 14px;
+}
+.wreview__facts {
+  display: grid;
+  margin: 0;
+}
+.wreview__facts > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--gt-divider);
+  font-size: 13.5px;
+}
+.wreview__facts dt {
+  color: var(--gt-text-3);
+}
+.wreview__facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wreview__facts dd .warn__meta {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--gt-text);
+}
+.wreview__field {
+  margin-bottom: 0;
+}
+.wreview__note {
+  height: auto;
+  min-height: 96px;
+  padding: 8px 10px;
+  resize: vertical;
+  width: 100%;
+  line-height: 1.45;
+}
+.wreview__note:focus-visible {
+  outline: 2px solid var(--gt-focus);
+  outline-offset: 1px;
+}
+.wreview__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+.wreview__meta .num {
+  flex: none;
+}
+.wreview-saved__at {
+  color: var(--gt-text-3);
+}
+.wreview-saved__note {
+  margin: 2px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--gt-divider);
+  font-size: 12.5px;
+  color: var(--gt-text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .wreview__facts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .wreview__meta {
+    flex-direction: column;
+    gap: 2px;
+  }
+}

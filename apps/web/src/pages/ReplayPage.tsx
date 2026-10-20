@@ -27,6 +27,7 @@ import {
 import { useToast } from "@/state/toasts";
 import { statusWord } from "@/components/shell/Sidebar";
 import { ReplayToolbar } from "@/components/replay/ReplayToolbar";
+import { ReviewSummary } from "@/components/review/ReviewSummary";
 import { ForecastDetail } from "@/components/twin/ForecastDetail";
 import { GlucoseChart } from "@/components/twin/GlucoseChart";
 import {
@@ -82,13 +83,13 @@ export function ReplayPage({ sid }: { sid: string }) {
     if (session?.status === "completed") setAnnounce("Replay reached the end of the recording.");
   }, [session?.status]);
 
+  // the review dialog shows errors inline (the typed note is kept), so only success is toasted
   const ack = useMutation({
-    mutationFn: (a: Alert) => client.acknowledge(sid, a.alert_id),
+    mutationFn: ({ a, note }: { a: Alert; note?: string }) => client.acknowledge(sid, a.alert_id, note),
     onSuccess: () => {
       toast("Marked as reviewed in this local session — no message was sent");
       qc.invalidateQueries({ queryKey: ["alerts", sid] });
     },
-    onError: (e: Error) => toast(`Could not mark as reviewed: ${e.message}`, "error"),
   });
 
   if (sessionQ.isError) {
@@ -123,7 +124,11 @@ export function ReplayPage({ sid }: { sid: string }) {
             <>{statusWord(session.status)} at <span className="num">{replayTime(session.clock_at)}</span> (replay time)</>
           </MetadataLine>
         }
-        actions={<ParticipantSwitcher currentId={session.patient_id} />} />
+        actions={<div className="replay-actions">
+          <ReviewSummary session={session} patient={patient.data} latest={latest} alerts={alerts} twin={twin} profile={profile}
+            events={events} eventsLoaded={eventsLoaded} report={evaluation.data} segments={patient.data?.evaluation_segments} />
+          <ParticipantSwitcher currentId={session.patient_id} />
+        </div>} />
 
       {patient.data?.mode === "dataset_replay" && !patient.data.eligible_for_primary_analysis && (
         <InlineNotice tone="neutral" icon={Info} role="note">
@@ -169,7 +174,8 @@ export function ReplayPage({ sid }: { sid: string }) {
 
       <div className="lower">
         <RecentObservations events={events} clock={clock} loaded={eventsLoaded} />
-        <WarningHistory alerts={alerts.data} onAck={(a) => ack.mutate(a)} ackPending={ack.isPending} />
+        <WarningHistory alerts={alerts.data} revision={session.revision} sessionKey={`${session.id}:${session.revision}`}
+          participant={session.patient_alias} onSave={(a, note) => ack.mutateAsync({ a, note })} />
         <ModelDetails twin={twin.data} latest={latest.data} />
       </div>
 

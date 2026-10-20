@@ -148,7 +148,8 @@ describe("warning history", () => {
       rule_available: true, rule_description: null,
       items: [alert({ status: "onset_observed", onset_at: "2000-01-03T10:35:00Z", lead_time_minutes: 155,
         episode_start_to_onset_minutes: 155, qualified_lead_minutes: 55 })] };
-    render(<WarningHistory alerts={list as never} onAck={() => {}} ackPending={false} />);
+    render(<WarningHistory alerts={list as never} revision={1} sessionKey="s1:1" participant="Synthetic Participant A"
+      onSave={async () => {}} />);
     expect(screen.getByText(/forecast lead 55 min/)).toBeInTheDocument();
     expect(screen.getByText(/first warning 155 min before/)).toBeInTheDocument();
   });
@@ -159,7 +160,8 @@ describe("warning history", () => {
     const list = { schema_version: "1.0", session_id: "s1", session_revision: 1, clock_at: "2000-01-03T11:00:00Z",
       rule_available: true, rule_description: null,
       items: [{ ...a, evidence: { ...a.evidence, threshold: -10, score: -8, predicted_mg_dl: { "30": 172, "60": 164 } } }] };
-    render(<WarningHistory alerts={list as never} onAck={() => {}} ackPending={false} />);
+    render(<WarningHistory alerts={list as never} revision={1} sessionKey="s1:1" participant="Synthetic Participant A"
+      onSave={async () => {}} />);
     expect(screen.getByText(/Fired by the 30-min forecast/)).toHaveTextContent("Fired by the 30-min forecast 172 mg/dL ≥ 170 trigger · 60-min 164");
   });
 });
@@ -178,6 +180,16 @@ describe("guardrails", () => {
     expect(screen.getByText("80% target coverage")).toBeInTheDocument();
     expect(screen.getByText("The synthetic model has no measured coverage on recorded data.")).toBeInTheDocument();
     expect(screen.queryByText("Health record (profile)")).toBeNull(); // the synthetic model's inputs are not encoded in its version
+  });
+
+  it("never shows a stale stream's last complete forecast as a success", async () => {
+    const { Guardrails } = await import("./Panels");
+    const stale = session({ clock_at: "2000-01-03T10:21:00Z", freshness: { latest_glucose_at: "2000-01-03T09:57:00Z",
+      latest_glucose_age_minutes: 24, stale_threshold_minutes: 15, status: "stale" } });
+    render(<Guardrails session={stale} latest={latest(forecast())} twin={twin(0)} alerts={outcomes()} />);
+    expect(screen.queryByText("Complete")).toBeNull();
+    expect(screen.getByText(/^Latest forecast \(issued \d{2}:\d{2}\): complete$/)).toBeInTheDocument();
+    expect(screen.getByText(/No newer reading since; 0 readings in the hour before the replay clock/)).toBeInTheDocument();
   });
 
   it("shows the fusion model's profile gate and the twin's reasons when it abstains, and no range", async () => {

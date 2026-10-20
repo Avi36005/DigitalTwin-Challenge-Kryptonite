@@ -29,6 +29,7 @@ import { measuredCoverage, modelUsesProfile, unavailableReason } from "@/lib/for
 import { fmtGlucose, fmtPct, fmtProfileValue, modeLabel } from "@/lib/format";
 import { durationLabel, minutesBetween, ms, replayTime } from "@/lib/time";
 import { Button, InlineNotice, Skeleton, StatusLabel } from "../ui";
+import { SavedReview, WarningReviewDialog } from "./WarningReview";
 
 /* ================================================================ Baseline line + profile details */
 export function BaselineLine({ patient, profile, session, modelVersion }: {
@@ -371,6 +372,11 @@ export function guardChecks(session: ReplaySession, latest?: LatestForecast, twi
     out.push({ label: "Forecast inputs", tone: "attention", value: "Abstained: no forecast is shown", note: why || undefined });
   } else if (q === "degraded") {
     out.push({ label: "Forecast inputs", tone: "attention", value: "Degraded: forecast shown with a flag", note: why || undefined });
+  } else if (fr.status !== "fresh" && f) {
+    // the inputs were complete when the latest forecast was issued, but no newer reading has arrived since: not a success
+    out.push({ label: "Forecast inputs", tone: "attention",
+      value: `Latest forecast (issued ${replayTime(f.as_of, { day: false })}): complete`,
+      note: `No newer reading since${v60 === undefined ? "" : `; ${plural(v60, "reading")} in the hour before the replay clock (about 12 expected)`}.` });
   } else {
     out.push({ label: "Forecast inputs", tone: "ok", value: "Complete",
       // twin.history is counted at the replay clock, which can be later than the forecast: say so
@@ -480,9 +486,22 @@ export function Guardrails({ session, latest, twin, alerts, report, segments, mo
 }
 
 /* ================================================================ Warnings (below the chart) */
-export function WarningHistory({ alerts, onAck, ackPending }: { alerts?: AlertList; onAck: (a: Alert) => void; ackPending: boolean }) {
+export function WarningHistory({ alerts, revision, sessionKey, participant, onSave }: {
+  alerts?: AlertList;
+  /** the session's current revision: a warning from another revision is never submitted */
+  revision?: number;
+  /** session id + revision: unsaved review state is dropped when it changes */
+  sessionKey: string;
+  participant: string;
+  onSave: (a: Alert, note: string | undefined) => Promise<unknown>;
+}) {
   const [showAll, setShowAll] = useState(false);
+  const [reviewing, setReviewing] = useState<Alert | null>(null);
   const items = alerts?.items ?? [];
+  // the open review's warning in the CURRENT session and revision; after a rewind, reset or participant switch it is
+  // undefined and the dialog says nothing was saved instead of submitting the old warning
+  const current = reviewing ? items.find((x) => x.alert_id === reviewing.alert_id && x.session_id === reviewing.session_id
+    && x.session_revision === revision && `${x.session_id}:${x.session_revision}` === sessionKey) : undefined;
   const shown = items.slice(0, showAll ? items.length : 4);
   return (
     <section className="lower__col" aria-labelledby="warnings-title">
@@ -503,10 +522,8 @@ export function WarningHistory({ alerts, onAck, ackPending }: { alerts?: AlertLi
                 </p>
                 <WarningTrigger a={a} />
                 <div className="warn__ack">
-                  {a.acknowledgement.acknowledged ? (
-                    <span className="warn__acked"><CircleCheck size={13} aria-hidden /> Marked as reviewed</span>
-                  ) : (
-                    <Button size="sm" variant="quiet" disabled={ackPending} onClick={() => onAck(a)}
+                  {a.acknowledgement.acknowledged ? <SavedReview a={a} /> : (
+                    <Button size="sm" variant="quiet" onClick={() => setReviewing(a)} aria-haspopup="dialog"
                       aria-label={`Mark warning issued ${replayTime(a.issued_at)} as reviewed`}>Mark as reviewed</Button>
                   )}
                 </div>
@@ -518,7 +535,11 @@ export function WarningHistory({ alerts, onAck, ackPending }: { alerts?: AlertLi
               {showAll ? "Show fewer" : `Show all ${items.length} warnings`}
             </Button>
           )}
-          <p className="lower__note">“Marked as reviewed” is a local note in this research session; no message is sent. Forecast lead counts
+          <WarningReviewDialog alert={reviewing} current={current} revision={revision} participant={participant}
+            trigger={current ?? reviewing ? <WarningTrigger a={(current ?? reviewing)!} /> : null}
+            outcome={current ?? reviewing ? <Outcome a={(current ?? reviewing)!} /> : null}
+            onSave={onSave} onClose={() => setReviewing(null)} />
+          <p className="lower__note">“Marked as reviewed” and its optional note are kept in this local research session; no message is sent. Forecast lead counts
             from the earliest warning whose own 60-minute horizon contained the onset; “first warning … before” is the whole episode,
             which can be longer than the horizon.</p>
         </>
