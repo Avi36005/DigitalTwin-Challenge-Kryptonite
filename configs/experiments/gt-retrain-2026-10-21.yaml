@@ -1,12 +1,12 @@
 # GlucoTwin research protocol gt-retrain-2026-10-21 — retraining the fusion LightGBM: participant balance, rising-regime
 # emphasis and longer causal history (four predeclared arms).
 #
-# Declared on 2026-10-20 at 22:45 IST BEFORE any arm below was fitted (docs/decisions.md D-049). Run only by
+# Declared on 2026-10-20 at 22:30 IST BEFORE any arm below was fitted (docs/decisions.md D-049). Run only by
 # scripts/retrain_study.py; it never reads or writes the model registry and promotes nothing. The demo model stays
 # lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion unless a qualifying candidate later passes the separate serving checks.
 experiment_id: gt-retrain-2026-10-21
 kind: fixed-arm-retraining-study
-declared_at: "2026-10-20T17:15:00Z"
+declared_at: "2026-10-20T17:00:00Z"
 random_seed: 20261021
 base_experiment: gt-2h-2026-10-20   # frozen research table (5-minute track), participant folds, eligibility masks
 
