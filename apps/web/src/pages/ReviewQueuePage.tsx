@@ -44,7 +44,7 @@ export function ReviewQueuePage() {
   return (
     <>
       <PageHeader title="Review queue" meta={items.length > 0 ? <span aria-live="polite">{summary.text}</span> : undefined}>
-        The 50 most recent replays held by the local API. Administrative review order, not a risk ranking or triage:
+        The 50 most recent replays held by the local API. Research demonstration. Administrative review order, not a risk ranking or triage:
         replays with unreviewed research warnings first, then replays whose counts are not known yet, then the rest; within
         each group the most recently started replay first. Every count stops at that replay’s own clock, and replay times of
         different participants are separate recorded timelines, never compared.

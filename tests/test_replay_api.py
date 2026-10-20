@@ -390,3 +390,17 @@ def test_personalization_reports_its_bound_and_reset_gap(client):
         assert p["cap_mg_dl"] is None and p["reset_gap_minutes"] is None
     t = client.get(f"{API}/replay/sessions/{s['id']}/twin").json()["personalization"]
     assert t["cap_mg_dl"] == p["cap_mg_dl"]
+
+
+def test_serving_names_the_profile_values_each_model_reads(client):
+    from glucotwin.features import PROFILE_FEATURES
+    from glucotwin_api.evidence import profile_inputs
+
+    items = {i["mode"]: i for i in client.get(f"{API}/serving").json()["items"]}
+    assert items["synthetic_demo"]["profile_inputs"] == []  # the synthetic demonstration model reads no profile value
+    assert profile_inputs("dyn-prof-v2") == [n for _, n in PROFILE_FEATURES]
+    assert profile_inputs("not-a-feature-set") is None
+    s = _session(client)
+    names = {v["name"] for v in client.get(f"{API}/replay/sessions/{s['id']}/profile").json()["values"]}
+    # every name a fusion model reads is a name the session profile uses
+    assert set(profile_inputs("dyn-prof-v2")) <= names

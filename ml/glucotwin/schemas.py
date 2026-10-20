@@ -646,6 +646,9 @@ class ServingSummary(Versioned):
     warning_horizon_minutes: int | None = None
     requires_complete_profile: bool | None = Field(
         default=None, description="True when the model abstains unless every baseline profile value it reads is available.")
+    profile_inputs: list[str] | None = Field(
+        default=None, description="Names of the baseline profile values this model reads as inputs (empty when it reads "
+                                  "none); other profile values are context only.")
 
 
 class ServingList(Versioned):

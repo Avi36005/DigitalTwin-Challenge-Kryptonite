@@ -5974,6 +5974,21 @@
             ],
             "title": "Requires Complete Profile",
             "description": "True when the model abstains unless every baseline profile value it reads is available."
+          },
+          "profile_inputs": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Inputs",
+            "description": "Names of the baseline profile values this model reads as inputs (empty when it reads none); other profile values are context only."
           }
         },
         "additionalProperties": false,

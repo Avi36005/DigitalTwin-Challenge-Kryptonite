@@ -1984,6 +1984,11 @@ export interface components {
              * @description True when the model abstains unless every baseline profile value it reads is available.
              */
             requires_complete_profile?: boolean | null;
+            /**
+             * Profile Inputs
+             * @description Names of the baseline profile values this model reads as inputs (empty when it reads none); other profile values are context only.
+             */
+            profile_inputs?: string[] | null;
         };
         /** SessionBrief */
         SessionBrief: {
