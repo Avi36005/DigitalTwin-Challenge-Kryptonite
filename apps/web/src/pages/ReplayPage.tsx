@@ -33,6 +33,7 @@ import { ReplayToolbar } from "@/components/replay/ReplayToolbar";
 import { ReviewSummary } from "@/components/review/ReviewSummary";
 import { ForecastDetail } from "@/components/twin/ForecastDetail";
 import { GlucoseChart } from "@/components/twin/GlucoseChart";
+import { TwinExplanation } from "@/components/twin/TwinExplanation";
 import {
   BaselineLine,
   GlucoseSummary,
@@ -176,6 +177,9 @@ export function ReplayPage({ sid }: { sid: string }) {
           )}
         </aside>
       </div>
+
+      <TwinExplanation latest={latest.data} alerts={alerts.data} profile={profile.data} report={evaluation.data}
+        clockAt={session.clock_at} />
 
       <div className="lower">
         <RecentObservations events={events} clock={clock} loaded={eventsLoaded} />
