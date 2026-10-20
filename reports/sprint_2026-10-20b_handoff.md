@@ -49,10 +49,12 @@ The gate was a 60-minute personalised gain of at least 0.5 mg/dL over B0. The ga
 B1 +0.41, so **no arm qualified**. Under the stop rule B0 is retained, the outer folds were not opened and no arm was
 added.
 
-A descriptive per-person check, run after selection and not used for it, shows B1's history features help the
-population model: 60-minute error fell by 1.39 mg/dL (interval 0.29 to 2.62) for 9 of 12 people. Once the patient
-correction is applied, the gain is 0.41 (interval −1.07 to +0.12; 7 of 12 people better). The correction already
-captures most of a person's baseline.
+A descriptive per-person check, run after selection and not used for it, suggests B1's history features help the
+population model: error change −1.39 mg/dL [−2.62, −0.29] at 60 minutes, lower for 9 of 12 people. Once the patient
+correction is applied, the error change is −0.41 [−1.07, +0.12] (a gain of 0.41, interval −0.12 to +1.07; 7 of 12
+people better), so no reliable gain. That the correction already captures most of the history's benefit is a
+plausible explanation, not a tested one. This is development evidence on previously inspected people, measured after
+selection — a lead, not confirmation.
 
 The people used here were inspected in earlier experiments, so all of this is internal research.
 
@@ -95,7 +97,8 @@ and the public suite 4/4.
 
 * **Video:** the model you demo is unchanged, so the recording plan stands. The extension chapter has one added
   sentence about D-049, and the deck is rebuilt with 24 slides.
-* **Possible next study:** history features combined with a patient update designed alongside them. It would need its
-  own declared protocol. It is not a claim.
+* **Possible next study:** longer history and the patient correction tuned together, with the original-feature
+  baseline given the same tuning budget, so any gain is not just extra tuning. It needs its own declared protocol and
+  gate; D-049's 0.5 mg/dL threshold stays as it was.
 * **Still outstanding:** record and upload the video, confirm the deadline time and the copyright holder, say
   "make it public", and submit the form. Deployment stays paused.

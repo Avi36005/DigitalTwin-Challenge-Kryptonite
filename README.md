@@ -377,9 +377,10 @@ target of 0.5, so the demo model is unchanged and the held-out folds were never 
 the fusion LightGBM recipe with the serving model's frozen settings: the control, participant-balanced training,
 2× weight on rising-glucose origins, and 12 causal 6/12/24-hour glucose-history features. On development people none
 reached the declared 0.5 mg/dL gain at 60 minutes (−0.04, +0.07 and +0.41), so the demo model is unchanged and the
-held-out folds were never opened. The long-history features lowered the population model's 60-minute error by 1.39
-[0.29, 2.62] mg/dL for 9 of 12 people, but the patient correction already captured most of that — a lead for a future
-declared study, not a result ([report](reports/retrain_study.md)).
+held-out folds were never opened. Descriptively (after selection, on already-inspected people), the
+long-history features changed the population model's 60-minute error by −1.39 [−2.62, −0.29] mg/dL (lower for 9 of 12
+people) but the personalised error only by −0.41 [−1.07, +0.12] — a lead for a future declared study, not a result
+([report](reports/retrain_study.md)).
 
 Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:
 [`reports/repair_report.md`](reports/repair_report.md) · model card:
