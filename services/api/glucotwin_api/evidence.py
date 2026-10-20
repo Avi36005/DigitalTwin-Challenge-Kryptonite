@@ -4,6 +4,7 @@ measured dataset inventory. Every value is read from saved artifacts or reports;
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 from glucotwin.config import load_config, paths
@@ -197,8 +198,30 @@ def _lower(ci: list[float]) -> str:
     return "shown" if ci[1] < 0 else "not_shown"
 
 
+# How each verdict was reached. Only D-046 part C declared a claim rule before computing (configs/experiments/
+# gt-warn-range-2026-10-20.yaml part_C_profile_prior.claim_rule); every other verdict is this page's display description
+# of the saved interval or diagnostic, not a pass bar any protocol declared.
+DISPLAY = "display_heuristic"
+DECLARED = "declared_rule"
+BASIS = {
+    "forecast_120": (DISPLAY, "Shown when the whole 95 % participant-bootstrap interval of the difference is below zero."),
+    "notice_120": (DISPLAY, "Two hours of notice is described as shown only if the median forecast lead reaches 60 "
+                            "minutes; no protocol declared a lead target."),
+    "profile_inputs_120": (DISPLAY, "Shown when the whole 95 % interval of with-minus-without profile is below zero."),
+    "classifier": (DISPLAY, "Described as a negative result because it warned at more than half of eligible times; "
+                            "its report rejects it for warning almost constantly."),
+    "ranges_120": (DISPLAY, "Described as shown when pooled coverage moved closer to the 80 % target than the incumbent "
+                            "range; D-046 declared pooled calibration as its primary method, not a pass bar."),
+    "earlier_warning_120": (DISPLAY, "Shown when the whole 95 % interval of the difference in onsets warned at least "
+                                     "30 minutes ahead is above zero; D-046 part A declared no claim rule."),
+    "profile_prior_120": (DECLARED, "D-046 part C declared it before computing: the profile is said to help only if the "
+                                    "95 % interval of profile prior minus population only is below zero at 120 min."),
+}
+
+
 def _finding(key: str, verdict: str, c: dict[str, Any] | None = None, unit: str | None = None, **values: Any) -> dict:
-    out = {"key": key, "verdict": verdict, "unit": unit, "values": values}
+    basis, note = BASIS[key]
+    out = {"key": key, "verdict": verdict, "basis": basis, "basis_note": note, "unit": unit, "values": values}
     if c is not None:
         out.update({"estimate": c.get("mean_diff", c.get("mean_difference")), "ci95": c["ci95"],
                     "better_for": c.get("better_for", c.get("improved")), "n": c.get("n", c.get("participants", c.get("n_participants")))})
@@ -247,7 +270,7 @@ def _warn_range(s: dict[str, Any]) -> tuple[int | None, dict, list[dict]]:
     closer = abs(pooled - 0.8) < abs(b0["120"]["coverage_pooled"] - 0.8)
     early = {"mean_diff": 100 * d["early_share_diff"], "ci95": [100 * x for x in d["early_share_ci95"]], "n": d["people"]}
     return d.get("people"), s["opened"], [
-        _finding("ranges_120", "shown" if closer and abs(pooled - 0.8) <= 0.01 else "not_shown", None, "%",
+        _finding("ranges_120", "shown" if closer else "not_shown", None, "%",
                  before=b0["120"]["coverage_pooled"], after=pooled, before_60=b0["60"]["coverage_pooled"],
                  after_60=b1["60"]["coverage_pooled"], width_before=b0["120"]["width_mean"], width_after=b1["120"]["width_mean"]),
         _finding("earlier_warning_120", "shown" if early["ci95"][0] > 0 else "not_shown", early, "points",
@@ -262,20 +285,51 @@ def _warn_range(s: dict[str, Any]) -> tuple[int | None, dict, list[dict]]:
 _READERS = {"D-043": _two_hour, "D-045": _external, "D-044": _classifier, "D-046": _warn_range}
 
 
+def _summary_id(s: dict[str, Any]) -> str | None:
+    """The experiment a saved summary says it belongs to (D-046's summary records it in its lock record)."""
+    for v in (s.get("experiment_id"), (s.get("opened") or {}).get("protocol"),
+              (s.get("assessment_opened") or {}).get("protocol")):
+        if isinstance(v, str):
+            return v
+    return None
+
+
+def read_summary(dec: str, eid: str, path: Path) -> dict[str, Any]:
+    """Status of one saved summary, never half-read:
+
+    * ``not_run``      — no saved summary on this installation;
+    * ``malformed``    — the file exists but is not readable JSON (or not a JSON object);
+    * ``incompatible`` — it is JSON but belongs to another experiment or lacks the fields this page reads
+      (for example an older summary format);
+    * ``available``    — read in full.
+    """
+    if not path.exists():
+        return {"status": "not_run", "status_detail": None}
+    try:
+        s = json.loads(path.read_text())
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        return {"status": "malformed", "status_detail": f"{path.name} could not be read as JSON ({type(exc).__name__})."}
+    if not isinstance(s, dict):
+        return {"status": "malformed", "status_detail": f"{path.name} is not a JSON object."}
+    sid = _summary_id(s)
+    if sid is not None and sid != eid:
+        return {"status": "incompatible", "status_detail": f"{path.name} belongs to {sid}, not {eid}."}
+    try:
+        n, opened, findings = _READERS[dec](s)
+    except (KeyError, StopIteration, TypeError, ValueError, IndexError, AttributeError) as exc:
+        return {"status": "incompatible",
+                "status_detail": f"{path.name} lacks a field this page reads ({type(exc).__name__}); it may be from "
+                                 "an older summary format."}
+    return {"status": "available", "status_detail": None, "participants": n, "opened_at": opened.get("opened_at"),
+            "reopened_at": [r["at"] for r in opened.get("reopened", [])], "findings": findings}
+
+
 def research_summaries() -> dict[str, Any]:
     """Headline results of the 20 Oct research experiments, when their saved summaries exist on this installation.
     Only pooled numbers are returned: no per-participant values and no pseudonymous IDs."""
     items = []
     for dec, eid, fname, on in SUMMARIES:
-        p = paths().artifacts / "research" / eid / fname
-        item = {"decision_id": dec, "experiment_id": eid, "evaluated_on": on, "status": "not_run"}
-        if p.exists():
-            try:
-                n, opened, findings = _READERS[dec](json.loads(p.read_text()))
-            except (KeyError, StopIteration, TypeError, ValueError):
-                findings = None  # an incomplete or older summary is reported as not run, never half-read
-            if findings is not None:
-                item.update({"status": "available", "participants": n, "opened_at": opened.get("opened_at"),
-                             "reopened_at": [r["at"] for r in opened.get("reopened", [])], "findings": findings})
+        item = {"decision_id": dec, "experiment_id": eid, "evaluated_on": on}
+        item.update(read_summary(dec, eid, paths().artifacts / "research" / eid / fname))
         items.append(item)
     return {"schema_version": "1.0", "items": items}

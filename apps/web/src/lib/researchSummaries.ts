@@ -16,6 +16,18 @@ export const TAG: Record<ResearchFinding["verdict"], string> = {
   negative: "Negative result",
 };
 
+/** How a tag was decided: only D-046 part C declared its claim rule before computing; the rest describe the interval. */
+export const BASIS: Record<NonNullable<ResearchFinding["basis"]>, string> = {
+  declared_rule: "Declared rule",
+  display_heuristic: "How this page describes it",
+};
+
+/** A saved summary that exists but cannot be used is said so, never shown as "not run". */
+export const UNREADABLE: Record<"malformed" | "incompatible", string> = {
+  malformed: "The saved summary on this installation could not be read.",
+  incompatible: "The saved summary on this installation does not match this experiment or this page's format.",
+};
+
 export function evaluatedOn(it: ResearchSummaryItem): string {
   const n = it.participants;
   if (it.evaluated_on === "independent_cohort")

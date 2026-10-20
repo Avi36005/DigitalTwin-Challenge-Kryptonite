@@ -1738,10 +1738,20 @@ export interface components {
             key: string;
             /**
              * Verdict
-             * @description shown: the 95 % interval excludes no change in the favourable direction (ranges: pooled coverage within 1 point of the 80 % target); not_shown: it does not; negative: rejected by its own protocol.
+             * @description How this page describes the result. shown: the 95 % interval lies wholly on the favourable side (ranges: pooled coverage moved closer to the 80 % target; notice: median lead of at least 60 min); not_shown: it does not; negative: rejected by its own report. See basis: most verdicts are display descriptions, not pass bars a protocol declared.
              * @enum {string}
              */
             verdict: "shown" | "not_shown" | "negative";
+            /**
+             * Basis
+             * @description declared_rule: the protocol fixed this claim rule before computing (only D-046 part C); display_heuristic: this page's description of the saved interval or diagnostic.
+             */
+            basis?: ("declared_rule" | "display_heuristic") | null;
+            /**
+             * Basis Note
+             * @description The rule or heuristic in words.
+             */
+            basis_note?: string | null;
             /** Estimate */
             estimate?: number | null;
             /** Ci95 */
@@ -1900,9 +1910,15 @@ export interface components {
             experiment_id: string;
             /**
              * Status
+             * @description available: read in full; not_run: no saved summary on this installation; malformed: the file is not readable JSON; incompatible: it belongs to another experiment or lacks fields this page reads.
              * @enum {string}
              */
-            status: "available" | "not_run";
+            status: "available" | "not_run" | "malformed" | "incompatible";
+            /**
+             * Status Detail
+             * @description Why a summary is malformed or incompatible.
+             */
+            status_detail?: string | null;
             /**
              * Evaluated On
              * @enum {string}
