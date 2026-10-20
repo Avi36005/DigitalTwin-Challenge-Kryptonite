@@ -93,6 +93,8 @@ def main() -> int:
         "max_abs_diff_mg_dl": float(alld.max()) if alld.size else None, "over_tolerance": over,
         "outcome": "pass" if alld.size and over == 0 and missing == 0 else "fail",
         "checked_at": datetime.now(UTC).isoformat(timespec="seconds"), "revision": revision(),
+        # fingerprint of the check itself, so verification code added after the checked revision is traceable too
+        "check_script_sha256": __import__("hashlib").sha256(Path(__file__).read_bytes()).hexdigest(),
         "seconds": round(time.perf_counter() - t0, 1),
     }
     vdir = paths().artifacts / "verification"

@@ -288,6 +288,16 @@ def c_serving_identity() -> list[Check]:
              r"\*\*LightGBM `dyn-prof-v2` \+ patient adaptation\*\* \(`([^`]+)`\)")]
 
 
+def c_parity() -> list[Check]:
+    p = need(ROOT / "reports" / "serving_parity.json")
+    reg = need(ART / "registry.json")
+    ok = (p["outcome"] == "pass" and p["over_tolerance"] == 0 and p["missing_online"] == 0
+          and p["model_version"] == reg["serving"]["dataset_replay"])
+    return [("forecasts compared (saved parity run, outcome pass for the serving model)",
+             f"{p['compared']:,}" if ok else f"outcome {p['outcome']}", r"reproduced all ([\d,]+) saved test forecasts"),
+            ("tolerance (mg/dL)", f"{p['tolerance_mg_dl']:g}", r"saved test forecasts within ([\d.]+) mg/dL")]
+
+
 def c_synthetic() -> list[Check]:
     reg = need(ART / "registry.json")
     sid = reg["serving"]["synthetic_demo"]
@@ -374,18 +384,17 @@ CLAIMS: list[dict[str, Any]] = [
          population="CGMacros (45 imported, 14 Type 2 evaluated) and ShanghaiT2DM (100 imported, 98 evaluated)",
          horizon="—", type="data inventory", protocol=f"configs/experiments/{NESTED}.yaml",
          artifact="reports/dataset_inventory.json", report="reports/dataset_expansion_audit.md", fn=c_scale),
+    dict(id="parity", claim="App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
+         model="demo model online (TwinEngine) vs offline", population="final test segment, 14 people", horizon="30, 60 min",
+         type="software test", protocol=f"configs/experiments/{FUSION}.yaml", artifact="reports/serving_parity.json",
+         report="reports/serving_parity.md", fn=c_parity),
     dict(id="synthetic", claim="Synthetic demonstration model is fitted on fictional data, never evidence",
          model="synthetic-demo.lightgbm.dyn-v2.v1", population="fictional synthetic participants", horizon="30, 60 min",
          type="synthetic", protocol="configs/synthetic.yaml", artifact="artifacts/registry.json",
          report="README.md (Public demonstration)", fn=c_synthetic),
 ]
 
-AUTHOR_REPORTED = [
-    dict(id="parity", claim="App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
-         model="demo model online (TwinEngine) vs offline", population="final test segment, 14 people", horizon="30, 60 min",
-         type="software test", protocol=f"configs/experiments/{FUSION}.yaml", artifact="— (not saved as a file)",
-         report="reports/verification.md"),
-]
+AUTHOR_REPORTED: list[dict[str, Any]] = []
 
 
 def split_hash(eid: str | None) -> str:
