@@ -1,0 +1,51 @@
+# GlucoTwin research protocol gt-2h-clf-2026-10-20 — a direct two-hour onset classifier (CGMacros, people held out).
+#
+# Declared on 2026-10-20 BEFORE any model of this experiment was fitted (docs/decisions.md D-044). Run only by
+# scripts/two_hour_classifier.py; it never reads or writes the model registry and promotes nothing. The demo model stays
+# lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion.
+#
+# Question: the regression-derived 120-minute warning of gt-2h-2026-10-20 warned 315 of 329 onsets at 1.62 false alarms
+# per observed day but with a median forecast lead of only 15 minutes. Does a model trained directly on "a new
+# high-glucose onset within the next 120 minutes" warn earlier at the same workload budget?
+experiment_id: gt-2h-clf-2026-10-20
+kind: two-hour-onset-classifier
+declared_on: "2026-10-20"
+random_seed: 20261020
+inspection_log:
+  - date: "2026-10-20"
+    what: >-
+      gt-2h-2026-10-20 (same 14 people, same participant folds) was assessed once and reported before this protocol was
+      written: its 120-minute regression warning results are the comparator here. No classifier, probability or
+      classifier-based warning had been computed on any participant.
+data:
+  table: >-
+    The frozen 5-minute research table of gt-2h-2026-10-20 (same features, origins, label_120 / onset_120 and
+    early-warning eligibility). 14 CGMacros Type 2 people; ShanghaiT2DM not used (no wearable data, different cadence).
+  folds: the five outer participant folds and the inner folds of gt-2h-2026-10-20 (artifacts/research/gt-2h-2026-10-20/splits.json)
+label: >-
+  label_120 = a new sustained onset (> 180 mg/dL for >= 15 min, starting from a below-threshold state) begins within the
+  next 120 minutes. Rows: forecast-issued (quality not insufficient), early-warning-eligible origins with a resolved
+  label. Censored labels are never imputed.
+model:
+  family: lightgbm binary classifier (fixed settings, no search)
+  params: {n_estimators: 300, learning_rate: 0.05, num_leaves: 15, max_depth: 6, min_child_samples: 100,
+           subsample: 0.8, subsample_freq: 1, colsample_bytree: 0.8, reg_lambda: 1.0}
+  feature_sets: [cgm-only-v1, dyn-v2, dyn-prof-v2]
+  time_of_day_features: false   # unchanged: timezone undocumented
+selection_per_outer_fold: >-
+  Inner folds only (development participants; calibration participants are added for the outer refit): for each feature
+  set, out-of-fold probabilities on the inner folds; the feature set with the highest inner out-of-fold average precision
+  is chosen (ties within 0.005 -> smaller feature set). The warning threshold for that feature set is then chosen on the
+  same inner out-of-fold probabilities: maximum onset recall with at most 2.0 false alarms per observed forecastable
+  patient-day (ties: precision, fewer warnings, higher threshold), episode merge 30 min, the same one-to-one matcher as
+  every other warning in this repository.
+threshold_grid: [0.02, 0.05, 0.08, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7]
+assessment: >-
+  Each outer fold's refit model (development + calibration participants) scores its assessment participants once; a lock
+  file records the opening and a re-run needs --reopen-reason and is then exploratory. Reported whatever it shows:
+  pooled onsets warned, false alarms per observed day, precision, median forecast lead and IQR (participant-cluster
+  bootstrap for recall and false alarms), origin-level ROC AUC and average precision, and the same for every feature set
+  as an ablation (profile = EHR-like inputs). Compared with the gt-2h-2026-10-20 120-minute regression warning.
+artifacts:
+  root: artifacts/research/gt-2h-clf-2026-10-20
+  report: reports/two_hour_classifier.md
