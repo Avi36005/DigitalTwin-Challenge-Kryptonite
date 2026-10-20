@@ -1,0 +1,42 @@
+# GlucoTwin research protocol gt-ranges-2026-10-21 — prediction ranges for the exact serving pipeline (decision D-050).
+#
+# Declared on 2026-10-20 BEFORE any candidate range below was computed. Run only by scripts/serving_ranges_study.py; it
+# never reads or writes the model registry. The point forecasts of lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion
+# (personalisation adaptive) are fixed: only the 80 % range around them is studied. No model is fitted.
+experiment_id: gt-ranges-2026-10-21
+kind: range-calibration-study
+declared_on: "2026-10-20"
+pipeline: "lightgbm:dyn-prof-v2, personalization adaptive (the serving pipeline), saved predictions of gt-primary-2026-10-13-fusion"
+inspection_log:
+  - what: >-
+      The serving ranges (split-conformal on the calibration segment: 16.71 / 26.36 mg/dL half-widths) covered 74.2 % /
+      74.0 % on the final test segment, which was inspected on 11-13 Oct. Validation-segment errors by glucose trend
+      (reports/error_by_trend.md, computed on 20 Oct) showed much larger errors while glucose rises; that motivated the
+      trend-stratified candidate. D-046's pooled-calibration result belongs to a different (nested research) procedure.
+segments: training < validation < calibration < test (chronological within each of the 14 people; frozen split b31e8d8c071eb425)
+level: 0.8
+shapes:
+  G_global: one finite-sample split-conformal quantile of |final − target| per horizon
+  T_trend: >-
+    a separate finite-sample quantile per past-only trend stratum of slope_15 at the origin — rising (> 1 mg/dL/min),
+    steady (−1 to 1), falling (< −1) — per horizon; a stratum with fewer than 100 calibration residuals, or an origin
+    with no slope_15, uses G's quantile.
+pre_test_check: >-
+  Each shape is calibrated on the validation segment only and scored on the later calibration segment (no test data):
+  pooled coverage at 30 and 60 min, mean width, per-person coverage range, and coverage within each trend stratum.
+adoption_rule: >-
+  T replaces G when, in the pre-test check, its mean absolute coverage error (|coverage − 0.80| averaged over 30 and
+  60 min) is at least 1.0 percentage point smaller than G's AND its mean width is at most 15 % wider; otherwise G is kept.
+  The chosen shape is then calibrated on validation + calibration pooled (the incumbent used the calibration segment
+  alone; pooling is reported separately as "G pooled").
+test_report: >-
+  The final test segment is read once for the incumbent (G on calibration), G pooled and the chosen shape, reported as
+  retrospective (that segment was inspected). It is never used to choose. Coverage reported with width, per-person
+  range and per trend stratum. Test origins are later recordings, so there is no first-day stratum.
+integration: >-
+  A chosen shape that differs from the incumbent is a candidate for the serving ranges only after a separate check that
+  the served value, its UI label and the measured coverage shown in the app belong to the same calibration; until then
+  the app keeps the incumbent ranges and its under-coverage disclosure.
+artifacts:
+  root: artifacts/research/gt-ranges-2026-10-21
+  report: reports/serving_ranges_study.md
