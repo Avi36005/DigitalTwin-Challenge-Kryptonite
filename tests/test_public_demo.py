@@ -73,7 +73,7 @@ def test_visitors_cannot_see_or_drive_each_others_sessions(synthetic_ready, tmp_
 
     assert sid in [x["id"] for x in a.get(f"{API}/replay/sessions").json()["items"]]
     assert b.get(f"{API}/replay/sessions").json()["items"] == []
-    for path in ("", "/events", "/profile", "/twin", "/forecast", "/forecasts", "/alerts"):
+    for path in ("", "/events", "/profile", "/twin", "/forecast", "/forecasts", "/alerts", "/review-snapshot"):
         r = b.get(f"{API}/replay/sessions/{sid}{path}")
         assert r.status_code == 404 and r.json()["error"]["code"] == "session_not_found", path
     r = b.post(f"{API}/replay/sessions/{sid}/control", json={"action": "reset"})

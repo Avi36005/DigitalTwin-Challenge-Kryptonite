@@ -345,3 +345,48 @@ def test_research_summaries_say_not_run_when_nothing_is_saved(client, tmp_path, 
     items = client.get("/api/v1/research-summaries").json()["items"]
     assert [x["status"] for x in items] == ["not_run"] * 4
     assert all(x["findings"] == [] and x["opened_at"] is None for x in items)
+
+
+def test_review_snapshot_is_one_session_revision_and_clock(client):
+    """The review queue reads session, warnings and latest forecast together: all parts describe the same session,
+    revision and replay clock, also while the replay is playing (separate requests could each see a later clock)."""
+    s = _session(client, speed=240)
+    _ctl(client, s["id"], action="step", steps=600)
+    _ctl(client, s["id"], action="play")
+    for _ in range(3):
+        snap = client.get(f"{API}/replay/sessions/{s['id']}/review-snapshot")
+        assert snap.status_code == 200, snap.text
+        snap = snap.json()
+        sess, al, lf = snap["session"], snap["alerts"], snap["latest_forecast"]
+        assert sess["id"] == al["session_id"] == lf["session_id"] == s["id"]
+        assert sess["revision"] == al["session_revision"] == lf["session_revision"]
+        assert sess["clock_at"] == al["clock_at"] == lf["clock_at"]
+        assert all(a["issued_at"] <= sess["clock_at"] for a in al["items"])
+        assert all(a["session_id"] == s["id"] and a["session_revision"] == sess["revision"] for a in al["items"])
+    _ctl(client, s["id"], action="pause")
+    before = client.get(f"{API}/replay/sessions/{s['id']}/review-snapshot").json()
+    # a rewind starts a new revision; the snapshot follows it and holds nothing issued after the new clock
+    clock = before["session"]["timeline"]["start_at"]
+    _ctl(client, s["id"], action="seek", seek_to=clock)
+    after = client.get(f"{API}/replay/sessions/{s['id']}/review-snapshot").json()
+    assert after["session"]["revision"] == before["session"]["revision"] + 1
+    assert after["alerts"]["session_revision"] == after["session"]["revision"]
+    assert all(a["issued_at"] <= after["session"]["clock_at"] for a in after["alerts"]["items"])
+    assert client.get(f"{API}/replay/sessions/000000000000/review-snapshot").status_code == 404
+
+
+def test_personalization_reports_its_bound_and_reset_gap(client):
+    s = _session(client)
+    _ctl(client, s["id"], action="step", steps=120)
+    f = client.get(f"{API}/replay/sessions/{s['id']}/forecast").json()["forecast"]
+    p = f["personalization"]
+    if p["enabled"]:
+        assert p["cap_mg_dl"] == 25.0 and p["reset_gap_minutes"] == 180.0
+        for e in f["estimates"]:
+            c = e["components"]
+            if c and c["patient_correction_mg_dl"] is not None:
+                assert abs(c["patient_correction_mg_dl"]) <= p["cap_mg_dl"] + 1e-9
+    else:
+        assert p["cap_mg_dl"] is None and p["reset_gap_minutes"] is None
+    t = client.get(f"{API}/replay/sessions/{s['id']}/twin").json()["personalization"]
+    assert t["cap_mg_dl"] == p["cap_mg_dl"]

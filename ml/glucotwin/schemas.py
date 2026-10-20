@@ -281,6 +281,10 @@ class Personalization(Contract):
     policy_id: str | None = None
     state_version: int
     horizons: list[HorizonAdaptation]
+    cap_mg_dl: float | None = Field(
+        default=None, description="Largest correction the policy can apply in either direction (null when disabled).")
+    reset_gap_minutes: float | None = Field(
+        default=None, description="A gap between readings longer than this clears the learned correction.")
 
 
 class ObservedGlucose(Contract):
@@ -469,6 +473,16 @@ class AlertList(Versioned):
     rule_available: bool
     rule_description: str | None
     items: list[Alert]
+
+
+class ReviewSnapshot(Versioned):
+    """One session read under one lock at one replay clock: the session, its warnings and its latest forecast.
+
+    Used by the review queue so that every value in a row describes the same session, revision and cutoff.
+    """
+    session: ReplaySession
+    alerts: AlertList
+    latest_forecast: LatestForecast
 
 
 class AcknowledgementRequest(Contract):
