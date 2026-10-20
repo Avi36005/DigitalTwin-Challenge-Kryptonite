@@ -138,16 +138,23 @@ def _events(ctx: Ctx, pl: dict[str, Any], rows: np.ndarray, finals: dict, fold: 
     return out, episodes
 
 
+def _tracks(experiment_id: str) -> list[str]:
+    """Tracks the protocol declares, in the fixed v1 order (a protocol may omit the 15-minute track)."""
+    declared = load_protocol(experiment_id)["tracks"]
+    return [t for t in ("multimodal_5min", "portable_15min") if t in declared]
+
+
 def assess_internal(experiment_id: str, reopen_reason: str | None = None) -> dict[str, Any]:
     doc = load_frozen(experiment_id)
     root = research_dir(experiment_id) / "assessment"
     plans = [p for p in plans_of(doc) if p.fold != FINAL]
-    pls = {(t, p.fold): load_pipeline(experiment_id, p.fold, t) for t in ("multimodal_5min", "portable_15min")
+    tracks = _tracks(experiment_id)
+    pls = {(t, p.fold): load_pipeline(experiment_id, p.fold, t) for t in tracks
            for p in plans}  # every fold frozen before anything is opened
     lock = _lock(root / "opened.json", reopen_reason, "internal outer-fold assessment")
     t0 = time.perf_counter()
     frames, events, episodes, lat = [], [], [], {}
-    for track in ("multimodal_5min", "portable_15min"):
+    for track in tracks:
         ctx = load_ctx(track, "development", experiment_id)
         for p in plans:
             pl = pls[(track, p.fold)]
@@ -206,7 +213,7 @@ def package_candidates(experiment_id: str) -> dict[str, Any]:
     """Bundle the final fold's selected pipeline of each track (weights, transformation, adaptation, ranges, warning
     policy) in the serving artifact format. Packaging never touches the registry."""
     out = {}
-    for track in ("multimodal_5min", "portable_15min"):
+    for track in _tracks(experiment_id):
         pl = load_pipeline(experiment_id, FINAL, track)
         label = pl["selection"]["selected"]
         meta = pl["bundles"][label]

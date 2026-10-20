@@ -363,7 +363,9 @@ def develop(ctx: Ctx, plan: FoldPlan, n_trials: int | None = None, log=print) ->
             cands.append(tree_search(ctx, plan, config, fs, n_trials))
             timings[f"{config}:{fs}"] = time.perf_counter() - t1
             log(f"[{plan.fold}/{ctx.track}] {config}:{fs} searched in {timings[f'{config}:{fs}']:.1f}s")
-    comparators = [v2_recipe_cand(ctx, plan)] if ctx.track == "multimodal_5min" else []
+    # Protocols without the v2 recipe (it has no model beyond 60 min) declare `comparators: {v2_recipe: null}`.
+    want_v2 = ctx.proto["models"].get("comparators", {}).get("v2_recipe") is not None
+    comparators = [v2_recipe_cand(ctx, plan)] if ctx.track == "multimodal_5min" and want_v2 else []
     chosen, sel_rows, why = select(ctx, cands, dev)
     log(f"[{plan.fold}/{ctx.track}] selected {chosen.label}: {why}")
 
