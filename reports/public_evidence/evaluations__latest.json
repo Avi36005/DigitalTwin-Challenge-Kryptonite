@@ -158,6 +158,148 @@
   "synthetic": false,
   "version": "1.0.0"
  },
+ "error_by_trend": {
+  "min_participants": 3,
+  "model_version": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+  "personalization": "adaptive",
+  "pipeline": "lightgbm:dyn-prof-v2",
+  "rows": [
+   {
+    "horizon": 30,
+    "label": "All origins",
+    "mae_macro": 13.358516186372043,
+    "mean_signed_error_target_above_180": -7.707077703401636,
+    "origins": 3766,
+    "participants": 14,
+    "slope_max": null,
+    "slope_min": null,
+    "trend": "all"
+   },
+   {
+    "horizon": 30,
+    "label": "Falling > 2 mg/dL/min",
+    "mae_macro": 18.783144091660915,
+    "mean_signed_error_target_above_180": -20.839995123131693,
+    "origins": 100,
+    "participants": 12,
+    "slope_max": -2.0,
+    "slope_min": null,
+    "trend": "falling_fast"
+   },
+   {
+    "horizon": 30,
+    "label": "Falling 1–2 mg/dL/min",
+    "mae_macro": 15.28949203531461,
+    "mean_signed_error_target_above_180": -7.6728967118064135,
+    "origins": 332,
+    "participants": 14,
+    "slope_max": -1.0,
+    "slope_min": -2.0,
+    "trend": "falling"
+   },
+   {
+    "horizon": 30,
+    "label": "Steady (within ±1 mg/dL/min)",
+    "mae_macro": 11.92671815526588,
+    "mean_signed_error_target_above_180": -7.596574010521226,
+    "origins": 2947,
+    "participants": 14,
+    "slope_max": 1.0,
+    "slope_min": -1.0,
+    "trend": "steady"
+   },
+   {
+    "horizon": 30,
+    "label": "Rising 1–2 mg/dL/min",
+    "mae_macro": 18.952516281973143,
+    "mean_signed_error_target_above_180": -4.943808203818437,
+    "origins": 249,
+    "participants": 14,
+    "slope_max": 2.0,
+    "slope_min": 1.0,
+    "trend": "rising"
+   },
+   {
+    "horizon": 30,
+    "label": "Rising > 2 mg/dL/min",
+    "mae_macro": 25.873396404688755,
+    "mean_signed_error_target_above_180": -8.519946820772747,
+    "origins": 138,
+    "participants": 14,
+    "slope_max": null,
+    "slope_min": 2.0,
+    "trend": "rising_fast"
+   },
+   {
+    "horizon": 60,
+    "label": "All origins",
+    "mae_macro": 20.91932306037634,
+    "mean_signed_error_target_above_180": -16.91941774966915,
+    "origins": 3766,
+    "participants": 14,
+    "slope_max": null,
+    "slope_min": null,
+    "trend": "all"
+   },
+   {
+    "horizon": 60,
+    "label": "Falling > 2 mg/dL/min",
+    "mae_macro": 23.483564637673215,
+    "mean_signed_error_target_above_180": -28.92435479662019,
+    "origins": 100,
+    "participants": 12,
+    "slope_max": -2.0,
+    "slope_min": null,
+    "trend": "falling_fast"
+   },
+   {
+    "horizon": 60,
+    "label": "Falling 1–2 mg/dL/min",
+    "mae_macro": 21.81095775393315,
+    "mean_signed_error_target_above_180": -17.47761804383122,
+    "origins": 332,
+    "participants": 14,
+    "slope_max": -1.0,
+    "slope_min": -2.0,
+    "trend": "falling"
+   },
+   {
+    "horizon": 60,
+    "label": "Steady (within ±1 mg/dL/min)",
+    "mae_macro": 19.536014973272916,
+    "mean_signed_error_target_above_180": -18.47788484015975,
+    "origins": 2947,
+    "participants": 14,
+    "slope_max": 1.0,
+    "slope_min": -1.0,
+    "trend": "steady"
+   },
+   {
+    "horizon": 60,
+    "label": "Rising 1–2 mg/dL/min",
+    "mae_macro": 28.760750899974806,
+    "mean_signed_error_target_above_180": -10.206423281907542,
+    "origins": 249,
+    "participants": 14,
+    "slope_max": 2.0,
+    "slope_min": 1.0,
+    "trend": "rising"
+   },
+   {
+    "horizon": 60,
+    "label": "Rising > 2 mg/dL/min",
+    "mae_macro": 35.32622948170383,
+    "mean_signed_error_target_above_180": -8.24009833730268,
+    "origins": 138,
+    "participants": 14,
+    "slope_max": null,
+    "slope_min": 2.0,
+    "trend": "rising_fast"
+   }
+  ],
+  "segment": "validation",
+  "trend_feature": "slope_15 (mg/dL per minute)"
+ },
  "event_results": [
   {
    "censored_origins": 0,

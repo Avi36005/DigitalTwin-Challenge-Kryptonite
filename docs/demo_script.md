@@ -1,6 +1,6 @@
 # GlucoTwin — demonstration video plan (minimum 20 minutes, demo first)
 
-**Team Kryptonite · VESIT, Mumbai.** The challenge page (rechecked 14 Oct 2026) requires a **minimum 20-minute video**
+**GlucoTwin — Team Kryptonite, VESIT (Mumbai).** The challenge page (rechecked 14 Oct 2026) requires a **minimum 20-minute video**
 explaining and demonstrating the prototype, as a PowerPoint recording or an **unlisted** YouTube video; the form
 transcription said 15–20 minutes, and the challenge page governs (D-040). This plan is **demo first**: two minutes of slides, then the app from
 02:00, with about 12¼ minutes in the live app overall. Aim for about **20:30** so that neither the rendered file nor YouTube's

@@ -158,6 +158,7 @@
   "synthetic": false,
   "version": "1.0.0"
  },
+ "error_by_trend": null,
  "event_results": [
   {
    "censored_origins": 0,

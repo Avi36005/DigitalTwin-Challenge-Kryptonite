@@ -98,9 +98,9 @@ PROTOCOL_NOTE = ("Scores depend on the dataset, prediction task and evaluation p
 
 
 def brand(sub: dict) -> str:
-    """'Team Kryptonite · VESIT' — the short name used on the title slide, the README heading and the video title card."""
+    """'Team Kryptonite, VESIT' — the short name used on the title slide, the README heading and the video title card."""
     t = sub["team"]
-    return f"Team {t['name']} · {t['institution_short']}" if t.get("institution_short") else f"Team {t['name']}"
+    return f"Team {t['name']}, {t['institution_short']}" if t.get("institution_short") else f"Team {t['name']}"
 
 
 def team_lines(sub: dict) -> tuple[str, str, str, str]:
@@ -398,8 +398,22 @@ def reanalysis_slide() -> dict | None:
                 f"{w['selected']['lead_median']:.0f} min.",
                 f"Not shown — health record as a new person's starting correction: {ci(p)} mg/dL at 120 min, {ci(p24)} in the "
                 "first 24 hours; the intervals cross zero, so no benefit is claimed.",
+                *([blend_bullet()] if blend_bullet() else []),
                 "The demo model's ranges are already pooled over all 14 people; its under-coverage most likely comes from drift between "
                 "time segments, so this fix is not applied to it."]}
+
+
+BLEND = ROOT / "artifacts/research/gt-blend-2026-10-21/development.json"
+
+
+def blend_bullet() -> str | None:
+    """D-048: LightGBM–CatBoost blend, development decision only (the outer folds were not opened)."""
+    if not BLEND.exists():
+        return None
+    d = json.loads(BLEND.read_text())["decision"]
+    c = d["checks"]
+    return (f"Not adopted — a LightGBM–CatBoost blend (D-048, declared before scoring): {c['improvement_60']:+.2f} mg/dL at 60 min "
+            "on development people against a 0.5 target, so the demo model is unchanged and the held-out folds were never opened.")
 
 
 TWO_HOUR_EXT = ROOT / "artifacts/research/gt-2h-ext-2026-10-20/two_hour_external_summary.json"

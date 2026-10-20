@@ -1,4 +1,4 @@
-# GlucoTwin — Team Kryptonite (VESIT)
+# GlucoTwin — Team Kryptonite, VESIT
 [![CI](https://github.com/Avi36005/DigitalTwin-Challenge-Kryptonite/actions/workflows/ci.yml/badge.svg)](https://github.com/Avi36005/DigitalTwin-Challenge-Kryptonite/actions/workflows/ci.yml)
 
 **Personalized glucose forecasting between clinic visits · Digital Twin Challenge 2026 (Happiest Health) · student
@@ -136,6 +136,14 @@ not been established (§7).
   counts, the latest warning's time, outcome and the forecast that fired it, data freshness, and whether the latest
   forecast's inputs were complete, degraded or abstained. Counts stop at each replay's own clock: nothing after it is
   shown, and an outcome settled after the clock reads "Outcome pending at the cutoff". Not triage.
+* **How the twin reached this forecast** (in the replay workspace, [screenshot](reports/ui/24-twin-explanation.png)):
+  the latest forecast's population forecast, the patient correction applied at issue time and the final estimate per
+  horizon; the correction's state (warming up, active or reset), its matured-outcome count and its ±25 mg/dL bound;
+  which glucose, wearable and health-record inputs were available (missing values stay missing); the warning track
+  record at the replay clock; target and measured range coverage for the exact model; and **accuracy at the current
+  glucose trend** — on the demo model's validation segment its 60-minute error was 35.3 mg/dL while glucose rose more
+  than 2 mg/dL per minute against 19.5 when steady, and peaks above 180 mg/dL were under-forecast by 16.9 mg/dL on
+  average ([report](reports/error_by_trend.md)). All values come from the API's recorded forecast; nothing is recomputed.
 * **Research after the demo model** (Model evidence → research view, [screenshot](reports/ui/21-research-after-demo-model.png)):
   the four 20 October experiments (D-043, D-045, D-044, D-046), each with who it was evaluated on, when it was opened,
   and a "Shown", "Not shown" or "Negative result" tag per finding, read from `GET /api/v1/research-summaries`. None is
@@ -360,6 +368,11 @@ median lead still 15 min).
 [−1.57, +0.58] mg/dL (first 24 hours: −0.93 [−2.74, +0.48]); the interval crosses zero, so the declared claim rule was
 not met ([report](reports/warning_range_experiment.md)).
 
+**A model blend, tried and not adopted** (`gt-blend-2026-10-21`, D-048, protocol committed before any blend was
+scored). Blending the LightGBM and CatBoost fusion models (same profile-plus-wearable inputs, one global weight chosen
+on development people) lowered 60-minute development error by only 0.02 mg/dL (22.28 → 22.26) against a declared
+target of 0.5, so the demo model is unchanged and the held-out folds were never opened ([report](reports/blend_experiment.md)).
+
 Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:
 [`reports/repair_report.md`](reports/repair_report.md) · model card:
 [`docs/model_card.md`](docs/model_card.md) · data card: [`docs/data_card.md`](docs/data_card.md).
@@ -560,7 +573,8 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
   [Integration audit](reports/integration_audit.md) · [Two-hour benchmark](reports/two_hour_benchmark.md) ·
   [Two hours ahead, external](reports/two_hour_external.md) · [Two-hour classifier (negative)](reports/two_hour_classifier.md) ·
   [Time in warning](reports/warning_time_share.md) · [Cold-start profile](reports/cold_start_profile.md) ·
-  [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
+  [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Model blend (negative)](reports/blend_experiment.md) ·
+  [Error by glucose trend](reports/error_by_trend.md) · [Evidence manifest](reports/evidence_manifest.md) · [Review summary check](reports/review_summary_check.md) · [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
 * **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
   [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·
   [Presentation outline](docs/presentation_outline.md) · [Jury questions](docs/jury_questions.md)

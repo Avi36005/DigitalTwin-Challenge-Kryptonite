@@ -1,6 +1,6 @@
 # Kryptonite_VESIT: GlucoTwin
 
-**Team Kryptonite · VESIT** · Vivekanand Education Society's Institute of Technology (VESIT), Mumbai · Digital Twin Challenge 2026 (Happiest Health).
+**Team Kryptonite, VESIT** · Vivekanand Education Society's Institute of Technology (VESIT), Mumbai · Digital Twin Challenge 2026 (Happiest Health).
 Team: Avinash Gehi (leader) · Hardik Hinduja.
 
 This folder follows the challenge's `Team Name_College Name` rule. It indexes the submission; each file lives

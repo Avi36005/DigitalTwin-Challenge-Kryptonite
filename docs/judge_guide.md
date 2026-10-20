@@ -47,6 +47,21 @@ Open http://127.0.0.1:5173 (landing page) → **Open workspace** → **New repla
 computed on synthetic participants is clinical evidence. Recorded-data replays need the CGMacros download
 ([Run it locally](../README.md#run-it-locally)).
 
+### Three-minute judge journey (recorded data, local install)
+
+Each click shows one claim, on a local install with CGMacros imported (`make data experiment`). Without the download,
+the synthetic demonstration shows the same screens on fictional participants.
+
+| Time | Click | What it shows | Claim it supports |
+|---|---|---|---|
+| 0:00 | Landing → **Open workspace** → **Open recorded demo** | Participant 01, final test period, Day 9 · 08:14; **View forecast details** names the model `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion` | A replay of recorded data with the exact serving model — never a live sensor |
+| 0:20 | Inspector → **How the twin reached this forecast** | Population forecast + patient correction = final forecast; correction state, matured outcomes and the ±25 mg/dL bound; inputs used | Profile and wearable data are read by the model; personalisation is bounded and past-only |
+| 0:50 | Drag the timeline to **Day 9 · 20:38**, then step to **21:13** | Warning at 20:30 *Outcome pending*, then matched to the 20:45 onset; the two earlier false alarms stay listed | Every warning ends with an outcome, false alarms included |
+| 1:20 | On the 20:30 warning: **Mark as reviewed** with a note → **Review summary** → *Print / Save as PDF* | A frozen record of that revision and cutoff, replay time and wall-clock time labelled separately | The review is traceable and does not change when the replay moves on |
+| 1:50 | **New replay** → Participant 12 → seek to **Day 9 · 10:52**, then **11:47** | Data freshness *Stale* across a real 70-minute sensor gap, then *Abstained* | Missing data is shown, never filled in; no forecast is better than a guessed one |
+| 2:20 | **Review queue** | Replays with unreviewed warnings first; counts stop at each replay's clock | An order of work, not a risk ranking |
+| 2:40 | **Model evidence** → research view | Results with who they were measured on; *Shown*, *Not shown* and *Negative result* tags | Matched baselines and negative results, read from saved files ([evidence manifest](../reports/evidence_manifest.md)) |
+
 ## 4. Evidence you can verify yourself
 
 Commands from README [Verification](../README.md#verification):

@@ -6,6 +6,8 @@
    "experiment_id": "gt-2h-2026-10-20",
    "findings": [
     {
+     "basis": "display_heuristic",
+     "basis_note": "Shown when the whole 95 % participant-bootstrap interval of the difference is below zero.",
      "better_for": 14,
      "ci95": [
       -6.44,
@@ -22,6 +24,8 @@
      "verdict": "shown"
     },
     {
+     "basis": "display_heuristic",
+     "basis_note": "Two hours of notice is described as shown only if the median forecast lead reaches 60 minutes; no protocol declared a lead target.",
      "better_for": null,
      "ci95": null,
      "estimate": null,
@@ -39,6 +43,8 @@
      "verdict": "not_shown"
     },
     {
+     "basis": "display_heuristic",
+     "basis_note": "Shown when the whole 95 % interval of with-minus-without profile is below zero.",
      "better_for": 8,
      "ci95": [
       -2.6,
@@ -55,7 +61,8 @@
    "opened_at": "2026-10-20T09:35:52+00:00",
    "participants": 14,
    "reopened_at": [],
-   "status": "available"
+   "status": "available",
+   "status_detail": null
   },
   {
    "decision_id": "D-045",
@@ -63,6 +70,8 @@
    "experiment_id": "gt-2h-ext-2026-10-20",
    "findings": [
     {
+     "basis": "display_heuristic",
+     "basis_note": "Shown when the whole 95 % participant-bootstrap interval of the difference is below zero.",
      "better_for": 78,
      "ci95": [
       -2.672,
@@ -82,7 +91,8 @@
    "opened_at": "2026-10-20T10:10:25+00:00",
    "participants": 98,
    "reopened_at": [],
-   "status": "available"
+   "status": "available",
+   "status_detail": null
   },
   {
    "decision_id": "D-044",
@@ -90,6 +100,8 @@
    "experiment_id": "gt-2h-clf-2026-10-20",
    "findings": [
     {
+     "basis": "display_heuristic",
+     "basis_note": "Described as a negative result because it warned at more than half of eligible times; its report rejects it for warning almost constantly.",
      "better_for": null,
      "ci95": null,
      "estimate": null,
@@ -111,7 +123,8 @@
    "reopened_at": [
     "2026-10-20T09:58:18+00:00"
    ],
-   "status": "available"
+   "status": "available",
+   "status_detail": null
   },
   {
    "decision_id": "D-046",
@@ -119,6 +132,8 @@
    "experiment_id": "gt-warn-range-2026-10-20",
    "findings": [
     {
+     "basis": "display_heuristic",
+     "basis_note": "Described as shown when pooled coverage moved closer to the 80 % target than the incumbent range; D-046 declared pooled calibration as its primary method, not a pass bar.",
      "better_for": null,
      "ci95": null,
      "estimate": null,
@@ -136,6 +151,8 @@
      "verdict": "shown"
     },
     {
+     "basis": "display_heuristic",
+     "basis_note": "Shown when the whole 95 % interval of the difference in onsets warned at least 30 minutes ahead is above zero; D-046 part A declared no claim rule.",
      "better_for": null,
      "ci95": [
       -5.484855588897224,
@@ -154,6 +171,8 @@
      "verdict": "not_shown"
     },
     {
+     "basis": "declared_rule",
+     "basis_note": "D-046 part C declared it before computing: the profile is said to help only if the 95 % interval of profile prior minus population only is below zero at 120 min.",
      "better_for": 10,
      "ci95": [
       -1.5719932584685548,
@@ -174,7 +193,8 @@
    "opened_at": "2026-10-20T12:24:25+00:00",
    "participants": 14,
    "reopened_at": [],
-   "status": "available"
+   "status": "available",
+   "status_detail": null
   }
  ],
  "schema_version": "1.0"
