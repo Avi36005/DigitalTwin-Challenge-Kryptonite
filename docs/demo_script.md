@@ -25,7 +25,7 @@ number written here. The deck has 23 slides; slides not shown in the video stay 
 | 06:30–09:00 | Warnings with honest outcomes (Day 9) | 2:30 | Participant 01 | 171 |
 | 09:00–11:00 | Guardrails in action: a real sensor gap | 2:00 | Participant 12 | 138 |
 | 11:00–11:45 | Rewind: nothing from the future leaks in | 0:45 | Participant 12 | 50 |
-| 11:45–12:45 | Synthetic edge cases | 1:00 | SYN-E, SYN-C | 86 |
+| 11:45–12:45 | Synthetic edge cases | 1:00 | Synthetic Participants E and C | 86 |
 | 12:45–15:00 | Model evidence and the safety guardrails | 2:15 | Model evidence, Data quality | 166 |
 | 15:00–18:30 | Measured results | 3:30 | Slides 14, 17, 18, 19 | 386 |
 | 18:30–20:15 | Limits, next steps and links | 1:45 | Slides 21–23 | 183 |
@@ -87,8 +87,8 @@ description.
 
 *Screen:* the landing page, then **Open workspace** → Overview.
 > This is the front door: a research prototype that replays recorded or synthetic data — never a live device. Inside
-> the workspace, the left sidebar holds New replay, search and our recent replays, and the top bar always says whether
-> we are watching recorded data or the synthetic demonstration.
+> the workspace, the left sidebar holds New replay, search and our recent replays; inside a replay, the top bar says
+> whether we are watching recorded data or the synthetic demonstration.
 
 *Action:* **Open recorded demo** on the Overview (the same as **New replay** → *Recorded-data replay* →
 **Participant 01** → *Final test period* → **Start replay**).
@@ -98,7 +98,7 @@ description.
 ## Chapter 4 — The twin workspace and its guardrails (04:00–05:30)
 
 The clock shows **Day 9 · 08:14**; current glucose **115** (08:10); 30-min forecast **119**, range **103–136**; 60-min
-**129**, range **102–155**; patient correction **active** (Scene A).
+**129**, range **103–155**; patient correction **active** (Scene A).
 > The current reading is 115. The twin forecasts 119 in thirty minutes and 129 in sixty, each with a prediction range
 > whose target coverage is eighty percent. In the chart, the black line is observed glucose, the blue points are the
 > newest forecasts, and the faint circles are earlier forecasts, saved and never changed.
@@ -115,8 +115,8 @@ shows it.
 
 ## Chapter 5 — Evidence behind one forecast (05:30–06:30)
 
-*Action:* **Step 1 h** → **Day 9 · 09:14**: glucose **149**; forecasts **168** (151–184) and **161** (134–187). Click the
-newest forecast point, then **View forecast details**.
+*Action:* **Step 1 h** → **Day 9 · 09:14**: glucose **149**; forecasts **168** (151–184) and **161** (134–187). Click
+**View forecast details** in the inspector.
 > Every forecast is an immutable record. Here is its information cutoff, the model version and the evaluation period.
 > And here is what makes it a twin: the population forecast, plus this patient's own correction learned from earlier
 > errors, gives the final forecast — read the two numbers on screen. The explanations are factual associations, not
@@ -128,56 +128,57 @@ newest forecast point, then **View forecast details**.
 
 *Action:* close the drawer; **Step 5 min** twice → **Day 9 · 09:24** (glucose **158**).
 > Glucose is rising. At 09:15 the twin issued a research warning: a forecast reached the warning trigger of 170 — ten
-> below the 180 threshold, a margin chosen on validation data. The panel names the forecast that fired and the trigger,
-> and says *Outcome pending*, because at this replay time the outcome cannot be known yet.
+> below the 180 threshold, a margin chosen on validation data. The Review panel names the forecast that fired and the
+> trigger; scroll down, and the Warnings list marks 09:15 *Outcome pending*, because at this replay time the outcome
+> cannot be known yet.
 
 *Action:* **Step 1 h** twice → **Day 9 · 11:24**.
 > Now it is known: no sustained episode followed. That was a false alarm, and the app says so.
 
-*Action:* drag the timeline to **Day 9 · 20:00**, release; point at the Warnings list (09:15 and 11:25, both *no onset
-observed*).
+*Action:* drag the timeline to about **Day 9 · 20:03**, release; point at the Warnings list (09:15 and 11:25, both
+*No onset (false alarm)*).
 > A second warning at 11:25 also ended without an episode — two false alarms today. We show them on purpose: across
 > the test period this rule raised 1.49 false alarms per observed patient-day.
 
-*Action:* **Step 5 min** to **Day 9 · 20:35**.
+*Action:* **Step 5 min** seven times → **Day 9 · 20:38**.
 > At 20:30 the twin warned again. Glucose is now 165 and the thirty-minute forecast is 189. Outcome pending.
 
-*Action:* step to **Day 9 · 21:10**; open the **Warnings** list.
-> Glucose is 190. A sustained episode began at 20:45 — fifteen minutes after the warning. The list now shows all three:
+*Action:* **Step 5 min** seven more times → **Day 9 · 21:13**; scroll to the **Warnings** list.
+> Glucose is 190. A sustained episode began at 20:45 — fifteen minutes after the warning. The top three entries are today's:
 > two false alarms and one matched onset, with its forecast lead. On the whole test period this rule caught 61 of 64
 > new episodes.
 
 ## Chapter 7 — Guardrails in action: a real sensor gap (09:00–11:00)
 
-*Action:* **New replay** → **Participant 12** → *Final test period* → seek to **Day 9 · 10:25** (Scene B).
-> Participant 12's own record has a seventy-minute gap in its test period. At 10:25 glucose is 397 — already high; the
+*Action:* **New replay** → **Participant 12** → *Final test period* → seek to **Day 9 · 10:27** (Scene B; this timeline stops at :x2/:x7 minutes).
+> Participant 12's own record has a seventy-minute gap in its test period. At 10:27 glucose is 397 — already high; the
 > review panel says so, and keeps that observation separate from predictions.
 
-*Action:* seek to **Day 9 · 10:50**, then **11:30**; point at *Data freshness* and the forecast cards.
-> The last reading was at 10:29. The guardrail turns: data freshness is *Stale*, twenty-one and then sixty-one minutes
+*Action:* seek to **Day 9 · 10:52**, then **11:32**; point at *Data freshness* and the forecast cards.
+> The last reading was at 10:29. The guardrail turns: data freshness is *Stale*, twenty-three minutes and then over an hour
 > old, over the fifteen-minute limit. No new forecast is made without a new reading; the last one stays visible, marked
 > stale, and the chart leaves the gap empty instead of drawing a line through it. A warning open across such a gap
 > would be marked *Outcome unknown (gap)*, never counted as a hit.
 
-*Action:* seek to **Day 9 · 11:45**; point at *Forecast inputs*.
+*Action:* seek to **Day 9 · 11:47**; point at *Forecast inputs*.
 > Readings have resumed — 195 at 11:44 — but the last hour is too sparse, so the twin abstains: *Abstained, no forecast
 > is shown*, with the plain reason. Unavailable is never displayed as low risk.
 
 ## Chapter 8 — Rewind: nothing from the future leaks in (11:00–11:45)
 
-*Action:* seek **back** to **Day 9 · 10:25**.
+*Action:* seek **back** to **Day 9 · 10:27**.
 > Seeking backwards creates a new revision of the session: the twin is rebuilt from earlier data only and later
 > responses are discarded, so nothing from the future can leak in. Every forecast it shows is the one it would have made
-> at 10:25. An automated test checks exactly this.
+> at 10:27. An automated test checks exactly this.
 
 ## Chapter 9 — Synthetic edge cases (11:45–12:45)
 
-*Action:* **New replay** → *Synthetic demonstration* → **SYN-E** → **Step 5 min** (Scene C).
+*Action:* **New replay** → *Synthetic demonstration* → **Synthetic Participant E** → **Step 5 min** (Scene C).
 > Synthetic participants are fictional; they exercise edge cases like these without any download. Synthetic
 > Participant E has under an hour of history. *Forecast inputs* says the twin abstained, with the reason —
 > not enough glucose history yet — and the patient correction is warming up.
 
-*Action:* **New replay** → **SYN-C** → seek to **Day 1 · 09:30**, then **10:00**; point at Observations (Scene E).
+*Action:* **New replay** → *Synthetic demonstration* → **Synthetic Participant C** → seek to **Day 1 · 09:30**, then **10:00**; point at Observations (Scene E).
 > Here breakfast was eaten at 08:27 but logged ninety minutes later. At 09:30 the meal is invisible; at 10:00 it
 > appears, with its eating time and its logging time. The twin can only use what was known at the time.
 
@@ -190,9 +191,9 @@ observed*).
 > retrospective: two code fixes and the fusion constraint came after the test period had been seen. The notice at the
 > top of the page lists what qualifies these numbers, and the earlier results are preserved.
 
-*Action:* back in a replay, click **All safety guardrails** in the inspector (it scrolls to *Safety guardrails* on this
+*Action:* back in a replay, scroll the inspector down and click **All safety guardrails** (it scrolls to *Safety guardrails* on this
 page); scroll through the list.
-> This is the full list, each with the code that enforces it: abstaining instead of guessing, flagging weak inputs, the
+> This is the full list, each with the file that enforces or documents it: abstaining instead of guessing, flagging weak inputs, the
 > health-record gate, no look-ahead, the bounded correction, rejecting implausible sensor values, warnings that show
 > their outcome, ranges with measured coverage, no clinical claims, tests that cannot be quietly re-run, and the app
 > reproducing every saved test forecast.
