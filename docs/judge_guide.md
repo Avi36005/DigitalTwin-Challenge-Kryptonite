@@ -76,6 +76,7 @@ scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an e
 | D-043 | [`gt-2h-2026-10-20`](../configs/experiments/gt-2h-2026-10-20.yaml): two-hour benchmark | Before any fit, 20 Oct 2026 | [two-hour benchmark](../reports/two_hour_benchmark.md) |
 | D-044 | [`gt-2h-clf-2026-10-20`](../configs/experiments/gt-2h-clf-2026-10-20.yaml): direct two-hour onset classifier | Before any fit, 20 Oct 2026 | [classifier report](../reports/two_hour_classifier.md) — **negative result, kept** |
 | D-045 | [`gt-2h-ext-2026-10-20`](../configs/experiments/gt-2h-ext-2026-10-20.yaml): two hours ahead on 98 ShanghaiT2DM people | Before any fit, 20 Oct 2026; assessed once at 2026-10-20T10:10:25+00:00 | [external two-hour check](../reports/two_hour_external.md) |
+| D-046 | [`gt-warn-range-2026-10-20`](../configs/experiments/gt-warn-range-2026-10-20.yaml): earlier warnings, pooled ranges, profile as starting correction (saved two-hour predictions re-analysed) | Before any arm was computed, 20 Oct 2026 (protocol committed first); outer predictions read once at 2026-10-20T12:24:25+00:00 | [re-analysis](../reports/warning_range_experiment.md) — ranges fixed (79.8 % at 120 min); earlier warning and profile benefit **not shown** |
 
 * **The negative result (D-044):** the classifier looked perfect on episode counts (329 of 329 onsets, 0.18 false
   alarms per day) only because its inner-fold threshold made it warn at 99 % of eligible times; its ROC AUC was 0.64.
@@ -98,7 +99,9 @@ scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an e
   with assumed zero latency; medication use unknown; ranges under-cover; the warning rule still raises more than one
   false alarm per observed day; 180 mg/dL is a research threshold; with 14 people the profile may act as an identity
   code; v2 and the fusion constraint re-use an already-inspected test segment. Nothing here is clinical validation.
-* **Uncertainty:** prediction ranges (target 80 %) covered 74.2 % / 74.0 %: under-coverage.
+* **Uncertainty:** the demo model's prediction ranges (target 80 %) covered 74.2 % / 74.0 %: under-coverage. In the
+  two-hour research procedure, pooled calibration fixed coverage (76.5 % → 79.8 % at 120 min, D-046); that fix does not
+  apply to the demo model, whose under-coverage comes from drift between time segments.
 * **Not novel, not ranked.** We do not claim novelty of glucose twins or predictive alerts (commercial programs and CGM
   alerts exist), and we make no comparison with other teams. It is a statistical research twin, not a physiological
   simulator. The Mumbai diabetes educator in the README is a hypothetical example: no clinic, partner or pilot is

@@ -26,6 +26,7 @@ absolute error (MAE) is in mg/dL, averaged equally over participants: an average
 | MAE **11.15 / 20.11** (persistence 12.14 / 20.44; the 60-minute difference is inconclusive) | A separate 15-minute LightGBM, **not** the demo model | **98 ShanghaiT2DM people**, an independent cohort, evaluated once |
 | **Two hours ahead:** MAE **30.6** at 120 min (persistence 35.9; better for 14 of 14 people); 2-hour warning: **315 of 329** onsets at **1.62** false alarms per observed day, median forecast lead 15 min (IQR 5–65); ranges covered 76.5 % (target 80 %) | Research procedure (rule's choice per fold, CGM-only Ridge or LightGBM), **not** the demo model | 14 CGMacros people, **each held out entirely** once; declared before any fit on 20 Oct ([two-hour benchmark](reports/two_hour_benchmark.md), D-043) |
 | **Two hours ahead, independent cohort:** MAE **29.55** at 120 min (persistence 31.68; −2.12 [−2.67, −1.53] mg/dL, better for **78 of 98** people); 10.90 / 19.31 at 30 / 60 min (persistence 12.14 / 20.44); ranges covered 87 % | A 15-minute LightGBM on CGM only, re-fitted with a 120-minute horizon (`gt-2h-ext-2026-10-20`; a separate fit from the row above), **not** the demo model | **98 ShanghaiT2DM people**, assessed once; no 120-minute result had been computed there before (declared before any fit, [external two-hour check](reports/two_hour_external.md), D-045) |
+| **Ranges fixed in the research procedure:** calibrating on all development people instead of 2 per fold brought two-hour coverage from 76.5 % to **79.8 %** (target 80 %; 60 min 78.2 → 79.5 %), ranges 7 mg/dL wider. Tried and **not** shown: earlier two-hour warnings (+0.9 points warned ≥ 30 min ahead, [−5.5, +6.6]) and the health record as a starting correction (−0.53 [−1.57, +0.58] mg/dL at 120 min) | Saved predictions of the two-hour research procedure re-analysed (`gt-warn-range-2026-10-20`), **not** the demo model | Same 14 people held out entirely, already inspected: internal validation; declared and committed before any arm was computed ([report](reports/warning_range_experiment.md), D-046) |
 
 Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
 establish performance on real patients.
@@ -208,6 +209,8 @@ Results come from three separately labelled models, all reproducible with the co
   (15-minute LightGBM re-fitted with a 120-minute horizon, assessed on ShanghaiT2DM) and the rejected classifier
   `gt-2h-clf-2026-10-20`; none is the demo model ([two-hour](reports/two_hour_benchmark.md) ·
   [external](reports/two_hour_external.md) · [classifier](reports/two_hour_classifier.md)).
+* **Warnings, ranges and profile re-analysis (20 Oct)** — `gt-warn-range-2026-10-20` re-uses the saved two-hour
+  predictions; no forecasting model is refitted ([report](reports/warning_range_experiment.md)).
 
 **145 participants imported; 14 evaluated internally and 98 evaluated externally.**
 
@@ -332,6 +335,18 @@ external cohort, ShanghaiT2DM (FreeStyle Libre H at 15-minute cadence, China), o
 D-044, declared before fitting) looked perfect on episode counts (329 of 329 onsets, 0.18 false alarms per day) only
 because its inner-fold threshold made it warn at 99 % of eligible times; its ROC AUC was 0.64. It is not used
 ([report](reports/two_hour_classifier.md)), and it shows why time spent in warning must be read beside alarm counts.
+
+**What a re-analysis fixed, and what it did not** (`gt-warn-range-2026-10-20`, D-046, declared and committed before any
+arm was computed; saved predictions of the two-hour procedure, the same 14 already-inspected people, so internal
+validation). *Ranges:* the two-hour procedure calibrated its 80 % ranges on only 2 people per fold and under-covered
+(76.5 % at 120 min); calibrating on the development and calibration people pooled gave **79.8 %** (60 min 79.5 %,
+per-person median 81.2 %) for ranges 7 mg/dL wider. The demo model's under-coverage (74.2 % / 74.0 %) has a different
+cause — its ranges are already pooled over all 14 people, on an earlier time segment — so this fix is **not** applied
+to it. *Earlier warnings:* adding the range half-width to the forecasts, or using the 120-minute forecast alone, did not
+warn more onsets at least 30 minutes ahead at the same workload (+0.9 points [−5.5, +6.6]; median lead still 15 min).
+*Health record:* using the 8 profile values to set a new person's starting correction lowered 120-minute error by 0.53
+[−1.57, +0.58] mg/dL (first 24 hours: −0.93 [−2.74, +0.48]); the interval crosses zero, so the declared claim rule was
+not met ([report](reports/warning_range_experiment.md)).
 
 Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:
 [`reports/repair_report.md`](reports/repair_report.md) · model card:
@@ -510,7 +525,7 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
   [Integration audit](reports/integration_audit.md) · [Two-hour benchmark](reports/two_hour_benchmark.md) ·
   [Two hours ahead, external](reports/two_hour_external.md) · [Two-hour classifier (negative)](reports/two_hour_classifier.md) ·
   [Time in warning](reports/warning_time_share.md) · [Cold-start profile](reports/cold_start_profile.md) ·
-  [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
+  [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
 * **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
   [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·
   [Presentation outline](docs/presentation_outline.md) · [Jury questions](docs/jury_questions.md)

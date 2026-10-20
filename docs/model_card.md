@@ -248,3 +248,19 @@ was promoted.
 for all 14 held-out people, but the two-hour warning is not two hours of notice (median forecast lead 15.0 min, more
 false alarms than the 60-minute warning), ranges under-covered, wearable inputs raised error, the profile showed no
 reliable benefit on new people, and none of this is clinical validation.
+
+**Re-analysis of these predictions — `gt-warn-range-2026-10-20` (D-046, not serving).** Declared and committed before
+any arm was computed; every choice made on development and calibration people; outer predictions read once
+([report](../reports/warning_range_experiment.md)). Internal validation on the same already-inspected people.
+
+* **Ranges:** calibrated on the development and calibration people pooled instead of the fold's 2 calibration people,
+  coverage at 120 min rose from 76.5 % to 79.8 % (60 min 78.2 → 79.5 %; 30 min 79.8 % unchanged; per-person median
+  81.2 %), mean width 88 → 95 mg/dL. Not applied to the demo model: its ranges are already pooled over all 14 people,
+  and its under-coverage comes from drift between time segments.
+* **Earlier warning: not shown.** Arms (forecast plus range half-width; 120-minute forecast only) and thresholds chosen
+  on inner folds for the most onsets warned ≥ 30 min ahead at ≤ 2 false alarms per observed day and ≤ 15 % of eligible
+  time: 126 vs 123 of 329 onsets warned ≥ 30 min ahead (+0.9 points [−5.5, +6.6]), 291 vs 315 warned in total,
+  false alarms 1.65 vs 1.62 per observed day, median lead 15 min.
+* **Health record as a starting correction: not shown.** Ridge on the 8 profile values (development people) predicting
+  a new person's average error: −0.53 [−1.57, +0.58] mg/dL at 120 min (10 of 14 better); first 24 hours −0.93
+  [−2.74, +0.48]. The declared claim rule (interval below zero) was not met.
