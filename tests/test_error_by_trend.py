@@ -25,3 +25,16 @@ def test_other_model_version_or_missing_file_is_ignored(tmp_path):
     assert _error_by_trend(tmp_path, "m-1") is None
     _write(tmp_path, "m-0")
     assert _error_by_trend(tmp_path, "m-1") is None
+
+
+def test_saved_trend_file_matches_the_api_schema():
+    """The file scripts/error_by_trend.py writes must validate against the contract the API serves (if present)."""
+    import pytest
+    from glucotwin.config import paths
+    from glucotwin.schemas import TrendErrorReport
+
+    p = paths().artifacts / "experiments" / "gt-primary-2026-10-13-fusion" / "error_by_trend.json"
+    if not p.exists():
+        pytest.skip("trend file not generated on this installation")
+    doc = json.loads(p.read_text())
+    TrendErrorReport.model_validate({k: doc[k] for k in TrendErrorReport.model_fields})
