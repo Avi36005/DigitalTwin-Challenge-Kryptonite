@@ -141,11 +141,13 @@ be downloaded once. The app binds to localhost and makes no external calls at ru
 **Your ranges under-cover. Did you try to fix it?** Yes, in a declared re-analysis (D-046). In the two-hour research
 procedure the ranges were calibrated on only 2 people per fold; pooling the development and calibration people raised
 120-minute coverage from 76.5 % to 79.8 % (target 80 %), with ranges 7 mg/dL wider. The demo model's ranges are already
-pooled over all 14 people, so its 74 % comes from drift between time segments and this fix does not apply to it.
+pooled over all 14 people, so its 74 % most likely comes from drift between time segments and this fix does not apply
+to it.
 
 **Can the two-hour warning give more notice?** We tried two declared ways (adding the range half-width to the forecast;
-the 120-minute forecast alone), chosen on inner folds at the same alarm and time-in-warning budget. Neither warned more
-onsets at least 30 minutes ahead (+0.9 points [−5.5, +6.6]); the median lead stayed 15 minutes. Reported as not shown.
+the 120-minute forecast alone), chosen on inner folds at the same alarm and time-in-warning budget. The rule's choice
+warned 126 vs 123 of 329 onsets at least 30 minutes ahead (+0.9 points [−5.5, +6.6]), not a reliable gain, and each
+way on its own warned fewer; the median lead stayed 15 minutes. Reported as not shown.
 
 **Could the health record help a brand-new patient?** We tested it as a starting correction predicted from the 8
 profile values: −0.53 [−1.57, +0.58] mg/dL at 120 min, −0.93 [−2.74, +0.48] in the first 24 hours. The interval

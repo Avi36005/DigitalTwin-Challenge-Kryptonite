@@ -398,8 +398,8 @@ def reanalysis_slide() -> dict | None:
                 f"{w['selected']['lead_median']:.0f} min.",
                 f"Not shown — health record as a new person's starting correction: {ci(p)} mg/dL at 120 min, {ci(p24)} in the "
                 "first 24 hours; the intervals cross zero, so no benefit is claimed.",
-                "The demo model's ranges are already pooled over all 14 people; its under-coverage comes from drift between time "
-                "segments, so this fix is not applied to it."]}
+                "The demo model's ranges are already pooled over all 14 people; its under-coverage most likely comes from drift between "
+                "time segments, so this fix is not applied to it."]}
 
 
 TWO_HOUR_EXT = ROOT / "artifacts/research/gt-2h-ext-2026-10-20/two_hour_external_summary.json"

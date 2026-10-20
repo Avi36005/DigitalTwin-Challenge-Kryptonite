@@ -35,7 +35,7 @@ export function ReviewQueuePage() {
     <>
       <PageHeader title="Review queue"
         meta={items.length > 0 ? <>{waiting === 0 ? "No replay has unreviewed warnings" : `${waiting} of ${items.length} replays have unreviewed warnings`}</> : undefined}>
-        Replays held by the local API, with unreviewed research warnings first and then the most recent warning. Research demonstration,
+        The 50 most recent replays held by the local API, with unreviewed research warnings first and then the most recent warning. Research demonstration,
         not triage: the order is not a risk ranking, and every count stops at that replay’s own clock.
       </PageHeader>
       {sessions.isLoading ? <Skeleton h={160} /> : sessions.isError ? (

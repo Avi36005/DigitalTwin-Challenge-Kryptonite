@@ -128,10 +128,10 @@ not been established (§7).
   Mumbai follows adults with Type 2 diabetes who wear CGMs and activity trackers between quarterly visits. One sensor
   produces about 288 readings a day, too many to read by hand. The educator opens one person's replay and sees the
   current reading, the 30- and 60-minute forecasts with their ranges, any research warning with the forecast that fired
-  it, and the data each forecast was allowed to use. A **review queue** lists every replay with its unreviewed warnings
+  it, and the data each forecast was allowed to use. A **review queue** lists the replays with unreviewed warnings
   first; it orders work, it does not rank risk. No Indian participants were evaluated.
-* **Review queue** (`/app/review-queue`, [screenshot](reports/ui/20-review-queue.png)): every replay held by the local
-  API, unreviewed research warnings first, then the most recent warning. Each row shows unreviewed and reviewed warning
+* **Review queue** (`/app/review-queue`, [screenshot](reports/ui/20-review-queue.png)): the 50 most recent replays held by
+  the local API, unreviewed research warnings first, then the most recent warning. Each row shows unreviewed and reviewed warning
   counts, the latest warning's time, outcome and the forecast that fired it, data freshness, and whether the latest
   forecast's inputs were complete, degraded or abstained. Counts stop at each replay's own clock: nothing after it is
   shown, and an outcome settled after the clock reads "Outcome pending at the cutoff". Not triage.
@@ -346,10 +346,12 @@ arm was computed; saved predictions of the two-hour procedure, the same 14 alrea
 validation). *Ranges:* the two-hour procedure calibrated its 80 % ranges on only 2 people per fold and under-covered
 (76.5 % at 120 min); calibrating on the development and calibration people pooled gave **79.8 %** (60 min 79.5 %,
 per-person median 81.2 %) for ranges 7 mg/dL wider. The demo model's under-coverage (74.2 % / 74.0 %) has a different
-cause — its ranges are already pooled over all 14 people, on an earlier time segment — so this fix is **not** applied
+cause — its ranges are already pooled over all 14 people, on an earlier time segment, so drift between segments is the
+likely reason — and this fix is **not** applied
 to it. *Earlier warnings:* adding the range half-width to the forecasts, or using the 120-minute forecast alone, did not
-warn more onsets at least 30 minutes ahead at the same workload (+0.9 points [−5.5, +6.6]; median lead still 15 min).
-*Health record:* using the 8 profile values to set a new person's starting correction lowered 120-minute error by 0.53
+reliably warn more onsets at least 30 minutes ahead at the same workload (126 vs 123 of 329, +0.9 points [−5.5, +6.6];
+median lead still 15 min).
+*Health record:* using the 8 profile values to set a new person's starting correction changed 120-minute error by −0.53
 [−1.57, +0.58] mg/dL (first 24 hours: −0.93 [−2.74, +0.48]); the interval crosses zero, so the declared claim rule was
 not met ([report](reports/warning_range_experiment.md)).
 

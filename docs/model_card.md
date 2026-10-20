@@ -256,7 +256,7 @@ any arm was computed; every choice made on development and calibration people; o
 * **Ranges:** calibrated on the development and calibration people pooled instead of the fold's 2 calibration people,
   coverage at 120 min rose from 76.5 % to 79.8 % (60 min 78.2 → 79.5 %; 30 min 79.8 % unchanged; per-person median
   81.2 %), mean width 88 → 95 mg/dL. Not applied to the demo model: its ranges are already pooled over all 14 people,
-  and its under-coverage comes from drift between time segments.
+  and its under-coverage most likely comes from drift between time segments.
 * **Earlier warning: not shown.** Arms (forecast plus range half-width; 120-minute forecast only) and thresholds chosen
   on inner folds for the most onsets warned ≥ 30 min ahead at ≤ 2 false alarms per observed day and ≤ 15 % of eligible
   time: 126 vs 123 of 329 onsets warned ≥ 30 min ahead (+0.9 points [−5.5, +6.6]), 291 vs 315 warned in total,
