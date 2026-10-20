@@ -1,0 +1,117 @@
+# Evaluate GlucoTwin in 5 minutes
+
+For judges of the Digital Twin Challenge 2026 (Happiest Health). Team Kryptonite, VESIT. Every number below is copied
+from the [README](../README.md) or the linked reports; this page adds no new evidence.
+
+## 1. What it is
+
+GlucoTwin is a student research prototype that keeps a patient-specific state for an adult with Type 2 diabetes and
+updates it as continuous-glucose and wearable readings arrive. It forecasts glucose 30 and 60 minutes ahead and warns of
+a new episode above 180 mg/dL sustained for at least 15 minutes (a research definition, not triage), while showing a
+clinician exactly what was known at each moment. Every result was measured on recorded CGM data from real people
+(14 CGMacros Type 2 participants, and 98 ShanghaiT2DM people as an independent external check); none comes from
+simulated patients.
+
+## 2. How it meets the brief
+
+| Brief requirement | Where it is shown | Honest status |
+|---|---|---|
+| Fuse static EHR-like data with dynamic wearable data | One LightGBM per horizon reads 8 baseline profile values and 38 glucose and wearable features: README [§7](../README.md#what-the-profile-fusion-does-and-does-not-show) · [model card](model_card.md) · app **Model evidence** screen ([screenshot](../reports/ui/18-model-evidence-fusion-disclosures.png)) | **Met, with caveats.** The profile is read by the model but shows no reliable benefit on new people: +0.34 [−0.28, +0.89] mg/dL at 30 min and −0.75 [−2.19, +0.61] at 60 min on people held out entirely; with 14 people it may act as an identity code. The constraint was declared after the test segment had been inspected. Wearable activity inputs made new-person forecasts worse in this cohort. Chosen for the brief, not for accuracy. |
+| Predict an adverse event ahead of time (e.g. a spike 2 h ahead) | Demo model: 60-minute *Research warning* in the workspace ([screenshot](../reports/ui/08-recording-1920-warning-pending.png), README GIF). Two hours: separate research benchmark ([report](../reports/two_hour_benchmark.md)) | **Partly met.** Demo model: 61 of 64 new high-glucose onsets warned; 40 false alarms, 1.49 per observed patient-day; median forecast lead 30 min. Two hours ahead (research procedure, **not** the demo model): MAE 30.6 at 120 min (persistence 35.9; better for 14 of 14 people); 315 of 329 onsets at 1.62 false alarms per observed day, but median forecast lead only 15 min (IQR 5–65): a two-hour forecast, not two hours of notice. On 98 independent ShanghaiT2DM people (CGM only, assessed once): 29.55 vs 31.68 mg/dL at 120 min, better for 78 of 98 ([external check](../reports/two_hour_external.md)). The demo warning is active at 11.8 % of eligible times ([time in warning](../reports/warning_time_share.md)). |
+| Conceptual dashboard for a doctor | Working React workspace: README [§5](../README.md#5-healthcare-use-case) · [screenshots](../reports/ui/README.md) | **Met** as a working research workspace. It reviews one person at a time (no multi-patient queue) and replays recorded or synthetic data, never a live device. |
+| Open, anonymised or synthetic data | CGMacros 1.0.0 (de-identified, CC BY-NC-SA 4.0), ShanghaiT2DM (CC BY 4.0), synthetic fixtures (CC0-1.0): [data card](data_card.md) · README [§9](../README.md#9-open-source-license) · app **Data sources** screen ([screenshot](../reports/ui/16-data-sources.png)) | **Met.** The datasets are downloaded by each user and not redistributed. |
+| Submission items (twelve README items, video, PDFs) | README [checklist](../README.md#submission-checklist-unstop-form) · [submission checklist](submission_checklist.md) | **Partly met on 20 October 2026:** items 1–7 and 9–11 Ready; item 8 (demo video) missing — not yet recorded or uploaded; item 12 (public access) unverified — repository not yet public. The README checklist holds the current status. |
+
+## 3. The 5-minute path
+
+1. **Video.** Unlisted YouTube link in README [§8](../README.md#8-demo-video) (minimum 20 minutes). Chapter timestamps
+   added after upload. For a short look, watch the chapters *Warnings with honest outcomes (Day 9)*, *Guardrails in
+   action: a real sensor gap* and *Measured results* ([chapter plan](demo_script.md)).
+2. **README GIF** ([`demo-recorded-warning.gif`](../reports/ui/demo-recorded-warning.gif)): recorded CGMacros data,
+   Participant 01. A research warning is issued at Day 9 · 20:30 and the onset follows at 20:45 (forecast lead 15 min);
+   the same participant had two false alarms earlier that day, and across the test 40 of 101 warning episodes were
+   false alarms.
+3. **Results table** ([Results at a glance](../README.md#results-at-a-glance)): read the *Evaluated on* column first;
+   each row is a different model and a different test.
+4. **Safety guardrails** ([table](../README.md#safety-guardrails)): abstention, degraded-input flags, no look-ahead,
+   bounded personalisation, an outcome for every warning and locked tests, each linked to its code and tests.
+5. **Run the synthetic demo** (no download, ~3 minutes; needs [uv](https://docs.astral.sh/uv/) and Node.js ≥ 20):
+
+```bash
+make setup        # Python + web dependencies
+make synthetic    # fictional fixtures + synthetic demonstration model
+make dev          # API on http://127.0.0.1:8000 and web app on http://127.0.0.1:5173
+```
+
+Open http://127.0.0.1:5173 (landing page) → **Open workspace** → **New replay** → *Synthetic demonstration*. Nothing
+computed on synthetic participants is clinical evidence. Recorded-data replays need the CGMacros download
+([Run it locally](../README.md#run-it-locally)).
+
+## 4. Evidence you can verify yourself
+
+Commands from README [Verification](../README.md#verification):
+
+```bash
+make test       # backend tests: leakage, labels, splits, adaptation maturity, activity windows, warning matching, replay invariants, API, integration
+make test-web   # type check + frontend tests + production build
+make e2e        # Playwright journeys on their own API + web server with throwaway storage (also refreshes reports/ui/*.png)
+uv run python scripts/check_submission.py  # README links, anchors, tracked files, PDF/PPTX readability
+scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an empty directory: setup, tests, e2e, Shanghai path
+```
+
+* **App matches the evaluation:** replaying every test participant through the app reproduced all 15,440 saved test
+  forecasts within 0.05 mg/dL ([verification](../reports/verification.md)).
+* **Lock files:** an opened assessment writes `opened.json` under `artifacts/research/<experiment>/` (git-ignored, so it
+  appears when you run the research steps). Running it again is refused without `--reopen-reason` and is then
+  exploratory ([`assess.py`](../ml/glucotwin/research/assess.py), [`two_hour_classifier.py`](../scripts/two_hour_classifier.py)).
+  The reports record the times: the two-hour benchmark was opened once at 2026-10-20T09:35:52+00:00; the classifier was
+  first opened at 2026-10-20T09:57:29+00:00 and re-opened at 2026-10-20T09:58:18+00:00 for a post-hoc diagnostic (the
+  declared metrics did not change).
+* **Declared protocols** (each decision is a row in [`decisions.md`](decisions.md)):
+
+| Decision | Experiment and protocol file | When declared | Report |
+|---|---|---|---|
+| D-032 | [`gt-nested-2026-10-12-v1`](../configs/experiments/gt-nested-2026-10-12-v1.yaml): 14 people each held out once, ShanghaiT2DM reserved as external cohort | Before any fit, 12 Oct 2026 | [nested benchmark](../reports/nested_benchmark_report.md) |
+| D-038 | [`gt-primary-2026-10-13-fusion`](../configs/experiments/gt-primary-2026-10-13-fusion.yaml): the demo model | 13 Oct 2026, **after** the test segment had been inspected (retrospective) | [evaluation report](../reports/evaluation_report.md) · [model card](model_card.md) |
+| D-043 | [`gt-2h-2026-10-20`](../configs/experiments/gt-2h-2026-10-20.yaml): two-hour benchmark | Before any fit, 20 Oct 2026 | [two-hour benchmark](../reports/two_hour_benchmark.md) |
+| D-044 | [`gt-2h-clf-2026-10-20`](../configs/experiments/gt-2h-clf-2026-10-20.yaml): direct two-hour onset classifier | Before any fit, 20 Oct 2026 | [classifier report](../reports/two_hour_classifier.md) — **negative result, kept** |
+
+* **The negative result (D-044):** the classifier looked perfect on episode counts (329 of 329 onsets, 0.18 false
+  alarms per day) only because its inner-fold threshold made it warn at 99 % of eligible times; its ROC AUC was 0.64.
+  It is not used, and it shows why time spent in warning must be read beside alarm counts.
+* **Reproduction note:** research numbers need the downloaded datasets, and fold membership of
+  `gt-nested-2026-10-12-v1` follows this installation's salted pseudonyms, so another installation gets an equally
+  valid but different draw ([README](../README.md#larger-data-research-experiment-optional)).
+
+## 5. What we do NOT claim
+
+* **Not a medical device.** Research demonstration only: not a medical device, no treatment advice, and a replay of
+  recorded or synthetic data, never a live device. No LLM-generated predictions.
+* **Not tested on new patients (demo model).** Its test results come from later recordings of the same 14 CGMacros
+  people it was trained on; a test over time, not on new patients (retrospective).
+* **No proven benefit of the health record.** We selected a model that implements the required fusion; we have not
+  established that profile features improve forecasting for unseen patients.
+* **Not two hours of notice.** The two-hour warning comes from a research procedure, not the demo model, and its median
+  forecast lead was 15 min.
+* **Limitations (README §7):** 14 participants from one US site; no Indian participants; blinded research CGMs replayed
+  with assumed zero latency; medication use unknown; ranges under-cover; the warning rule still raises more than one
+  false alarm per observed day; 180 mg/dL is a research threshold; with 14 people the profile may act as an identity
+  code; v2 and the fusion constraint re-use an already-inspected test segment. Nothing here is clinical validation.
+* **Uncertainty:** prediction ranges (target 80 %) covered 74.2 % / 74.0 %: under-coverage.
+* **Not novel, not ranked.** We do not claim novelty of glucose twins or predictive alerts (commercial programs and CGM
+  alerts exist), and we make no comparison with other teams. It is a statistical research twin, not a physiological
+  simulator. The Mumbai diabetes educator in the README is a hypothetical example: no clinic, partner or pilot is
+  involved.
+* Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
+  establish performance on real patients.
+
+## 6. Links
+
+* [README](../README.md): the twelve submission items, results, guardrails and run instructions
+* [Presentation (PDF)](submission/GlucoTwin_Presentation.pdf) · [Architecture diagram (PDF)](submission/GlucoTwin_Architecture.pdf)
+* [Model card](model_card.md) · [Data card](data_card.md) · [Decisions](decisions.md) · [Jury questions](jury_questions.md)
+* [Evaluation report](../reports/evaluation_report.md) · [Two-hour benchmark](../reports/two_hour_benchmark.md) ·
+  [Two-hour classifier](../reports/two_hour_classifier.md) · [Nested benchmark](../reports/nested_benchmark_report.md) ·
+  [Verification](../reports/verification.md)
+* [Demo script](demo_script.md) · [Screenshots](../reports/ui/README.md) · [Submission checklist](submission_checklist.md)
+* Demo video: README [§8](../README.md#8-demo-video) (unlisted YouTube link added after upload)

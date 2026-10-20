@@ -367,7 +367,22 @@ def two_hour_slide() -> dict | None:
                 f"({'no reliable benefit' if prof['ci95'][0] <= 0 <= prof['ci95'][1] else 'better' if prof['ci95'][1] < 0 else 'worse'}"
                 " on people held out).",
                 "Thresholds chosen on development folds only (≤ 2 false alarms per observed day); each test fold opened once. "
-                "The 14 people were inspected in earlier experiments, so this is internal validation."]}
+                "The 14 people were inspected in earlier experiments, so this is internal validation.",
+                *([ext_bullet()] if ext_bullet() else [])]}
+
+
+TWO_HOUR_EXT = ROOT / "artifacts/research/gt-2h-ext-2026-10-20/two_hour_external_summary.json"
+
+
+def ext_bullet() -> str | None:
+    """Independent-cohort two-hour check (D-045), from scripts/summarise_two_hour_external.py's saved summary."""
+    if not TWO_HOUR_EXT.exists():
+        return None
+    e = json.loads(TWO_HOUR_EXT.read_text())
+    c = e["minus_persistence"]["120"]
+    return (f"Independent cohort ({e['participants']} ShanghaiT2DM people, CGM-only 15-minute model, assessed once; D-045): "
+            f"{e['mae']['120']:.1f} vs persistence {e['persistence_mae']['120']:.1f} mg/dL at 120 min "
+            f"({c['mean_diff']:+.2f} [{c['ci95'][0]:+.2f}, {c['ci95'][1]:+.2f}]), better for {c['improved']} of {c['n']} people.")
 
 
 def guardrails_slide() -> dict:

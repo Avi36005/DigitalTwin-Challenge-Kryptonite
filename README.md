@@ -1,4 +1,5 @@
 # GlucoTwin — Team Kryptonite (VESIT)
+[![CI](https://github.com/Avi36005/DigitalTwin-Challenge-Kryptonite/actions/workflows/ci.yml/badge.svg)](https://github.com/Avi36005/DigitalTwin-Challenge-Kryptonite/actions/workflows/ci.yml)
 
 **Personalized glucose forecasting between clinic visits · Digital Twin Challenge 2026 (Happiest Health) · student
 research prototype.** GlucoTwin keeps a patient-specific state for an adult with Type 2 diabetes, updates it as
@@ -19,11 +20,12 @@ absolute error (MAE) is in mg/dL, averaged equally over participants: an average
 | Result | Model | Evaluated on |
 |---|---|---|
 | MAE **12.96 / 20.26** at 30 / 60 min (persistence 14.84 / 23.23) | **Demo model**: fusion LightGBM with patient adaptation | Later recordings of the **same 14 CGMacros people it was trained on**; a test over time, not on new patients (retrospective, [details](#7-ai-and-ml-model-details)) |
-| **61 of 64** new high-glucose onsets warned; **40 false alarms, 1.49 per observed patient-day**; median forecast lead 30 min | **Demo model**, 60-minute warning | Same as the row above |
+| **61 of 64** new high-glucose onsets warned; **40 false alarms, 1.49 per observed patient-day**; median forecast lead 30 min; the warning is active at 11.8 % of eligible times, not an always-on alarm ([time in warning](reports/warning_time_share.md)) | **Demo model**, 60-minute warning | Same as the row above |
 | Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage (the research procedure, calibrated on people held out, covered 80.1 % / 78.8 %; [§7](#7-ai-and-ml-model-details)) | **Demo model** | Same as the row above |
 | MAE **13.88 / 22.30** (persistence 15.34 / 24.47) | Research candidate procedure (Ridge on CGM only, chosen in 4 of 5 folds), **not** the demo model | 14 CGMacros people, **each held out entirely** once (nested experiment) |
 | MAE **11.15 / 20.11** (persistence 12.14 / 20.44; the 60-minute difference is inconclusive) | A separate 15-minute LightGBM, **not** the demo model | **98 ShanghaiT2DM people**, an independent cohort, evaluated once |
 | **Two hours ahead:** MAE **30.6** at 120 min (persistence 35.9; better for 14 of 14 people); 2-hour warning: **315 of 329** onsets at **1.62** false alarms per observed day, median forecast lead 15 min (IQR 5–65); ranges covered 76.5 % (target 80 %) | Research procedure (rule's choice per fold, CGM-only Ridge or LightGBM), **not** the demo model | 14 CGMacros people, **each held out entirely** once; declared before any fit on 20 Oct ([two-hour benchmark](reports/two_hour_benchmark.md), D-043) |
+| **Two hours ahead, independent cohort:** MAE **29.55** at 120 min (persistence 31.68; −2.12 [−2.67, −1.53] mg/dL, better for **78 of 98** people); 10.90 / 19.31 at 30 / 60 min (persistence 12.14 / 20.44); ranges covered 87 % | A separate 15-minute LightGBM on CGM only, **not** the demo model | **98 ShanghaiT2DM people**, assessed once; no 120-minute result had been computed there before (declared before any fit, [external two-hour check](reports/two_hour_external.md), D-045) |
 
 Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
 establish performance on real patients.
@@ -266,7 +268,10 @@ establishes, and what it does not:
    `dyn-v2`: +0.34 [−0.28, +0.89] mg/dL at 30 min and −0.75 [−2.19, +0.61] at 60 min. Two hours ahead
    (`gt-2h-2026-10-20`, D-043): −0.86 [−2.60, +1.02] mg/dL, again no reliable benefit; Ridge with the profile was clearly
    worse (+12.65 [+1.34, +29.24]), consistent with the profile acting as an identity code
-   ([two-hour benchmark](reports/two_hour_benchmark.md)).
+   ([two-hour benchmark](reports/two_hour_benchmark.md)). An exploratory look (not pre-specified, many comparisons)
+   found CatBoost forecasts better with the profile at 120 min (36.72 → 32.70 mg/dL, −4.02 [−6.87, −1.38], 10 of 14
+   people), still above the CGM-only choice; LightGBM showed no reliable difference and Ridge got worse
+   ([cold-start profile](reports/cold_start_profile.md)).
 4. **The constraint was added after the test segment had been inspected** (in v1 and v2), so these are retrospective
    results. The validation score, tie margin and tie-break are unchanged
    ([protocol](configs/experiments/gt-primary-2026-10-13-fusion.yaml), decisions D-038 and D-039 in
@@ -372,6 +377,8 @@ authenticated notebook or local-only file. Last local check: **19 October 2026**
 tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** public repository visibility,
 signed-out access and the YouTube link, because the repository has not been published and the video has not been
 uploaded. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
+
+**[Judge guide (5 minutes)](docs/judge_guide.md)**: each part of the brief, how to verify it and what we do not claim.
 
 ---
 
