@@ -1,0 +1,144 @@
+{
+ "canonical_schema": "canonical-cgm-1",
+ "datasets": [
+  {
+   "access_status": "eligible_for_experiment",
+   "acquired_participants": 45,
+   "citation_url": "https://doi.org/10.13026/3z8q-x658",
+   "country_site": "United States",
+   "dataset_id": "cgmacros",
+   "detail": "Also imported: 46,224 FreeStyle Libre Pro readings (second device, not used by any model).",
+   "eligible": {
+    "15-min development": 14,
+    "5-min Type 2 cohort": 14
+   },
+   "license": "CC BY-NC-SA 4.0",
+   "name": "CGMacros",
+   "native_cadence_minutes": [
+    5.0,
+    15.0
+   ],
+   "native_readings": 126270,
+   "observed_hours": 10514.5,
+   "parsed_participants": 45,
+   "profile": "baseline labs, assumed at start",
+   "publisher_participants": 45,
+   "release": "1.0.0",
+   "role": "development cohort (already inspected in experiments gt-primary-2026-10-11-v1/v2)",
+   "split_counts": {
+    "assessed_participants": 14,
+    "final_candidate_calibration_participants": 2,
+    "final_candidate_development_participants": 12,
+    "outer_assessment_group_sizes": "3/3/3/3/2",
+    "outer_calibration_group_sizes": "2/2/2/2/2",
+    "outer_development_sizes": "9/9/9/9/10",
+    "outer_folds": 5,
+    "participants": 14,
+    "training_rows_note": "each outer fold trains on its development participants' chronological heads; early stopping uses their purged tails"
+   },
+   "user_steps": [],
+   "wearable": "Fitbit 5-min summaries"
+  },
+  {
+   "access_status": "eligible_for_experiment",
+   "acquired_participants": 100,
+   "citation_url": "https://doi.org/10.6084/m9.figshare.21600933.v5",
+   "country_site": "China",
+   "dataset_id": "shanghai_t2dm",
+   "detail": null,
+   "eligible": {
+    "15-min external (≥ 72 h)": 98
+   },
+   "license": "CC BY 4.0",
+   "name": "ShanghaiT2DM",
+   "native_cadence_minutes": [
+    15.0
+   ],
+   "native_readings": 112462,
+   "observed_hours": 28115.5,
+   "parsed_participants": 100,
+   "profile": "labs undated: not used",
+   "publisher_participants": 100,
+   "release": "figshare 21600933 v5",
+   "role": "reserved external assessment cohort (portable 15-minute CGM-only track)",
+   "split_counts": {
+    "assessed_participants": 98,
+    "participants": 98,
+    "role": "reserved external assessment (never trained, tuned or calibrated on)"
+   },
+   "user_steps": [],
+   "wearable": "none"
+  },
+  {
+   "access_status": "access_required",
+   "acquired_participants": 0,
+   "citation_url": "https://fairhub.io/datasets/3",
+   "country_site": "United States",
+   "dataset_id": "ai_readi_v3",
+   "detail": "No local AI-READI files.",
+   "eligible": {},
+   "license": "AI-READI DLA (custom)",
+   "name": "AI-READI",
+   "native_cadence_minutes": [
+    5.0
+   ],
+   "native_readings": null,
+   "observed_hours": null,
+   "parsed_participants": 0,
+   "profile": null,
+   "publisher_participants": 2280,
+   "release": "3.0.0",
+   "role": "preferred large-data development expansion (not acquired)",
+   "split_counts": null,
+   "user_steps": [
+    "Create or provide an Azure Storage container to receive the data (required by the FAIRhub workflow).",
+    "Log in to FAIRhub through CILogon with institutional credentials (or contact the AI-READI Data Access Committee).",
+    "Confirm the research is related to Type 2 diabetes.",
+    "Answer the training questions on research methods and ethics.",
+    "Describe the research purpose (published with your name on the AI-READI website).",
+    "Review and accept the AI-READI Dataset License (DLA, \"I ACCEPT\").",
+    "Select only the CGM, participant table, permitted clinical fields and wearable summaries; provide storage details.",
+    "Wait for the request to be processed, then download into data/raw/ai_readi/3.0.0 and run `glucotwin data manifest`."
+   ],
+   "wearable": null
+  },
+  {
+   "access_status": "planned",
+   "acquired_participants": 0,
+   "citation_url": "https://github.com/Augmented-Health-Lab/Glucose-ML-Project",
+   "country_site": null,
+   "dataset_id": "glucose_ml",
+   "detail": "Discovery resource only. Its harmonized copies overlap CGMacros, ShanghaiT2DM and AI-READI; no component was imported. Catalog totals are never GlucoTwin counts.",
+   "eligible": {},
+   "license": "MIT code; per-source data terms",
+   "name": "Glucose-ML",
+   "native_cadence_minutes": [],
+   "native_readings": null,
+   "observed_hours": null,
+   "parsed_participants": 0,
+   "profile": null,
+   "publisher_participants": 4428,
+   "release": "GitHub main @ decf266",
+   "role": "discovery and harmonization resource (no data imported)",
+   "split_counts": null,
+   "user_steps": [],
+   "wearable": null
+  }
+ ],
+ "generated_at": "2026-10-12T13:51:13Z",
+ "overlap_check": {
+  "flagged_pairs": [],
+  "max_overlap": 0.1706,
+  "pairs": 19656,
+  "recordings_compared": 199,
+  "threshold": 0.5
+ },
+ "schema_version": "1.0",
+ "status": "available",
+ "summary_sentence": "145 participants imported; 14 evaluated internally and 98 evaluated externally.",
+ "synthetic": {
+  "glucose_rows": 28762,
+  "note": "Fictional software fixtures and the demonstration model; never counted as real participants.",
+  "participants": 17
+ }
+}

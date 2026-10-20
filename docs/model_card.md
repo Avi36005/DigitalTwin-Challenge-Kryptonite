@@ -71,6 +71,10 @@ Enforced in code and covered by tests (table with file links: [README](../README
   counted as a false alarm or marked *Outcome unknown (gap)*; firings within 30 min merge into one episode.
 * **Evaluation locks:** opened tests write lock files; re-running needs a written reason and is marked exploratory;
   research runs cannot change the demo model.
+* **Public demo isolation** (opt-in, off by default): each browser sees only its own replays, recorded data is refused
+  by the backend, replays are capped, expire and are rate-limited. The public demonstration runs the synthetic
+  demonstration model, never this model ([`public.py`](../services/api/glucotwin_api/public.py),
+  [`test_public_demo.py`](../tests/test_public_demo.py)).
 
 ## Data and protocol
 

@@ -15,6 +15,7 @@ import {
   type Pipeline,
 } from "@/lib/evidence";
 import { fmtNum, fmtPct } from "@/lib/format";
+import { snapshotLine } from "@/lib/snapshot";
 import { useDeployment } from "@/state/deployment";
 import { useEvaluation, useEvaluationById, useEvaluations, useResearch, useResearchSummaries, useServing } from "@/state/evaluation";
 import { Disclosure } from "@/components/evidence/Disclosure";
@@ -39,6 +40,7 @@ export function EvidencePage() {
   const rs = useResearch(research ? chosen : null);
   const summaries = useResearchSummaries(research);
   const r = ev.data;
+  const snapshot = snapshotLine(research ? rs.data : r ?? list.data);
   const select = (id: string) => setParams((p) => { const n = new URLSearchParams(p); n.set("experiment", id); return n; }, { replace: true });
   // "#safety-guardrails" (linked from the replay workspace) sits below the results: scroll once they have loaded
   const { hash } = useLocation();
@@ -79,6 +81,7 @@ export function EvidencePage() {
           was measured on the synthetic replays.
         </InlineNotice>
       )}
+      {snapshot && <p className="page-note snapshot-line">{snapshot}.</p>}
       {!publicDemo && <ServingLine selected={chosen} regime={meta ? REGIME[meta.regime] : undefined} />}
       {list.isLoading || (!research && ev.isLoading) || (research && rs.isLoading) ? <Skeleton h={300} /> : research ? (
         rs.isError ? <EmptyState title="Research report unavailable">{(rs.error as Error).message}</EmptyState>

@@ -1,0 +1,181 @@
+{
+ "items": [
+  {
+   "decision_id": "D-043",
+   "evaluated_on": "people_held_out",
+   "experiment_id": "gt-2h-2026-10-20",
+   "findings": [
+    {
+     "better_for": 14,
+     "ci95": [
+      -6.44,
+      -4.05
+     ],
+     "estimate": -5.25,
+     "key": "forecast_120",
+     "n": 14,
+     "unit": "mg/dL",
+     "values": {
+      "mae": 30.617,
+      "persistence_mae": 35.869
+     },
+     "verdict": "shown"
+    },
+    {
+     "better_for": null,
+     "ci95": null,
+     "estimate": null,
+     "key": "notice_120",
+     "n": null,
+     "unit": "min",
+     "values": {
+      "detected": 315,
+      "false_alarms_per_day": 1.623,
+      "lead_median": 15.0,
+      "lead_q1": 5.0,
+      "lead_q3": 65.0,
+      "onsets": 329
+     },
+     "verdict": "not_shown"
+    },
+    {
+     "better_for": 8,
+     "ci95": [
+      -2.6,
+      1.02
+     ],
+     "estimate": -0.86,
+     "key": "profile_inputs_120",
+     "n": 14,
+     "unit": "mg/dL",
+     "values": {},
+     "verdict": "not_shown"
+    }
+   ],
+   "opened_at": "2026-10-20T09:35:52+00:00",
+   "participants": 14,
+   "reopened_at": [],
+   "status": "available"
+  },
+  {
+   "decision_id": "D-045",
+   "evaluated_on": "independent_cohort",
+   "experiment_id": "gt-2h-ext-2026-10-20",
+   "findings": [
+    {
+     "better_for": 78,
+     "ci95": [
+      -2.672,
+      -1.526
+     ],
+     "estimate": -2.122,
+     "key": "forecast_120",
+     "n": 98,
+     "unit": "mg/dL",
+     "values": {
+      "mae": 29.553,
+      "persistence_mae": 31.675
+     },
+     "verdict": "shown"
+    }
+   ],
+   "opened_at": "2026-10-20T10:10:25+00:00",
+   "participants": 98,
+   "reopened_at": [],
+   "status": "available"
+  },
+  {
+   "decision_id": "D-044",
+   "evaluated_on": "people_held_out",
+   "experiment_id": "gt-2h-clf-2026-10-20",
+   "findings": [
+    {
+     "better_for": null,
+     "ci95": null,
+     "estimate": null,
+     "key": "classifier",
+     "n": null,
+     "unit": null,
+     "values": {
+      "detected": 329,
+      "false_alarms_per_day": 0.181,
+      "onsets": 329,
+      "roc_auc": 0.638,
+      "share_time_warning": 0.99
+     },
+     "verdict": "negative"
+    }
+   ],
+   "opened_at": "2026-10-20T09:57:29+00:00",
+   "participants": null,
+   "reopened_at": [
+    "2026-10-20T09:58:18+00:00"
+   ],
+   "status": "available"
+  },
+  {
+   "decision_id": "D-046",
+   "evaluated_on": "reanalysis_inspected",
+   "experiment_id": "gt-warn-range-2026-10-20",
+   "findings": [
+    {
+     "better_for": null,
+     "ci95": null,
+     "estimate": null,
+     "key": "ranges_120",
+     "n": null,
+     "unit": "%",
+     "values": {
+      "after": 0.7981159861872842,
+      "after_60": 0.7954895962379592,
+      "before": 0.7648791387365428,
+      "before_60": 0.7823679619750714,
+      "width_after": 95.10829725583514,
+      "width_before": 88.45097821102597
+     },
+     "verdict": "shown"
+    },
+    {
+     "better_for": null,
+     "ci95": [
+      -5.484855588897224,
+      6.632183908045973
+     ],
+     "estimate": 0.911854103343465,
+     "key": "earlier_warning_120",
+     "n": 14,
+     "unit": "points",
+     "values": {
+      "early_incumbent": 123,
+      "early_selected": 126,
+      "lead_median": 15.0,
+      "onsets": 329
+     },
+     "verdict": "not_shown"
+    },
+    {
+     "better_for": 10,
+     "ci95": [
+      -1.5719932584685548,
+      0.5825984668218389
+     ],
+     "estimate": -0.5320612265160362,
+     "key": "profile_prior_120",
+     "n": 14,
+     "unit": "mg/dL",
+     "values": {
+      "first_24h_ci_high": 0.48115064945824476,
+      "first_24h_ci_low": -2.7386233148081605,
+      "first_24h_estimate": -0.9275107449871738
+     },
+     "verdict": "not_shown"
+    }
+   ],
+   "opened_at": "2026-10-20T12:24:25+00:00",
+   "participants": 14,
+   "reopened_at": [],
+   "status": "available"
+  }
+ ],
+ "schema_version": "1.0"
+}

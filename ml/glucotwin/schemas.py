@@ -567,7 +567,18 @@ class SelectionRecord(Contract):
     rationale: str
 
 
-class EvaluationReport(Versioned):
+class SnapshotMarked(Versioned):
+    """Evidence responses say where they came from: absent locally (always the saved artifacts); in the public synthetic
+    demonstration, a response served from the committed aggregate-only snapshot (reports/public_evidence/) says so."""
+
+    source: Literal["published_snapshot"] | None = Field(
+        default=None, description="published_snapshot: read from reports/public_evidence/ because this installation has "
+                                  "no saved experiment artifacts (public demonstration only). Absent: the saved artifacts.")
+    snapshot_exported_at: datetime | None = Field(default=None, description="When the snapshot was exported.")
+    snapshot_commit: str | None = Field(default=None, description="Git commit the snapshot was exported from.")
+
+
+class EvaluationReport(SnapshotMarked):
     status: Literal["completed", "not_run", "unavailable", "synthetic_only"]
     status_message: str
     experiment_id: str | None = None
@@ -611,7 +622,7 @@ class EvaluationSummary(Contract):
     is_serving_evidence: bool = Field(description="True only for the experiment that produced the serving model.")
 
 
-class EvaluationList(Versioned):
+class EvaluationList(SnapshotMarked):
     items: list[EvaluationSummary]
     serving_experiment_id: str | None = None
 
@@ -702,7 +713,7 @@ class ResearchExternal(Contract):
     note: str | None = None
 
 
-class ResearchReport(Versioned):
+class ResearchReport(SnapshotMarked):
     """Nested participant-level research experiment (internal folds + reserved external cohort)."""
 
     experiment_id: str
@@ -751,7 +762,7 @@ class ResearchSummaryItem(Contract):
     findings: list[ResearchFinding] = Field(default_factory=list)
 
 
-class ResearchSummaryList(Versioned):
+class ResearchSummaryList(SnapshotMarked):
     """Research experiments run after the demo model was chosen (20 Oct 2026). None of them is the demo model."""
 
     items: list[ResearchSummaryItem]
@@ -780,7 +791,7 @@ class DatasetEntry(Contract):
     citation_url: str | None = None
 
 
-class DatasetInventory(Versioned):
+class DatasetInventory(SnapshotMarked):
     status: Literal["available", "not_generated"]
     generated_at: datetime | None = None
     canonical_schema: str | None = None

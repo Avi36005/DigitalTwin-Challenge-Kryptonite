@@ -7,6 +7,7 @@ import { paths } from "@/lib/routes";
 import { durationLabel, replayTime } from "@/lib/time";
 import { RECORDED_UNAVAILABLE, useDeployment } from "@/state/deployment";
 import { useDatasets, useEvaluation, useServing } from "@/state/evaluation";
+import { snapshotLine } from "@/lib/snapshot";
 import { Disclosure } from "@/components/evidence/Disclosure";
 import { useLatestForecast, usePatient, usePatients, useReadiness, useSessions, useTwin } from "@/state/replay";
 import { EmptyState, InlineNotice, PageHeader, Section, Skeleton, StatusLabel } from "@/components/ui";
@@ -189,7 +190,9 @@ function DataSources() {
   const blocked = datasets.filter((x) => (x.user_steps ?? []).length);
   const ov = d.overlap_check as { recordings_compared?: number; max_overlap?: number; flagged_pairs?: unknown[] } | null;
   return (
-    <Section title="Data sources and scale" description={`Audited ${d.generated_at ? new Date(d.generated_at).toISOString().slice(0, 10) : ""} from verified local files`}>
+    <Section title="Data sources and scale" description={snapshotLine(d)
+      ? `${snapshotLine(d)}; audited ${d.generated_at ? new Date(d.generated_at).toISOString().slice(0, 10) : ""}`
+      : `Audited ${d.generated_at ? new Date(d.generated_at).toISOString().slice(0, 10) : ""} from verified local files`}>
       {d.summary_sentence && <p className="lede__sub">{d.summary_sentence}</p>}
       <div className="table-scroll" tabIndex={0} role="region" aria-label="Dataset inventory">
         <table className="table">

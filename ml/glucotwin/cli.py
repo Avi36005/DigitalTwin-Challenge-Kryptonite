@@ -21,6 +21,7 @@
     glucotwin research promote   EXPLICIT: point the registry at a frozen candidate (atomic, verified; not run by default)
     glucotwin research rollback  EXPLICIT: point the registry back to a previous serving model version
     glucotwin contracts export   export OpenAPI + example payloads to packages/contracts
+    glucotwin public-evidence export  aggregate-only evidence snapshot for the public demo (reports/public_evidence/)
     glucotwin serve              start the API on 127.0.0.1:8000 (--public-demo: public synthetic demonstration)
 """
 
@@ -78,6 +79,10 @@ def main(argv: list[str] | None = None) -> int:
 
     c = sub.add_parser("contracts").add_subparsers(dest="cmd", required=True)
     c.add_parser("export")
+
+    pe = sub.add_parser("public-evidence").add_subparsers(dest="cmd", required=True)
+    pe.add_parser("export", help="write reports/public_evidence/ from the saved artifacts, as the public-mode API returns "
+                                 "them; refuses anything that names or lists a participant")
 
     sv = sub.add_parser("serve")
     sv.add_argument("--host", default="127.0.0.1")
@@ -173,6 +178,10 @@ def main(argv: list[str] | None = None) -> int:
         from glucotwin_api.contracts import export
 
         print(export())
+    elif a.group == "public-evidence":
+        from glucotwin_api import snapshot
+
+        print(json.dumps(snapshot.export(), indent=1))
     elif a.group == "serve":
         import os
 

@@ -23,6 +23,7 @@ COPY --chown=app pyproject.toml uv.lock README.md LICENSE ./
 COPY --chown=app ml ml
 COPY --chown=app services services
 COPY --chown=app configs configs
+COPY --chown=app reports/public_evidence reports/public_evidence
 RUN uv sync --frozen --no-dev && .venv/bin/glucotwin synthetic build
 COPY --from=web --chown=app /src/apps/web/dist apps/web/dist
 

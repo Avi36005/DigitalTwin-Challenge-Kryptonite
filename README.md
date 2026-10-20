@@ -66,6 +66,7 @@ Built into the code and covered by tests, not just stated:
 | **No clinical claims** | Research demonstration only: not a medical device, no treatment advice, a replay and never a live device. | [Help & demo guide](apps/web/src/components/shell/Dialogs.tsx) |
 | **Tests cannot be quietly re-run** | An opened test writes a lock file; re-running needs a written reason and is then marked exploratory. Research runs cannot change the demo model; promotion and rollback are separate, explicit commands. | [`assess.py`](ml/glucotwin/research/assess.py) · [`promote.py`](ml/glucotwin/research/promote.py) |
 | **App matches the evaluation** | Replaying every test participant through the app reproduced all 15,440 saved test forecasts within 0.05 mg/dL. | [`verification.md`](reports/verification.md) |
+| **Public demo isolation** | Off by default. When the opt-in public synthetic demonstration is switched on, each browser sees and controls only its own replays (random cookie, only its hash kept), recorded data is refused by the backend, and replays are capped, expire after 120 idle minutes and are rate-limited. | [`public.py`](services/api/glucotwin_api/public.py) · [`test_public_demo.py`](tests/test_public_demo.py) · [`public-demo.spec.ts`](apps/web/e2e-public/public-demo.spec.ts) |
 
 ## Submission checklist (Unstop form)
 
@@ -427,6 +428,29 @@ make dev          # API on http://127.0.0.1:8000 and web app on http://127.0.0.1
 Open http://127.0.0.1:5173 (landing page) → **Open workspace** → **New replay** → *Synthetic demonstration*. Synthetic participants exercise edge cases
 (sensor gaps, late meal logs, short history). Nothing computed on them is clinical evidence.
 
+### Public demonstration (synthetic only)
+
+Hosted link: not yet published.
+
+An opt-in mode for a shared server, **off by default**. One process serves the API and the built web app:
+
+```bash
+docker compose up --build    # then open http://localhost:7860 (published on the host's loopback only)
+# or without Docker, after `make setup`, `make synthetic` and `cd apps/web && npm run build`:
+GLUCOTWIN_WEB_DIST="$PWD/apps/web/dist" uv run glucotwin serve --public-demo --port 7860
+```
+
+What it enforces in the backend: each browser gets a random cookie and sees and controls only its own replays (only the
+cookie's hash is kept); synthetic participants only (recorded-data requests return 403); at most 5 replays per visitor and
+300 in total, removed after 120 idle minutes; per-visitor and per-IP rate limits. What it is **not**: it contains no
+recorded CGMacros data, its forecasts come from the synthetic demonstration model fitted on fictional data — not the
+evaluated real-data fusion model — and it is not a medical device. The image holds no saved experiment files; its
+Model evidence page shows an aggregate-only published snapshot of them (`reports/public_evidence/`, written by
+`glucotwin public-evidence export`, no participant IDs or per-participant rows), labelled with its export date and commit. Replays live in
+memory and are lost when the server restarts. Browser checks: `cd apps/web && npx playwright test --config
+playwright.public.config.ts` (add `PUBLIC_BASE_URL=<url>` to test a running deployment). Deployment notes:
+[`docs/deploy.md`](docs/deploy.md).
+
 ### Recorded-data replay — CGMacros 1.0.0
 
 The dataset (CC BY-NC-SA 4.0, ≈ 657 MB) is **not** included. Download it yourself and reproduce everything:
@@ -529,7 +553,7 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
   [Decisions](docs/decisions.md) · [Next experiment](docs/next_experiment.md)
 * **System:** [Product](docs/product.md) · [Architecture](docs/architecture.md) · [Replay](docs/replay.md) ·
   [Contracts](docs/contracts.md) · [Frontend handoff](docs/frontend-handoff.md) ·
-  [Artifact manifest](docs/artifact_manifest.md)
+  [Artifact manifest](docs/artifact_manifest.md) · [Public demonstration deployment](docs/deploy.md)
 * **Evidence:** [Evaluation report](reports/evaluation_report.md) · [Repair report](reports/repair_report.md) ·
   [Nested benchmark report](reports/nested_benchmark_report.md) · [Model upgrade review](reports/model_upgrade_review.md) ·
   [Dataset expansion audit](reports/dataset_expansion_audit.md) · [Verification](reports/verification.md) ·

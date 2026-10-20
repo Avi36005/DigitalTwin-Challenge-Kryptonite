@@ -1,0 +1,21 @@
+{
+ "exported_at": "2026-10-20T14:56:46+00:00",
+ "commit": "1d6ba9759618-dirty",
+ "note": "Aggregate-only copy of what the API returns in public demonstration mode, served there only when the saved experiment artifacts are absent. No participant identifiers or per-participant rows.",
+ "experiments": [
+  "gt-nested-2026-10-12-v1",
+  "gt-primary-2026-10-11-v1",
+  "gt-primary-2026-10-11-v2",
+  "gt-primary-2026-10-13-fusion"
+ ],
+ "files": [
+  "datasets.json",
+  "evaluations.json",
+  "evaluations__gt-primary-2026-10-11-v1.json",
+  "evaluations__gt-primary-2026-10-11-v2.json",
+  "evaluations__gt-primary-2026-10-13-fusion.json",
+  "evaluations__latest.json",
+  "research__gt-nested-2026-10-12-v1.json",
+  "research_summaries.json"
+ ]
+}

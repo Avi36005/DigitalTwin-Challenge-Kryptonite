@@ -700,6 +700,21 @@ export interface components {
              */
             schema_version: "1.0";
             /**
+             * Source
+             * @description published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts.
+             */
+            source?: "published_snapshot" | null;
+            /**
+             * Snapshot Exported At
+             * @description When the snapshot was exported.
+             */
+            snapshot_exported_at?: string | null;
+            /**
+             * Snapshot Commit
+             * @description Git commit the snapshot was exported from.
+             */
+            snapshot_commit?: string | null;
+            /**
              * Status
              * @enum {string}
              */
@@ -778,6 +793,21 @@ export interface components {
              * @constant
              */
             schema_version: "1.0";
+            /**
+             * Source
+             * @description published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts.
+             */
+            source?: "published_snapshot" | null;
+            /**
+             * Snapshot Exported At
+             * @description When the snapshot was exported.
+             */
+            snapshot_exported_at?: string | null;
+            /**
+             * Snapshot Commit
+             * @description Git commit the snapshot was exported from.
+             */
+            snapshot_commit?: string | null;
             /** Items */
             items: components["schemas"]["EvaluationSummary"][];
             /** Serving Experiment Id */
@@ -791,6 +821,21 @@ export interface components {
              * @constant
              */
             schema_version: "1.0";
+            /**
+             * Source
+             * @description published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts.
+             */
+            source?: "published_snapshot" | null;
+            /**
+             * Snapshot Exported At
+             * @description When the snapshot was exported.
+             */
+            snapshot_exported_at?: string | null;
+            /**
+             * Snapshot Commit
+             * @description Git commit the snapshot was exported from.
+             */
+            snapshot_commit?: string | null;
             /**
              * Status
              * @enum {string}
@@ -1750,6 +1795,21 @@ export interface components {
              * @constant
              */
             schema_version: "1.0";
+            /**
+             * Source
+             * @description published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts.
+             */
+            source?: "published_snapshot" | null;
+            /**
+             * Snapshot Exported At
+             * @description When the snapshot was exported.
+             */
+            snapshot_exported_at?: string | null;
+            /**
+             * Snapshot Commit
+             * @description Git commit the snapshot was exported from.
+             */
+            snapshot_commit?: string | null;
             /** Experiment Id */
             experiment_id: string;
             /**
@@ -1835,6 +1895,21 @@ export interface components {
              * @constant
              */
             schema_version: "1.0";
+            /**
+             * Source
+             * @description published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts.
+             */
+            source?: "published_snapshot" | null;
+            /**
+             * Snapshot Exported At
+             * @description When the snapshot was exported.
+             */
+            snapshot_exported_at?: string | null;
+            /**
+             * Snapshot Commit
+             * @description Git commit the snapshot was exported from.
+             */
+            snapshot_commit?: string | null;
             /** Items */
             items: components["schemas"]["ResearchSummaryItem"][];
         };

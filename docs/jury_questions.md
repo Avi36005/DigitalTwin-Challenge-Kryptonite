@@ -136,7 +136,9 @@ agreed alert burden; usability and safety studies; regulatory and DPDP Act revie
 templated from actual inputs and tree contributions, labelled as associations, not causes.
 
 **Can it run offline?** Yes, after setup: the synthetic mode needs no download; the recorded mode needs the dataset to
-be downloaded once. The app binds to localhost and makes no external calls at runtime.
+be downloaded once. A local install binds to localhost and makes no external calls at runtime. The optional public
+synthetic demonstration (off by default, [deploy notes](deploy.md)) listens on a public port by design, but serves
+synthetic participants only, keeps each browser's replays private and still makes no outgoing calls.
 
 **Your ranges under-cover. Did you try to fix it?** Yes, in a declared re-analysis (D-046). In the two-hour research
 procedure the ranges were calibrated on only 2 people per fold; pooling the development and calibration people raised

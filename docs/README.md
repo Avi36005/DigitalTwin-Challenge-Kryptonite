@@ -11,6 +11,7 @@ after it is frozen.
 | [`../README.md`](../README.md) | Submission overview: problem, results, how to run, the twelve challenge items |
 | [`product.md`](product.md) | Who GlucoTwin is for, what it does, what it deliberately does not do |
 | [`architecture.md`](architecture.md) | How the Python package, the API and the web app fit together |
+| [`deploy.md`](deploy.md) | The opt-in public synthetic demonstration: what it enforces, running it with Docker, deploying to Hugging Face Spaces (not deployed) and taking it down |
 
 ## Model and data — what the numbers mean
 

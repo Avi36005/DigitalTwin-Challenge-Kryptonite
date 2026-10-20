@@ -9,6 +9,7 @@
 !packages/
 !configs/
 !apps/web/
+!reports/public_evidence/
 apps/web/node_modules/
 apps/web/dist/
 apps/web/test-results/

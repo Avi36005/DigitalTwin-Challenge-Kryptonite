@@ -54,7 +54,7 @@ from glucotwin.schemas import (
 from glucotwin.serving import load_serving
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import evidence
+from . import evidence, snapshot
 from . import public as pub
 from .catalog import Catalog
 from .replay import STALE_MINUTES, ApiError, Session, SessionManager
@@ -492,15 +492,29 @@ def create_app() -> FastAPI:
 
     # ------------------------------------------------------------------ evaluation
 
+    def published(name: str, current: dict[str, Any], missing: bool) -> dict[str, Any]:
+        """Public demo only: when this installation has no saved artifacts for an evidence endpoint, serve the committed
+        aggregate-only snapshot (marked source=published_snapshot) instead. A local installation never reads it."""
+        if cfg.enabled and missing:
+            snap = snapshot.load(name)
+            if snap is not None:
+                return snap
+        return snapshot.withhold_ids(current) if cfg.enabled else current
+
     @api.get("/evaluations", response_model=EvaluationList)
     def evaluations():
-        return evidence.list_experiments()
+        rep = evidence.list_experiments()
+        return published(snapshot.file_name("evaluations"), rep,
+                         not any(i["status"] == "completed" for i in rep["items"]))
 
     def no_participant_rows(rep: dict[str, Any]) -> dict[str, Any]:
         """Public demo: pooled results only; per-participant rows of recorded-data evaluations are withheld."""
         if not cfg.enabled:
             return rep
         rep = {**rep, "per_patient": []}
+        if rep.get("cohort"):  # keep how many were excluded and why, not who (the UI shows the count)
+            rep["cohort"] = {**rep["cohort"], "excluded": [{k: v for k, v in x.items() if k != "display_alias"}
+                                                           for x in rep["cohort"].get("excluded", [])]}
         rep["optional_experiments"] = [{k: v for k, v in o.items() if k != "results"}
                                        if o.get("results") and any("participant" in r for r in o["results"]
                                                                    if isinstance(r, dict)) else o
@@ -509,7 +523,8 @@ def create_app() -> FastAPI:
 
     @api.get("/evaluations/latest", response_model=EvaluationReport)
     def evaluation():
-        return no_participant_rows(build_report())
+        rep = no_participant_rows(build_report())
+        return published(snapshot.file_name("evaluations", "latest"), rep, rep["status"] != "completed")
 
     @api.get("/evaluations/{experiment_id}", response_model=EvaluationReport, responses=ERRORS)
     def evaluation_by_id(experiment_id: str):
@@ -517,6 +532,9 @@ def create_app() -> FastAPI:
             raise ApiError(404, "use_research_endpoint", "This is a nested research experiment; use /research/{id}.")
         rep = build_report(experiment_id)
         if rep["status"] == "not_run":
+            snap = published(snapshot.file_name("evaluations", experiment_id), {}, True)
+            if snap:
+                return snap
             raise ApiError(404, "experiment_not_found", f"No saved metrics for experiment {experiment_id!r}.")
         return no_participant_rows(rep)
 
@@ -525,12 +543,14 @@ def create_app() -> FastAPI:
         rep = evidence.research_report(experiment_id)
         if rep is None:
             raise ApiError(404, "experiment_not_found", f"Unknown research experiment {experiment_id!r}.")
-        return rep
+        return published(snapshot.file_name("research", experiment_id), rep, rep["status"] != "completed")
 
     @api.get("/research-summaries", response_model=ResearchSummaryList)
     def research_summaries():
         """Headline results of the research run after the demo model was chosen; none of it is the demo model."""
-        return evidence.research_summaries()
+        rep = evidence.research_summaries()
+        return published(snapshot.file_name("research_summaries"), rep,
+                         all(i["status"] != "available" for i in rep["items"]))
 
     @api.get("/serving", response_model=ServingList)
     def serving_models():
@@ -538,7 +558,8 @@ def create_app() -> FastAPI:
 
     @api.get("/datasets", response_model=DatasetInventory)
     def datasets():
-        return evidence.dataset_inventory()
+        rep = evidence.dataset_inventory()
+        return published(snapshot.file_name("datasets"), rep, rep["status"] != "available")
 
     app.include_router(api)
 

@@ -108,6 +108,13 @@ Local demonstration defaults: loopback binding, narrow CORS (`localhost:5173/417
 external network calls at runtime, trusted local artifacts verified by SHA-256 before loading, no pickles. This is
 **not** a production or regulatory-compliant deployment.
 
+Optional public synthetic demonstration (`GLUCOTWIN_PUBLIC_DEMO=1` or `glucotwin serve --public-demo`, off by default;
+[`deploy.md`](deploy.md)): one process serves the API and the built web app (`GLUCOTWIN_WEB_DIST`) on a public port. It
+still has no accounts and makes no outgoing calls; instead each browser gets a random `gt_visitor` cookie (only its hash
+is stored) and can see and control only its own replays, recorded-data requests are refused with 403, replays are
+capped (5 per visitor, 300 in total) and removed after 120 idle minutes, and requests are rate-limited per visitor and
+per IP ([`public.py`](../services/api/glucotwin_api/public.py), [`test_public_demo.py`](../tests/test_public_demo.py)).
+
 ## Research runner and canonical data layer (prompt pack v4)
 
 * `ml/glucotwin/data/canonical.py` — provenance-carrying canonical CGM records (`canonical-cgm-1`), unit handling,

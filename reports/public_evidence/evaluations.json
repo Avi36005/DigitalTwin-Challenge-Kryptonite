@@ -1,0 +1,42 @@
+{
+ "items": [
+  {
+   "created_at": "2026-10-13T08:02:25Z",
+   "description": "v2's protocol with one change: the selected model must read both the baseline profile and the dynamic streams. Declared after the test segment had been inspected, so it is a retrospective result.",
+   "experiment_id": "gt-primary-2026-10-13-fusion",
+   "is_serving_evidence": true,
+   "regime": "serving_retrospective",
+   "status": "completed",
+   "title": "Fusion-constrained experiment (profile + wearable)"
+  },
+  {
+   "created_at": "2026-10-13T13:12:57Z",
+   "description": "New people only: 5 outer participant folds on CGMacros (internal validation of an already-inspected cohort) and a reserved ShanghaiT2DM external assessment.",
+   "experiment_id": "gt-nested-2026-10-12-v1",
+   "is_serving_evidence": false,
+   "regime": "nested_research",
+   "status": "completed",
+   "title": "Nested participant benchmark + external cohort"
+  },
+  {
+   "created_at": "2026-10-11T16:02:37Z",
+   "description": "Its model reads the dynamic streams only (no baseline profile); it served replays until 13 Oct 2026 and stays registered for rollback. Its test segment had already been inspected in v1, so it is a corrected retrospective result.",
+   "experiment_id": "gt-primary-2026-10-11-v2",
+   "is_serving_evidence": false,
+   "regime": "superseded_serving",
+   "status": "completed",
+   "title": "Corrected retrospective experiment (v2)"
+  },
+  {
+   "created_at": "2026-10-11T09:04:09Z",
+   "description": "Within-participant chronological split; superseded by the corrected v2 re-run (activity-window and warning-accounting defects).",
+   "experiment_id": "gt-primary-2026-10-11-v1",
+   "is_serving_evidence": false,
+   "regime": "superseded_original",
+   "status": "completed",
+   "title": "Original primary experiment (v1)"
+  }
+ ],
+ "schema_version": "1.0",
+ "serving_experiment_id": "gt-primary-2026-10-13-fusion"
+}

@@ -2282,6 +2282,44 @@
             "title": "Schema Version",
             "default": "1.0"
           },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "published_snapshot"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts."
+          },
+          "snapshot_exported_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Exported At",
+            "description": "When the snapshot was exported."
+          },
+          "snapshot_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Commit",
+            "description": "Git commit the snapshot was exported from."
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -2509,6 +2547,44 @@
             "title": "Schema Version",
             "default": "1.0"
           },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "published_snapshot"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts."
+          },
+          "snapshot_exported_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Exported At",
+            "description": "When the snapshot was exported."
+          },
+          "snapshot_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Commit",
+            "description": "Git commit the snapshot was exported from."
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/EvaluationSummary"
@@ -2542,6 +2618,44 @@
             "const": "1.0",
             "title": "Schema Version",
             "default": "1.0"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "published_snapshot"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts."
+          },
+          "snapshot_exported_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Exported At",
+            "description": "When the snapshot was exported."
+          },
+          "snapshot_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Commit",
+            "description": "Git commit the snapshot was exported from."
           },
           "status": {
             "type": "string",
@@ -5306,6 +5420,44 @@
             "title": "Schema Version",
             "default": "1.0"
           },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "published_snapshot"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts."
+          },
+          "snapshot_exported_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Exported At",
+            "description": "When the snapshot was exported."
+          },
+          "snapshot_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Commit",
+            "description": "Git commit the snapshot was exported from."
+          },
           "experiment_id": {
             "type": "string",
             "title": "Experiment Id"
@@ -5543,6 +5695,44 @@
             "const": "1.0",
             "title": "Schema Version",
             "default": "1.0"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "published_snapshot"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "published_snapshot: read from reports/public_evidence/ because this installation has no saved experiment artifacts (public demonstration only). Absent: the saved artifacts."
+          },
+          "snapshot_exported_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Exported At",
+            "description": "When the snapshot was exported."
+          },
+          "snapshot_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Commit",
+            "description": "Git commit the snapshot was exported from."
           },
           "items": {
             "items": {
