@@ -1,0 +1,86 @@
+# GlucoTwin research protocol gt-warn-range-2026-10-20 — earlier two-hour warnings, better-covered ranges, and the
+# health record as a starting correction. A re-analysis of the SAVED predictions of gt-2h-2026-10-20; no model is fitted
+# except the small profile regression of part C.
+#
+# Declared on 2026-10-20 BEFORE any of the arms below was computed on any participant (docs/decisions.md D-046). Run only
+# by scripts/warning_range_experiment.py; it never reads or writes the model registry and promotes nothing. The demo model
+# stays lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion.
+experiment_id: gt-warn-range-2026-10-20
+kind: saved-prediction-reanalysis
+declared_on: "2026-10-20"
+random_seed: 20261020
+base_experiment: gt-2h-2026-10-20   # frozen table, participant folds, per-fold selected pipeline, saved predictions
+inspection_log:
+  - date: "2026-10-20"
+    what: >-
+      The outer-fold people of gt-2h-2026-10-20 were assessed once (D-043) and their results reported: 120-minute
+      warning 315 of 329 onsets at 1.62 false alarms per observed day, median forecast lead 15 min (IQR 5-65); range
+      coverage 76.5 % at 120 min (target 80 %). The time-in-warning diagnostic (reports/warning_time_share.md) was
+      computed on the same people. This protocol was written because of those results, so its outer-fold numbers are
+      internal validation on already-inspected people, not untouched evidence. No arm below (A1-A3, B1-B2, C1) had been
+      computed on any participant, inner or outer.
+questions:
+  A: Can the two-hour warning fire earlier (more onsets warned at least 30 minutes ahead) without more false alarms or more time spent warning?
+  B: Do 80 % prediction ranges calibrated on more people reach their target coverage?
+  C: Does the health record (8 baseline profile values) help as a starting personal correction for a new person?
+
+source_predictions:
+  pipeline: the per-fold selected pipeline of gt-2h-2026-10-20 (pipeline.json selection.selected), personalised (mode final) for A and B; population only (mode off) for C
+  inner: development/<fold>/multimodal_5min/inner_oof.parquet (development participants, out-of-fold)
+  calibration: development/<fold>/multimodal_5min/calibration_predictions.parquet (the fold's 2 reserved calibration participants)
+  outer: assessment/predictions.parquet (assessment participants of each outer fold)
+
+part_A_warning:
+  horizon_minutes: 120
+  event: same as gt-2h-2026-10-20 (> 180 mg/dL for >= 15 min from a below-threshold state; label_120 / onset_120, ew_eligible)
+  arms:
+    A0_point: max(final forecasts for 30, 60, 120 min) - 180 (the D-043 warning; incumbent)
+    A1_upper_calibration: max over h of (final_h + q_h) - 180, q_h = the fold's 80 % global split-conformal half-width of the selected pipeline (calibration participants, as saved in pipeline.json)
+    A2_upper_pooled: max over h of (final_h + q_h) - 180, q_h = the part-B B1 pooled half-width of the same fold
+    A3_long_only: final_120 - 180
+  threshold_grid: [-40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60]
+  episode_merge_minutes: 30
+  matcher: glucotwin.evaluation.alerts (one-to-one, the code every other warning uses)
+  early_lead_minutes: 30     # an onset counts as warned early if its qualified forecast lead is >= 30 min
+  selection_per_outer_fold: >-
+    On the inner out-of-fold predictions of the development participants only: among all (arm, threshold) pairs with
+    at most 2.0 false-alarm episodes per observed forecastable patient-day AND firing at no more than 15 % of eligible
+    origins, choose the pair that warns the most onsets with a qualified lead >= 30 min. Ties: higher precision, then
+    lower share of eligible time warning, then the higher threshold, then the earlier arm (A0 first). At least one
+    assessable warning required. If no pair is feasible, the fold keeps A0 with its D-043 threshold.
+  time_share_cap: 0.15
+  workload_budget_per_observed_day: 2.0
+  report_on_outer: >-
+    Pooled over outer folds, for the selected pair and for every arm at its own inner-chosen threshold, beside A0 at its
+    D-043 threshold: onsets warned, onsets warned >= 30 min ahead, false alarms per observed day, precision, median
+    qualified lead (IQR), share of eligible time warning. Participant-cluster bootstrap (2000 resamples) for the
+    difference selected minus incumbent in onsets warned >= 30 min ahead (as a share of onsets) and in false alarms per
+    observed day. Reported whatever it shows.
+
+part_B_ranges:
+  level: 0.8
+  arms:
+    B0_calibration: the saved global split-conformal range (finite-sample quantile of |residual| on the fold's 2 calibration participants) - incumbent
+    B1_pooled: finite-sample 80 % quantile of |residual| pooled over the fold's inner out-of-fold development participants AND its calibration participants (selected pipeline, mode final), per horizon
+    B2_pooled_by_glucose: as B1 but separately for origins whose latest glucose is < 180 and >= 180 mg/dL; a stratum with fewer than 50 residuals falls back to B1
+  primary: B1_pooled   # declared hypothesis: under-coverage comes from calibrating on only 2 people per fold
+  report_on_outer: pooled and per-participant-median coverage and mean width at 30, 60 and 120 min for B0, B1, B2; no selection on outer folds
+
+part_C_profile_prior:
+  profile_columns: [p_age, p_sex_male, p_bmi, p_hba1c, p_fasting_glucose, p_fasting_insulin, p_triglycerides, p_hdl]
+  procedure: >-
+    Per outer fold and horizon: for each development participant, the mean residual (target - population forecast,
+    selected pipeline, mode off) over their inner out-of-fold origins. A ridge regression (alpha 10, inputs standardised
+    on the development participants, median imputation) maps the 8 profile values to that mean residual. For an
+    assessment participant the predicted value, clipped to +/- 25 mg/dL (the adaptation cap), is added to every
+    population forecast from the first origin (C1 = population + profile prior). No glucose of the assessment participant
+    is used.
+  compare_on_outer: C1 minus population only (mode off), and C1 minus the personalised pipeline (mode final), per-participant MAE, paired participant bootstrap (2000), at 30, 60, 120 min; also restricted to each person's first 24 elapsed hours (cold start)
+  claim_rule: the profile is said to help only if the 95 % interval of C1 minus population-only is below zero at 120 min
+
+lock:
+  file: artifacts/research/gt-warn-range-2026-10-20/opened.json
+  rule: the outer predictions are read once; a re-run needs --reopen-reason and is then exploratory
+artifacts:
+  root: artifacts/research/gt-warn-range-2026-10-20
+  report: reports/warning_range_experiment.md
