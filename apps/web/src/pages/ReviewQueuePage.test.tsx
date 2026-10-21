@@ -129,9 +129,39 @@ describe("review queue page", () => {
     expect(screen.getByRole("link", { name: "Open replay for Synthetic Participant A, session bbbbbbbb" })).toHaveAttribute("href", "/app?session=bbbbbbbb2");
   });
 
-  it("reports a failed session list instead of an empty queue", async () => {
+  it("reports a failed session list instead of an empty queue, with a retry", async () => {
     renderPage((path) => { if (path === "/health") return health; throw new Error("offline"); });
-    expect(await screen.findByRole("alert")).toHaveTextContent("The review queue could not be loaded: offline");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("The review queue could not be loaded: offline");
+    expect(within(alert).getByRole("button", { name: "Retry" })).toBeInTheDocument();
     expect(screen.queryByText("Nothing to review yet")).toBeNull();
+  });
+
+  it("names a shared data source once for the page, and per row only when sources differ", async () => {
+    const a = session({ id: "a", patient_id: "SYN-A" });
+    const b = session({ id: "b", patient_id: "SYN-B", patient_alias: "Synthetic Participant B" });
+    const view = (items: ReplaySession[]) => renderPage((path) => {
+      if (path === "/health") return health;
+      if (isList(path)) return sessionList(items);
+      return snapOf(items.find((x) => path.includes(`/${x.id}/`))!);
+    });
+    view([a, b]);
+    expect(await screen.findByText(/for every replay listed/)).toHaveTextContent("Source: Synthetic demonstration for every replay listed");
+    const table = screen.getByRole("table", { name: "Review queue" });
+    expect(within(table).queryByText(/^Synthetic · /)).toBeNull();
+  });
+
+  it("keeps a per-row source label when the listed replays come from different sources", async () => {
+    const a = session({ id: "a", patient_id: "SYN-A" });
+    const b = session({ id: "b", patient_id: "pt-1", patient_alias: "Participant 01", mode: "dataset_replay" });
+    renderPage((path) => {
+      if (path === "/health") return health;
+      if (isList(path)) return sessionList([a, b]);
+      return snapOf(path.includes("/a/") ? a : b);
+    });
+    expect(await screen.findByText("Sources differ: each row names its own data source.")).toBeInTheDocument();
+    const table = screen.getByRole("table", { name: "Review queue" });
+    expect(within(table).getByText(/^Recorded · Session/)).toBeInTheDocument();
+    expect(within(table).getByText(/^Synthetic · Session/)).toBeInTheDocument();
   });
 });
