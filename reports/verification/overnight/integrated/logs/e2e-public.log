@@ -1,0 +1,15 @@
+[WebServer] INFO:     GlucoTwin public synthetic demonstration: synthetic participants only; sessions private per visitor, at most 5 per visitor and 300 in total, removed after 120 idle minutes; 600 requests/min per visitor, 1200 per IP.
+[WebServer] INFO:     Started server process [24648]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8140 (Press CTRL+C to quit)
+
+Running 4 tests using 1 worker
+
+  ✓  1 [chromium] › e2e-public/public-demo.spec.ts:23:1 › a fresh visitor sees the public synthetic demonstration, labelled as such (216ms)
+  ✓  2 [chromium] › e2e-public/public-demo.spec.ts:40:1 › replay, forecasts and warnings work, and a refresh keeps the replay (2.0s)
+  ✓  3 [chromium] › e2e-public/public-demo.spec.ts:61:1 › two simultaneous visitors cannot see or control each other's replays (1.1s)
+  ✓  4 [chromium] › e2e-public/public-demo.spec.ts:88:1 › evidence pages and their in-app links load (449ms)
+
+  4 passed (8.1s)
+$ (cd ~/projects/Digitaltwin/.claude/worktrees/qa/apps/web && npx playwright test --config playwright.public.config.ts --reporter=list,junit --output=<session-scratch>/pw-out/i-public)

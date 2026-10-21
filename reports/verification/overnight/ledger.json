@@ -296,6 +296,230 @@
      "reports/serving_parity.md": "e0aac810c169c8a92b131599a407888207dce98d7cb63c89603df78000b673fb"
     }
    }
+  },
+  {
+   "label": "integrated-before",
+   "at": {
+    "utc": "2026-10-21T22:02:10+00:00",
+    "ist": "2026-10-22 03:32:10 IST"
+   },
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": false,
+    "dirty_files": [],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": null,
+    "untracked_sha256": null
+   },
+   "versions": {
+    "python": "3.12.12",
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "fastapi": "0.143.0",
+    "pytest": "9.1.1",
+    "ruff": "0.17.0",
+    "catboost": "1.2.10",
+    "pyarrow": "26.0.0",
+    "uv": "uv 0.9.14 (05814f9cd 2025-12-01)",
+    "node": "v26.7.0",
+    "npm": "11.19.0",
+    "@playwright/test": "1.64.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3",
+    "vite": "8.3.4",
+    "react": "19.3.0"
+   },
+   "artifacts": {
+    "artifact_root": "~/projects/Digitaltwin",
+    "registry": {
+     "path": "artifacts/registry.json",
+     "sha256": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c",
+     "serving": {
+      "dataset_replay": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+      "synthetic_demo": "synthetic-demo.lightgbm.dyn-v2.v1"
+     }
+    },
+    "serving_model_dir": {
+     "path": "artifacts/models/lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+     "tree_sha256": "250369294d3d648159e05d9d519d6c06035ff24ec0abe19ba958efef2ca5946c",
+     "files": {
+      "h30.lgb.txt": "44ca6d30dc5b915a1920fcee4c3be26f9d5df446c917b1465d446a178cc7f940",
+      "h60.lgb.txt": "a30954a3ccd2e14a4103680da886251f8a722a105671daf55fc4230189aca56c",
+      "manifest.json": "004bd7216c3ebccda02e5d5631eee57afba1e262b479ef88e288a77ad588b76e",
+      "serving.json": "aeb86b96da6cd94a05df7e6d0ac782ffd012393a81ae7e08a2dcc0ba6b6dfc6c"
+     }
+    },
+    "files": {
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9",
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet": "1a5a7164fd8d17f36a4248a5a9f30f2dfee53b30b010ca62fab30df8c77b1778",
+     "reports/serving_parity.json": "d43b660ed9cc0189f9f5b34b6e997ce700339ddea80c1a60657519b06ea49664",
+     "reports/serving_parity.md": "e0aac810c169c8a92b131599a407888207dce98d7cb63c89603df78000b673fb"
+    }
+   },
+   "artifacts_in_worktree": {
+    "artifact_root": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "registry": {
+     "path": "artifacts/registry.json",
+     "sha256": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c",
+     "serving": {
+      "dataset_replay": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+      "synthetic_demo": "synthetic-demo.lightgbm.dyn-v2.v1"
+     }
+    },
+    "serving_model_dir": {
+     "path": "artifacts/models/lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+     "tree_sha256": "250369294d3d648159e05d9d519d6c06035ff24ec0abe19ba958efef2ca5946c",
+     "files": {
+      "h30.lgb.txt": "44ca6d30dc5b915a1920fcee4c3be26f9d5df446c917b1465d446a178cc7f940",
+      "h60.lgb.txt": "a30954a3ccd2e14a4103680da886251f8a722a105671daf55fc4230189aca56c",
+      "manifest.json": "004bd7216c3ebccda02e5d5631eee57afba1e262b479ef88e288a77ad588b76e",
+      "serving.json": "aeb86b96da6cd94a05df7e6d0ac782ffd012393a81ae7e08a2dcc0ba6b6dfc6c"
+     }
+    },
+    "files": {
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9",
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet": "1a5a7164fd8d17f36a4248a5a9f30f2dfee53b30b010ca62fab30df8c77b1778",
+     "reports/serving_parity.json": "d43b660ed9cc0189f9f5b34b6e997ce700339ddea80c1a60657519b06ea49664",
+     "reports/serving_parity.md": "e0aac810c169c8a92b131599a407888207dce98d7cb63c89603df78000b673fb"
+    }
+   }
+  },
+  {
+   "label": "integrated-after",
+   "at": {
+    "utc": "2026-10-21T22:06:59+00:00",
+    "ist": "2026-10-22 03:36:59 IST"
+   },
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [
+     "docs/submission_access_audit.md",
+     "reports/evidence_manifest.json",
+     "reports/evidence_manifest.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/05-model-evidence.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/07-mobile-workspace.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/09-recording-1920-recorded-gap-stale.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/13-insufficient-history-recorded.png",
+     "reports/ui/14-research-evidence.png",
+     "reports/ui/15-research-portable-external.png",
+     "reports/ui/16-data-sources.png",
+     "reports/ui/17-research-evidence-mobile.png",
+     "reports/ui/18-model-evidence-fusion-disclosures.png",
+     "reports/ui/19-safety-guardrails.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/21-research-after-demo-model.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/23-public-demo-evidence.png",
+     "reports/ui/24-twin-explanation.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/01-inputs-read-by-the-model.png",
+     "reports/ui/journey/02-forecast-components.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/04-warnings-hit-and-false-alarm.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06-gap-abstention.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "01d1d43e88c15e8a1411c49b8c688d9eb9fd62956f461742de845b5c4006067d",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "791de0c1a6a5d2c76aff778cebc424a148e4bd3a1ac604e0c22038fb61563f8b",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "ed6b77f063ebf1b8866636a45ccf0efdaa32acc85b1257cb5b6bbbd26bbec894",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "033b7865e0f4d3225f6097840fbe927fa88bbce963a1df1e956b19b64e3f4efa"
+    },
+    "uncommitted_diff_sha256": "d3b8af84625e089527fe48e4b8eb5a0a085b0eff1dec5005b61718e02f911a9c",
+    "untracked_sha256": "95dc8b1f1b77e4b3c3c731b2a147ef54a9baa97b2572de67f440e53277f35448"
+   },
+   "versions": {
+    "python": "3.12.12",
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "fastapi": "0.143.0",
+    "pytest": "9.1.1",
+    "ruff": "0.17.0",
+    "catboost": "1.2.10",
+    "pyarrow": "26.0.0",
+    "uv": "uv 0.9.14 (05814f9cd 2025-12-01)",
+    "node": "v26.7.0",
+    "npm": "11.19.0",
+    "@playwright/test": "1.64.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3",
+    "vite": "8.3.4",
+    "react": "19.3.0"
+   },
+   "artifacts": {
+    "artifact_root": "~/projects/Digitaltwin",
+    "registry": {
+     "path": "artifacts/registry.json",
+     "sha256": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c",
+     "serving": {
+      "dataset_replay": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+      "synthetic_demo": "synthetic-demo.lightgbm.dyn-v2.v1"
+     }
+    },
+    "serving_model_dir": {
+     "path": "artifacts/models/lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+     "tree_sha256": "250369294d3d648159e05d9d519d6c06035ff24ec0abe19ba958efef2ca5946c",
+     "files": {
+      "h30.lgb.txt": "44ca6d30dc5b915a1920fcee4c3be26f9d5df446c917b1465d446a178cc7f940",
+      "h60.lgb.txt": "a30954a3ccd2e14a4103680da886251f8a722a105671daf55fc4230189aca56c",
+      "manifest.json": "004bd7216c3ebccda02e5d5631eee57afba1e262b479ef88e288a77ad588b76e",
+      "serving.json": "aeb86b96da6cd94a05df7e6d0ac782ffd012393a81ae7e08a2dcc0ba6b6dfc6c"
+     }
+    },
+    "files": {
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9",
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet": "1a5a7164fd8d17f36a4248a5a9f30f2dfee53b30b010ca62fab30df8c77b1778",
+     "reports/serving_parity.json": "d43b660ed9cc0189f9f5b34b6e997ce700339ddea80c1a60657519b06ea49664",
+     "reports/serving_parity.md": "e0aac810c169c8a92b131599a407888207dce98d7cb63c89603df78000b673fb"
+    }
+   },
+   "artifacts_in_worktree": {
+    "artifact_root": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "registry": {
+     "path": "artifacts/registry.json",
+     "sha256": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c",
+     "serving": {
+      "dataset_replay": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+      "synthetic_demo": "synthetic-demo.lightgbm.dyn-v2.v1"
+     }
+    },
+    "serving_model_dir": {
+     "path": "artifacts/models/lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+     "tree_sha256": "250369294d3d648159e05d9d519d6c06035ff24ec0abe19ba958efef2ca5946c",
+     "files": {
+      "h30.lgb.txt": "44ca6d30dc5b915a1920fcee4c3be26f9d5df446c917b1465d446a178cc7f940",
+      "h60.lgb.txt": "a30954a3ccd2e14a4103680da886251f8a722a105671daf55fc4230189aca56c",
+      "manifest.json": "004bd7216c3ebccda02e5d5631eee57afba1e262b479ef88e288a77ad588b76e",
+      "serving.json": "aeb86b96da6cd94a05df7e6d0ac782ffd012393a81ae7e08a2dcc0ba6b6dfc6c"
+     }
+    },
+    "files": {
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9",
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet": "1a5a7164fd8d17f36a4248a5a9f30f2dfee53b30b010ca62fab30df8c77b1778",
+     "reports/serving_parity.json": "d43b660ed9cc0189f9f5b34b6e997ce700339ddea80c1a60657519b06ea49664",
+     "reports/serving_parity.md": "e0aac810c169c8a92b131599a407888207dce98d7cb63c89603df78000b673fb"
+    }
+   }
   }
  ],
  "entries": [
@@ -1136,6 +1360,782 @@
     "untracked_sha256": null
    },
    "note": null
+  },
+  {
+   "suite": "I python lint",
+   "command": "uv run ruff check .",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-21T22:02:10+00:00",
+    "ist": "2026-10-22 03:32:10 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:02:10+00:00",
+    "ist": "2026-10-22 03:32:10 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "log",
+    "errors": 0
+   },
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/ruff.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": false,
+    "dirty_files": [],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": "82166d66dcd425ea063e02e1f27c17b0b48a6a3a54fb800371b225d5cb16dcfb",
+    "untracked_sha256": null
+   },
+   "note": null
+  },
+  {
+   "suite": "I backend pytest (complete)",
+   "command": "uv run pytest -q --junitxml=~/projects/Digitaltwin/.claude/worktrees/qa/reports/verification/overnight/integrated/junit/pytest.xml",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-21T22:02:11+00:00",
+    "ist": "2026-10-22 03:32:11 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:03:43+00:00",
+    "ist": "2026-10-22 03:33:43 IST"
+   },
+   "exit_code": 1,
+   "status": "failed",
+   "counts": {
+    "source": "junit",
+    "total": 223,
+    "passed": 219,
+    "failed": 2,
+    "skipped": 2,
+    "skip_reasons": {
+     "could not import 'torch': No module named 'torch'": 1,
+     "compared once, from the fusion side": 1
+    },
+    "failed_cases": [
+     "tests.test_evidence_manifest::test_readme_matches_every_saved_artifact",
+     "tests.test_evidence_manifest::test_a_changed_readme_number_is_a_mismatch"
+    ]
+   },
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/pytest.log",
+   "junit": "reports/verification/overnight/integrated/junit/pytest.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": false,
+    "dirty_files": [],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": "1d40a7519cf744676b58baf4190d6bfed21183a710d5555cfc3ba7607ef6191e",
+    "untracked_sha256": null
+   },
+   "note": null
+  },
+  {
+   "suite": "I frontend typecheck",
+   "command": "npm run typecheck",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-21T22:03:43+00:00",
+    "ist": "2026-10-22 03:33:43 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:03:45+00:00",
+    "ist": "2026-10-22 03:33:45 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/typecheck.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": false,
+    "dirty_files": [],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": "40c8b31756d2e76b4e7f20fe501242abbbc401a1bbc8f02147cf6a1f0a80a0d4",
+    "untracked_sha256": null
+   },
+   "note": null
+  },
+  {
+   "suite": "I frontend unit (vitest)",
+   "command": "npm test -- --reporter=default --reporter=junit --outputFile.junit=~/projects/Digitaltwin/.claude/worktrees/qa/reports/verification/overnight/integrated/junit/vitest.xml",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-21T22:03:46+00:00",
+    "ist": "2026-10-22 03:33:46 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:03:48+00:00",
+    "ist": "2026-10-22 03:33:48 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 133,
+    "passed": 133,
+    "failed": 0,
+    "skipped": 0,
+    "skip_reasons": {},
+    "failed_cases": []
+   },
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/vitest.log",
+   "junit": "reports/verification/overnight/integrated/junit/vitest.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": false,
+    "dirty_files": [],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": "2396fc9d21df5ef781838313ae12f5eb77f8cfffc97820f89404eb7165df5f37",
+    "untracked_sha256": null
+   },
+   "note": null
+  },
+  {
+   "suite": "I frontend production build",
+   "command": "npm run build",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-21T22:03:48+00:00",
+    "ist": "2026-10-22 03:33:48 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:03:51+00:00",
+    "ist": "2026-10-22 03:33:51 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/build.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": false,
+    "dirty_files": [],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": "12eba16a321f49d2daebf5b15887dcc94656f6c0da6da9fd3f1b2854735fb84d",
+    "untracked_sha256": null
+   },
+   "note": null
+  },
+  {
+   "suite": "I e2e normal + recorded judge journeys",
+   "command": "npm run e2e -- --reporter=list,junit --output=<session-scratch>/pw-out/i-e2e",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-21T22:03:51+00:00",
+    "ist": "2026-10-22 03:33:51 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:05:48+00:00",
+    "ist": "2026-10-22 03:35:48 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 29,
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "skip_reasons": {},
+    "failed_cases": []
+   },
+   "env_overrides": {
+    "E2E_API_PORT": "8110",
+    "E2E_WEB_PORT": "5280",
+    "E2E_VAR_DIR": "<session-scratch>/e2e-var/i-e2e",
+    "PLAYWRIGHT_JUNIT_OUTPUT_NAME": "~/projects/Digitaltwin/.claude/worktrees/qa/reports/verification/overnight/integrated/junit/e2e.xml",
+    "PUBLIC_BASE_URL": "<unset>"
+   },
+   "log": "reports/verification/overnight/integrated/logs/e2e.log",
+   "junit": "reports/verification/overnight/integrated/junit/e2e.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": false,
+    "dirty_files": [],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": "dbca3c90f3c5ed33496a19fc01affd0f07ef4d712d5a219434432e92b7be242b",
+    "untracked_sha256": null
+   },
+   "note": null
+  },
+  {
+   "suite": "I e2e public mode (local, synthetic)",
+   "command": "npx playwright test --config playwright.public.config.ts --reporter=list,junit --output=<session-scratch>/pw-out/i-public",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-21T22:05:49+00:00",
+    "ist": "2026-10-22 03:35:49 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:05:57+00:00",
+    "ist": "2026-10-22 03:35:57 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "skip_reasons": {},
+    "failed_cases": []
+   },
+   "env_overrides": {
+    "E2E_PUBLIC_PORT": "8140",
+    "E2E_PUBLIC_VAR_DIR": "<session-scratch>/e2e-var/i-public",
+    "PLAYWRIGHT_JUNIT_OUTPUT_NAME": "~/projects/Digitaltwin/.claude/worktrees/qa/reports/verification/overnight/integrated/junit/e2e-public.xml",
+    "PUBLIC_BASE_URL": "<unset>"
+   },
+   "log": "reports/verification/overnight/integrated/logs/e2e-public.log",
+   "junit": "reports/verification/overnight/integrated/junit/e2e-public.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/05-model-evidence.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/07-mobile-workspace.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/09-recording-1920-recorded-gap-stale.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/13-insufficient-history-recorded.png",
+     "reports/ui/14-research-evidence.png",
+     "reports/ui/15-research-portable-external.png",
+     "reports/ui/16-data-sources.png",
+     "reports/ui/17-research-evidence-mobile.png",
+     "reports/ui/18-model-evidence-fusion-disclosures.png",
+     "reports/ui/19-safety-guardrails.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/21-research-after-demo-model.png",
+     "reports/ui/24-twin-explanation.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/01-inputs-read-by-the-model.png",
+     "reports/ui/journey/02-forecast-components.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/04-warnings-hit-and-false-alarm.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06-gap-abstention.png",
+     "reports/ui/journey/06b-gap-recovery.png"
+    ],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": "b8243f7a582f2495674532d038feb30a2d30fcd7e9ef6822c6fb58b1d2eb459b",
+    "untracked_sha256": null
+   },
+   "note": null
+  },
+  {
+   "suite": "I e2e summary/export",
+   "command": "npx playwright test --config playwright.summary.config.ts --reporter=list,junit --output=<session-scratch>/pw-out/i-summary",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-21T22:05:58+00:00",
+    "ist": "2026-10-22 03:35:58 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:06:18+00:00",
+    "ist": "2026-10-22 03:36:18 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "skip_reasons": {},
+    "failed_cases": []
+   },
+   "env_overrides": {
+    "E2E_SUMMARY_API_PORT": "8130",
+    "E2E_SUMMARY_WEB_PORT": "5300",
+    "E2E_SUMMARY_VAR_DIR": "<session-scratch>/e2e-var/i-summary",
+    "PLAYWRIGHT_JUNIT_OUTPUT_NAME": "~/projects/Digitaltwin/.claude/worktrees/qa/reports/verification/overnight/integrated/junit/e2e-summary.xml",
+    "PUBLIC_BASE_URL": "<unset>"
+   },
+   "log": "reports/verification/overnight/integrated/logs/e2e-summary.log",
+   "junit": "reports/verification/overnight/integrated/junit/e2e-summary.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/05-model-evidence.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/07-mobile-workspace.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/09-recording-1920-recorded-gap-stale.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/13-insufficient-history-recorded.png",
+     "reports/ui/14-research-evidence.png",
+     "reports/ui/15-research-portable-external.png",
+     "reports/ui/16-data-sources.png",
+     "reports/ui/17-research-evidence-mobile.png",
+     "reports/ui/18-model-evidence-fusion-disclosures.png",
+     "reports/ui/19-safety-guardrails.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/21-research-after-demo-model.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/23-public-demo-evidence.png",
+     "reports/ui/24-twin-explanation.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/01-inputs-read-by-the-model.png",
+     "reports/ui/journey/02-forecast-components.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/04-warnings-hit-and-false-alarm.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06-gap-abstention.png",
+     "reports/ui/journey/06b-gap-recovery.png"
+    ],
+    "untracked_files": {},
+    "uncommitted_diff_sha256": "9bcf24ea9b5dfe0280b61b8ea0f1d0be3b4e3aad0ccbb79a3ab4144f51806d99",
+    "untracked_sha256": null
+   },
+   "note": null
+  },
+  {
+   "suite": "I README/submission consistency",
+   "command": "uv run python scripts/check_submission.py",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-21T22:06:18+00:00",
+    "ist": "2026-10-22 03:36:18 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:06:20+00:00",
+    "ist": "2026-10-22 03:36:20 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/check_submission.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/05-model-evidence.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/07-mobile-workspace.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/09-recording-1920-recorded-gap-stale.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/13-insufficient-history-recorded.png",
+     "reports/ui/14-research-evidence.png",
+     "reports/ui/15-research-portable-external.png",
+     "reports/ui/16-data-sources.png",
+     "reports/ui/17-research-evidence-mobile.png",
+     "reports/ui/18-model-evidence-fusion-disclosures.png",
+     "reports/ui/19-safety-guardrails.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/21-research-after-demo-model.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/23-public-demo-evidence.png",
+     "reports/ui/24-twin-explanation.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/01-inputs-read-by-the-model.png",
+     "reports/ui/journey/02-forecast-components.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/04-warnings-hit-and-false-alarm.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06-gap-abstention.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "01d1d43e88c15e8a1411c49b8c688d9eb9fd62956f461742de845b5c4006067d",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "791de0c1a6a5d2c76aff778cebc424a148e4bd3a1ac604e0c22038fb61563f8b",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "ed6b77f063ebf1b8866636a45ccf0efdaa32acc85b1257cb5b6bbbd26bbec894",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "033b7865e0f4d3225f6097840fbe927fa88bbce963a1df1e956b19b64e3f4efa"
+    },
+    "uncommitted_diff_sha256": "e82b862cd5513bc75dca9a7f9bf46b98bf8325ae76efc63a1f1b36188d716d42",
+    "untracked_sha256": "95dc8b1f1b77e4b3c3c731b2a147ef54a9baa97b2572de67f440e53277f35448"
+   },
+   "note": null
+  },
+  {
+   "suite": "I selected-claim consistency (evidence manifest)",
+   "command": "uv run python scripts/evidence_manifest.py",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-21T22:06:21+00:00",
+    "ist": "2026-10-22 03:36:21 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:06:21+00:00",
+    "ist": "2026-10-22 03:36:21 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/evidence_manifest.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [
+     "docs/submission_access_audit.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/05-model-evidence.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/07-mobile-workspace.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/09-recording-1920-recorded-gap-stale.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/13-insufficient-history-recorded.png",
+     "reports/ui/14-research-evidence.png",
+     "reports/ui/15-research-portable-external.png",
+     "reports/ui/16-data-sources.png",
+     "reports/ui/17-research-evidence-mobile.png",
+     "reports/ui/18-model-evidence-fusion-disclosures.png",
+     "reports/ui/19-safety-guardrails.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/21-research-after-demo-model.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/23-public-demo-evidence.png",
+     "reports/ui/24-twin-explanation.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/01-inputs-read-by-the-model.png",
+     "reports/ui/journey/02-forecast-components.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/04-warnings-hit-and-false-alarm.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06-gap-abstention.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "01d1d43e88c15e8a1411c49b8c688d9eb9fd62956f461742de845b5c4006067d",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "791de0c1a6a5d2c76aff778cebc424a148e4bd3a1ac604e0c22038fb61563f8b",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "ed6b77f063ebf1b8866636a45ccf0efdaa32acc85b1257cb5b6bbbd26bbec894",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "033b7865e0f4d3225f6097840fbe927fa88bbce963a1df1e956b19b64e3f4efa"
+    },
+    "uncommitted_diff_sha256": "9d5f0a777eae525204b3fd5e113805d932bdd90c753fd09add8abee6c256a774",
+    "untracked_sha256": "95dc8b1f1b77e4b3c3c731b2a147ef54a9baa97b2572de67f440e53277f35448"
+   },
+   "note": null
+  },
+  {
+   "suite": "I D-053 runner validate (read-only)",
+   "command": "uv run python scripts/constrained_study.py validate",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-21T22:06:22+00:00",
+    "ist": "2026-10-22 03:36:22 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:06:23+00:00",
+    "ist": "2026-10-22 03:36:23 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/constrained_validate.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [
+     "docs/submission_access_audit.md",
+     "reports/evidence_manifest.json",
+     "reports/evidence_manifest.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/05-model-evidence.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/07-mobile-workspace.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/09-recording-1920-recorded-gap-stale.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/13-insufficient-history-recorded.png",
+     "reports/ui/14-research-evidence.png",
+     "reports/ui/15-research-portable-external.png",
+     "reports/ui/16-data-sources.png",
+     "reports/ui/17-research-evidence-mobile.png",
+     "reports/ui/18-model-evidence-fusion-disclosures.png",
+     "reports/ui/19-safety-guardrails.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/21-research-after-demo-model.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/23-public-demo-evidence.png",
+     "reports/ui/24-twin-explanation.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/01-inputs-read-by-the-model.png",
+     "reports/ui/journey/02-forecast-components.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/04-warnings-hit-and-false-alarm.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06-gap-abstention.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "01d1d43e88c15e8a1411c49b8c688d9eb9fd62956f461742de845b5c4006067d",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "791de0c1a6a5d2c76aff778cebc424a148e4bd3a1ac604e0c22038fb61563f8b",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "ed6b77f063ebf1b8866636a45ccf0efdaa32acc85b1257cb5b6bbbd26bbec894",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "033b7865e0f4d3225f6097840fbe927fa88bbce963a1df1e956b19b64e3f4efa"
+    },
+    "uncommitted_diff_sha256": "0e61733c9b0957d7ea91a936964011c0d6125eb1aa22bb26f009554819e84522",
+    "untracked_sha256": "95dc8b1f1b77e4b3c3c731b2a147ef54a9baa97b2572de67f440e53277f35448"
+   },
+   "note": null
+  },
+  {
+   "suite": "I parity: incumbent default path, TEMP output",
+   "command": "uv run python scripts/serving_parity.py --output <session-scratch>/i-parity/serving_parity.json",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-21T22:06:23+00:00",
+    "ist": "2026-10-22 03:36:23 IST"
+   },
+   "end": {
+    "utc": "2026-10-21T22:06:59+00:00",
+    "ist": "2026-10-22 03:36:59 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/overnight/integrated/logs/parity-default-temp.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "c9b610085a20a2675a72c2233b422070ae433b19",
+    "tree": "251d57773805aa960eaf8600adeb5e8c04e36523",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [
+     "docs/submission_access_audit.md",
+     "reports/evidence_manifest.json",
+     "reports/evidence_manifest.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/05-model-evidence.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/07-mobile-workspace.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/09-recording-1920-recorded-gap-stale.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/13-insufficient-history-recorded.png",
+     "reports/ui/14-research-evidence.png",
+     "reports/ui/15-research-portable-external.png",
+     "reports/ui/16-data-sources.png",
+     "reports/ui/17-research-evidence-mobile.png",
+     "reports/ui/18-model-evidence-fusion-disclosures.png",
+     "reports/ui/19-safety-guardrails.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/21-research-after-demo-model.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/23-public-demo-evidence.png",
+     "reports/ui/24-twin-explanation.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/01-inputs-read-by-the-model.png",
+     "reports/ui/journey/02-forecast-components.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/04-warnings-hit-and-false-alarm.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06-gap-abstention.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "01d1d43e88c15e8a1411c49b8c688d9eb9fd62956f461742de845b5c4006067d",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "791de0c1a6a5d2c76aff778cebc424a148e4bd3a1ac604e0c22038fb61563f8b",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "ed6b77f063ebf1b8866636a45ccf0efdaa32acc85b1257cb5b6bbbd26bbec894",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "033b7865e0f4d3225f6097840fbe927fa88bbce963a1df1e956b19b64e3f4efa"
+    },
+    "uncommitted_diff_sha256": "2efa3d170892d7e6a663fc09cac4fbcd0663d6bd035707d738ec0e0568513473",
+    "untracked_sha256": "95dc8b1f1b77e4b3c3c731b2a147ef54a9baa97b2572de67f440e53277f35448"
+   },
+   "note": "registered serving model; summary to session scratch, detail to git-ignored artifacts/verification/candidate_parity"
+  },
+  {
+   "suite": "I candidate serving parity",
+   "command": null,
+   "cwd": null,
+   "start": {
+    "utc": "2026-10-21T22:07:35+00:00",
+    "ist": "2026-10-22 03:37:35 IST"
+   },
+   "end": null,
+   "exit_code": null,
+   "status": "not run",
+   "counts": null,
+   "env_overrides": {},
+   "log": null,
+   "junit": null,
+   "revision": {
+    "commit": "b2d76b3b8c64f9493fe9f57798c6eec2e7485837",
+    "tree": "b6021bd8aba1fe213ee79a01ec36add43ab317d0",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [],
+    "untracked_files": {
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "01d1d43e88c15e8a1411c49b8c688d9eb9fd62956f461742de845b5c4006067d",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "791de0c1a6a5d2c76aff778cebc424a148e4bd3a1ac604e0c22038fb61563f8b",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "ed6b77f063ebf1b8866636a45ccf0efdaa32acc85b1257cb5b6bbbd26bbec894",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "033b7865e0f4d3225f6097840fbe927fa88bbce963a1df1e956b19b64e3f4efa"
+    },
+    "uncommitted_diff_sha256": "854e42b59089e73704b64692dad5b8bfb907a33a3d27c5e1676ea4b39b80c3ec",
+    "untracked_sha256": "95dc8b1f1b77e4b3c3c731b2a147ef54a9baa97b2572de67f440e53277f35448"
+   },
+   "note": "not applicable: no gate-passing candidate (D-053 not adopted; serving model unchanged). Incumbent parity rechecked to a TEMP output: 15,440/15,440, 0 missing, 0 over 0.05 mg/dL, max 0.0500, raw 0.0"
+  },
+  {
+   "suite": "I diagnosis: pytest evidence_manifest failures",
+   "command": null,
+   "cwd": null,
+   "start": {
+    "utc": "2026-10-21T22:07:35+00:00",
+    "ist": "2026-10-22 03:37:35 IST"
+   },
+   "end": null,
+   "exit_code": null,
+   "status": "failed",
+   "counts": null,
+   "env_overrides": {},
+   "log": null,
+   "junit": null,
+   "revision": {
+    "commit": "b2d76b3b8c64f9493fe9f57798c6eec2e7485837",
+    "tree": "b6021bd8aba1fe213ee79a01ec36add43ab317d0",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [],
+    "untracked_files": {
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "01d1d43e88c15e8a1411c49b8c688d9eb9fd62956f461742de845b5c4006067d",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "791de0c1a6a5d2c76aff778cebc424a148e4bd3a1ac604e0c22038fb61563f8b",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "ed6b77f063ebf1b8866636a45ccf0efdaa32acc85b1257cb5b6bbbd26bbec894",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "033b7865e0f4d3225f6097840fbe927fa88bbce963a1df1e956b19b64e3f4efa"
+    },
+    "uncommitted_diff_sha256": "20075b017ed1f1ab2f41b53b0481b7d0903738726eaf1ed3de9d216afe858026",
+    "untracked_sha256": "95dc8b1f1b77e4b3c3c731b2a147ef54a9baa97b2572de67f440e53277f35448"
+   },
+   "note": "tests/test_evidence_manifest.py: 2 failures at c9b6100. README wording changed in e40dbd4 (submission phase 1); evidence_manifest.py now reports 9 of 21 claims 'not found in README' (demo-forecast, demo-warning, demo-time-in-warning, demo-ranges, d046-ranges, nested-forecast, two-hour, two-hour-external, external-15min). The script itself exits 0 on 'not found' (only the test catches it). Owner: submission agent (README/evidence_manifest.py). Regenerated manifest/audit files were restored, not committed."
+  },
+  {
+   "suite": "I note: tracked side effects",
+   "command": null,
+   "cwd": null,
+   "start": {
+    "utc": "2026-10-21T22:07:35+00:00",
+    "ist": "2026-10-22 03:37:35 IST"
+   },
+   "end": null,
+   "exit_code": null,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": null,
+   "junit": null,
+   "revision": {
+    "commit": "b2d76b3b8c64f9493fe9f57798c6eec2e7485837",
+    "tree": "b6021bd8aba1fe213ee79a01ec36add43ab317d0",
+    "branch": "sprint-qa",
+    "worktree": "~/projects/Digitaltwin/.claude/worktrees/qa",
+    "dirty": true,
+    "dirty_files": [],
+    "untracked_files": {
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "01d1d43e88c15e8a1411c49b8c688d9eb9fd62956f461742de845b5c4006067d",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "791de0c1a6a5d2c76aff778cebc424a148e4bd3a1ac604e0c22038fb61563f8b",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "ed6b77f063ebf1b8866636a45ccf0efdaa32acc85b1257cb5b6bbbd26bbec894",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "033b7865e0f4d3225f6097840fbe927fa88bbce963a1df1e956b19b64e3f4efa"
+    },
+    "uncommitted_diff_sha256": "46ea5358a0d95858819f16f050449104dc2deff751a919901b673ac2fa7cfed4",
+    "untracked_sha256": "95dc8b1f1b77e4b3c3c731b2a147ef54a9baa97b2572de67f440e53277f35448"
+   },
+   "note": "check_submission rewrote docs/submission_access_audit.md (date/size only) and evidence_manifest rewrote reports/evidence_manifest.* (12/21) — both restored, not committed (owned by the submission agent). e2e/summary regenerated reports/ui: committed in a scoped ui commit; 4 new untracked summary_check PDFs left untracked."
   }
  ]
 }
