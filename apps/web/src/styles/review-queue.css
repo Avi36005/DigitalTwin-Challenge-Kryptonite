@@ -76,3 +76,29 @@
   display: grid;
   gap: 8px;
 }
+
+/* tablet and narrow desktop: six columns do not fit, so each row uses two lines in four columns —
+   participant over replay time, warnings over data, the latest warning spanning both, then Open */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .rows--queue .rows__head,
+  .rows--queue .rows__row {
+    grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) minmax(180px, 1.6fr) 64px;
+    grid-template-areas:
+      "who counts last act"
+      "time data last act";
+    row-gap: 4px;
+  }
+  .rows--queue .rows__head > :nth-child(1),
+  .rows--queue .rows__row > :nth-child(1) { grid-area: who; }
+  .rows--queue .rows__head > :nth-child(2),
+  .rows--queue .rows__row > :nth-child(2) { grid-area: time; }
+  .rows--queue .rows__head > :nth-child(3),
+  .rows--queue .rows__row > :nth-child(3) { grid-area: counts; }
+  .rows--queue .rows__head > :nth-child(4),
+  .rows--queue .rows__row > :nth-child(4) { grid-area: last; align-self: start; }
+  .rows--queue .rows__head > :nth-child(5),
+  .rows--queue .rows__row > :nth-child(5) { grid-area: data; }
+  .rows--queue .rows__head > :nth-child(6),
+  .rows--queue .rows__row > :nth-child(6) { grid-area: act; }
+  .rows--queue .rows__head > :nth-child(4) { align-self: start; }
+}
