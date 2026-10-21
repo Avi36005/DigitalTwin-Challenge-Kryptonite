@@ -82,6 +82,9 @@ test.describe("judge journey (recorded data, 1920×1080)", () => {
     await page.getByRole("button", { name: "View forecast details" }).click();
     const drawer = page.getByRole("dialog", { name: "Forecast details" });
     await expect(drawer).toContainText("Issued at Day 9 · 20:35");
+    // before maturity the outcome is pending, with each horizon's due time; nothing after the clock is shown
+    await expect(drawer.getByRole("region", { name: "Outcome" })).toContainText("Pending · No outcome is observed yet at this replay time (30 min, due 21:05; 60 min, due 21:35).");
+    await expect(drawer.getByRole("region", { name: "Outcome" })).not.toContainText(/observed reading \d/);
     await page.keyboard.press("Escape");
     await expect(drawer).toBeHidden();
     await page.getByRole("button", { name: "Step 1 h forward" }).click();
@@ -89,6 +92,7 @@ test.describe("judge journey (recorded data, 1920×1080)", () => {
     await page.getByRole("button", { name: "View forecast details" }).click();
     await expect(drawer).toContainText("Issued at Day 9 · 20:35");
     const outcome = drawer.getByRole("region", { name: "Outcome" });
+    await expect(outcome).toContainText("Observed · Every horizon has an observed reading at this replay time.");
     await expect(outcome).toContainText(/30 min \(for 21:05\): observed reading 189 mg\/dL at 21:05/);
     await expect(outcome).toContainText(/60 min \(for 21:35\): observed reading 169 mg\/dL at 21:35/);
     await expect(outcome).toContainText(/The patient correction moved this forecast [\d.]+ mg\/dL closer to the observed value/);

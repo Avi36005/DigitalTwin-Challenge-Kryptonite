@@ -1,5 +1,5 @@
 import { useQueries } from "@tanstack/react-query";
-import { ArrowRight, ListChecks, RotateCw } from "lucide-react";
+import { ArrowRight, CircleDashed, Database, FlaskConical, ListChecks, RotateCw, TimerOff, TriangleAlert, type LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { useClient } from "@/api/client";
 import type { ReplaySession } from "@/api/types";
@@ -41,6 +41,10 @@ export function ReviewQueuePage() {
   const items = sessions.data?.items ?? [];
   const rows = sortQueue(useQueueRows(items)) as Row[];
   const summary = summarizeQueue(rows);
+  const modes = [...new Set(items.map((s) => s.mode))];
+  // one source label for the page when every replay shares it; rows only name their source when sources differ
+  const single = modes.length === 1 ? modes[0] : null;
+  const SourceIcon = single === "synthetic_demo" ? FlaskConical : Database;
   return (
     <>
       <PageHeader title="Review queue" meta={items.length > 0 ? <span aria-live="polite">{summary.text}</span> : undefined}>
@@ -49,15 +53,31 @@ export function ReviewQueuePage() {
         each group the most recently started replay first. Every count stops at that replay’s own clock, and replay times of
         different participants are separate recorded timelines, never compared.
       </PageHeader>
-      {sessions.isLoading ? <Skeleton h={160} /> : sessions.isError ? (
-        <InlineNotice tone="danger" role="alert">The review queue could not be loaded: {(sessions.error as Error).message}</InlineNotice>
+      {sessions.isLoading ? (
+        <div className="queue-loading" role="status">
+          <span className="visually-hidden">Loading the review queue…</span>
+          <Skeleton h={40} /><Skeleton h={56} /><Skeleton h={56} />
+        </div>
+      ) : sessions.isError ? (
+        <InlineNotice tone="danger" role="alert" icon={TriangleAlert}
+          action={<Button size="sm" icon={RotateCw} onClick={() => sessions.refetch()}>Retry</Button>}>
+          The review queue could not be loaded: {(sessions.error as Error).message}. Nothing is shown in its place.
+        </InlineNotice>
       ) : rows.length === 0 ? (
         <EmptyState icon={ListChecks} title="Nothing to review yet"
           action={<Button variant="primary" onClick={() => shell.open("new-replay")}>Choose participant</Button>}>
           Start a replay; its research warnings appear here as the replay clock reaches them.
         </EmptyState>
       ) : (
-        <QueueRows rows={rows} />
+        <>
+          <p className="source-line">
+            {single ? (
+              <><SourceIcon size={15} aria-hidden strokeWidth={1.8} />
+                <span>Source: <strong>{modeLabel(single)}</strong> for every replay listed</span></>
+            ) : <span>Sources differ: each row names its own data source.</span>}
+          </p>
+          <QueueRows rows={rows} showMode={!single} />
+        </>
       )}
       <p className="page-note">
         Each row is read in one request at one replay clock: its counts, latest warning and inputs all describe the replay
@@ -69,17 +89,19 @@ export function ReviewQueuePage() {
   );
 }
 
-const INPUTS: Record<InputState, { text: string; tone: "neutral" | "attention" | "muted" }> = {
+/* Cues used across the workspace: a data-quality limitation (triangle), an abstention (dashed circle) and a sensor gap /
+   stale reading (timer off) each keep their own icon, always next to words. */
+const INPUTS: Record<InputState, { text: string; tone: "neutral" | "attention" | "muted"; icon?: LucideIcon }> = {
   ok: { text: "Inputs complete", tone: "neutral" },
-  degraded: { text: "Degraded inputs", tone: "attention" },
-  abstained: { text: "Abstained", tone: "attention" },
+  degraded: { text: "Degraded inputs", tone: "attention", icon: TriangleAlert },
+  abstained: { text: "Abstained", tone: "attention", icon: CircleDashed },
   no_forecast: { text: "No forecast yet", tone: "muted" },
   no_model: { text: "No verified model", tone: "muted" },
   unknown: { text: "Inputs loading", tone: "muted" },
   unavailable: { text: "Inputs not known", tone: "muted" },
 };
 
-export function QueueRows({ rows }: { rows: (QueueRow & { retry?: () => void })[] }) {
+export function QueueRows({ rows, showMode = true }: { rows: (QueueRow & { retry?: () => void })[]; showMode?: boolean }) {
   return (
     <div className="rows rows--queue" role="table" aria-label="Review queue">
       <div className="rows__head" role="row">
@@ -101,7 +123,7 @@ export function QueueRows({ rows }: { rows: (QueueRow & { retry?: () => void })[
               data-unreviewed={known && (r.unreviewed ?? 0) > 0 ? "true" : undefined}>
               <span role="cell" className="rows__primary">
                 <Link to={paths.session(s.id)} className="rows__alias">{s.patient_alias}</Link>
-                <span className="rows__secondary">{s.mode === "synthetic_demo" ? "Synthetic" : "Recorded"} · session {s.id.slice(0, 8)}
+                <span className="rows__secondary">{showMode ? `${s.mode === "synthetic_demo" ? "Synthetic" : "Recorded"} · ` : ""}Session <span className="num">{s.id.slice(0, 8)}</span>
                   <span className="visually-hidden">, {modeLabel(s.mode)}</span></span>
               </span>
               <span role="cell" className="rows__time num">
@@ -139,12 +161,14 @@ export function QueueRows({ rows }: { rows: (QueueRow & { retry?: () => void })[
                 ) : known ? <span className="muted">No warning yet</span> : null}
               </span>
               <span role="cell" className="queue__data">
-                <span className={fr.status === "stale" ? "queue__flag" : undefined}>
+                <span className={fr.status === "stale" ? "queue__flag cue" : undefined}>
+                  {fr.status === "stale" && <TimerOff size={13} aria-hidden strokeWidth={2} />}
                   {fr.status === "fresh" ? `Fresh · ${durationLabel(fr.latest_glucose_age_minutes)} old`
                     : fr.status === "stale" ? `Stale · ${durationLabel(fr.latest_glucose_age_minutes)} old`
                       : "No reading yet"}
                 </span>
-                <span className={`rows__secondary${inp.tone === "attention" ? " queue__flag" : ""}`}>{inp.text}</span>
+                <span className={`rows__secondary${inp.tone === "attention" ? " queue__flag cue" : ""}`}>
+                  {inp.icon && <inp.icon size={13} aria-hidden strokeWidth={2} />}{inp.text}</span>
               </span>
               <span role="cell" className="rows__action">
                 <Link to={paths.session(s.id)} className="row-action" aria-label={`Open replay for ${s.patient_alias}, session ${s.id.slice(0, 8)}`}>

@@ -1,7 +1,7 @@
 /* Review queue: the shared session rows with six columns. Flat rows and dividers; unreviewed rows get a thin blue rule. */
 .rows--queue .rows__head,
 .rows--queue .rows__row {
-  grid-template-columns: minmax(170px, 1.3fr) minmax(110px, 0.8fr) minmax(150px, 1fr) minmax(200px, 1.6fr) minmax(150px, 1fr) 80px;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(100px, 0.7fr) minmax(120px, 0.8fr) minmax(240px, 2.1fr) minmax(150px, 1fr) 72px;
 }
 .rows--queue .rows__head,
 .rows--queue .rows__row {
@@ -42,6 +42,10 @@
 }
 
 @media (max-width: 760px) {
+  /* the sessions list joins time and state with a dot; queue cells stack, so the dot would dangle */
+  .rows--queue .rows__time::after {
+    content: none;
+  }
   .queue__counts,
   .queue__last,
   .queue__data {
@@ -49,4 +53,52 @@
     flex-basis: 100%;
     font-size: 13px;
   }
+}
+
+/* one data-source label for the whole list (rows repeat it only when sources differ) */
+.source-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: var(--gt-fs-small);
+  color: var(--gt-text-2);
+}
+.source-line svg {
+  flex: none;
+  color: var(--gt-text-2);
+}
+.source-line strong {
+  font-weight: 500;
+  color: var(--gt-text);
+}
+.queue-loading {
+  display: grid;
+  gap: 8px;
+}
+
+/* tablet and narrow desktop: six columns do not fit, so each row uses two lines in four columns —
+   participant over replay time, warnings over data, the latest warning spanning both, then Open */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .rows--queue .rows__head,
+  .rows--queue .rows__row {
+    grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) minmax(180px, 1.6fr) 64px;
+    grid-template-areas:
+      "who counts last act"
+      "time data last act";
+    row-gap: 4px;
+  }
+  .rows--queue .rows__head > :nth-child(1),
+  .rows--queue .rows__row > :nth-child(1) { grid-area: who; }
+  .rows--queue .rows__head > :nth-child(2),
+  .rows--queue .rows__row > :nth-child(2) { grid-area: time; }
+  .rows--queue .rows__head > :nth-child(3),
+  .rows--queue .rows__row > :nth-child(3) { grid-area: counts; }
+  .rows--queue .rows__head > :nth-child(4),
+  .rows--queue .rows__row > :nth-child(4) { grid-area: last; align-self: start; }
+  .rows--queue .rows__head > :nth-child(5),
+  .rows--queue .rows__row > :nth-child(5) { grid-area: data; }
+  .rows--queue .rows__head > :nth-child(6),
+  .rows--queue .rows__row > :nth-child(6) { grid-area: act; }
+  .rows--queue .rows__head > :nth-child(4) { align-self: start; }
 }

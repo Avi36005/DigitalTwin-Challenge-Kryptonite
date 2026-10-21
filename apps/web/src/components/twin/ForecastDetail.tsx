@@ -1,3 +1,4 @@
+import { CircleCheck, Clock, TimerOff } from "lucide-react";
 import type { EvaluationReport, Forecast, ObservationEvent, PatientSummary } from "@/api/types";
 import { measuredCoverage } from "@/lib/forecast";
 import { fmtGlucose, fmtPct, modeLabel } from "@/lib/format";
@@ -79,6 +80,7 @@ export function ForecastDetail({ f, patient, report, open, onClose, publicDemo =
           {clock != null && (
             <section aria-labelledby="fd-outcome">
               <h3 className="drawer-body__h" id="fd-outcome">Outcome</h3>
+              <OutcomeState f={f} events={events} clock={clock} />
               <ul className="facts">
                 {f.estimates.map((e) => (
                   <li key={e.horizon_minutes}>
@@ -110,6 +112,30 @@ export function ForecastDetail({ f, patient, report, open, onClose, publicDemo =
         </div>
       )}
     </Dialog>
+  );
+}
+
+/** One line above the per-horizon outcomes: pending, partly observed, resolved or unknown, judged at the replay clock. */
+function OutcomeState({ f, events, clock }: { f: Forecast; events: ObservationEvent[]; clock: number }) {
+  const all = f.estimates.map((e) => ({ e, o: horizonOutcome(e, events, clock) }));
+  const pending = all.filter((x) => x.o.state === "pending");
+  const unknown = all.filter((x) => x.o.state === "unknown");
+  const observed = all.filter((x) => x.o.state === "observed");
+  const due = (xs: typeof all) => xs.map((x) => `${x.e.horizon_minutes} min, due ${replayTime(x.e.target_at, { day: false })}`).join("; ");
+  const [state, Icon, title, text] = pending.length === all.length
+    ? ["pending", Clock, "Pending", `No outcome is observed yet at this replay time (${due(pending)}).`] as const
+    : pending.length > 0
+      ? ["partial", Clock, "Partly observed", `${observed.length} of ${all.length} horizons observed; still pending: ${due(pending)}.`] as const
+      : unknown.length === all.length
+        ? ["unknown", TimerOff, "Outcome unknown", "No reading near either target time (sensor gap)."] as const
+        : ["resolved", CircleCheck, "Observed", unknown.length
+          ? `${observed.length} of ${all.length} horizons observed; no reading near the other target time.`
+          : "Every horizon has an observed reading at this replay time."] as const;
+  return (
+    <p className="outcome-state" data-state={state}>
+      <Icon size={15} aria-hidden strokeWidth={2} />
+      <span><strong>{title}</strong> · {text}</span>
+    </p>
   );
 }
 

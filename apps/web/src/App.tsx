@@ -14,7 +14,9 @@ import { ToastProvider } from "./state/toasts";
 function Root() {
   return (
     <>
-      <ScrollRestoration />
+      {/* a document load has no history key ("default" for every page): key it by path, so opening another page
+          directly never inherits the scroll position saved for the page loaded before it */}
+      <ScrollRestoration getKey={(loc) => (loc.key === "default" ? `${loc.pathname}${loc.search}` : loc.key)} />
       <PublicDemoBanner />
       <Outlet />
     </>

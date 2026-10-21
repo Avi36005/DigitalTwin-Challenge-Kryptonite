@@ -105,3 +105,66 @@
     padding: 6px 0;
   }
 }
+
+/* evidence page: the three kinds of evidence, side by side with hairline dividers (not boxed cards); the shown kind
+   carries a blue top rule */
+.ev-scope ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 12px 0 20px;
+  padding: 0;
+  border-top: 1px solid var(--gt-divider);
+  border-bottom: 1px solid var(--gt-divider);
+}
+.ev-scope li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: 10px 16px 12px;
+  min-width: 0;
+}
+.ev-scope li + li {
+  border-left: 1px solid var(--gt-divider);
+}
+.ev-scope li:first-child {
+  padding-left: 0;
+}
+.ev-scope li[data-current="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: var(--gt-accent);
+}
+.ev-scope__title {
+  font-size: var(--gt-fs-small);
+  font-weight: 600;
+  color: var(--gt-text);
+  text-align: left;
+  justify-self: start;
+}
+button.ev-scope__title {
+  color: var(--gt-accent-text);
+}
+.ev-scope__text {
+  font-size: var(--gt-fs-meta);
+  color: var(--gt-text-2);
+  line-height: 1.45;
+}
+@media (max-width: 760px) {
+  .ev-scope ol {
+    grid-template-columns: 1fr;
+  }
+  .ev-scope li,
+  .ev-scope li:first-child {
+    padding: 8px 0;
+  }
+  .ev-scope li + li {
+    border-left: 0;
+    border-top: 1px solid var(--gt-divider);
+  }
+}
