@@ -181,8 +181,8 @@ function ForecastItem({ h, f, latest, loading }: { h: number; f: Forecast | null
           </p>
           <p className="summary__meta">
             For <span className="num">{replayTime(e.target_at)}</span> · issued <span className="num">{replayTime(f.as_of, { day: false })}</span>
-            {latest?.availability === "stale" && <> · <StatusLabel tone="attention">Stale</StatusLabel></>}
-            {f.quality.status === "degraded" && <> · <StatusLabel tone="attention">Degraded data</StatusLabel></>}
+            {latest?.availability === "stale" && <> · <StatusLabel tone="attention" icon={TimerOff}>Stale</StatusLabel></>}
+            {f.quality.status === "degraded" && <> · <StatusLabel tone="attention" icon={TriangleAlert}>Degraded data</StatusLabel></>}
           </p>
         </>
       ) : (
