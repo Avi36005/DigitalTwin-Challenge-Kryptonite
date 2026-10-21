@@ -478,3 +478,137 @@ def test_portfolio_is_the_declared_size_and_order():
     assert [c["objective"] for c in lg[:2]] == ["l2", "l1"] and lg[0]["template"] == "T0"
     assert len(C.cb_configs()) == 16
     assert C.min_leaf(0.25, 16000, 6) == 667
+
+
+# ----------------------------------------------------------------------------------------------- audit follow-ups (pre-fit)
+
+
+def _need_base():
+    if not (ROOT / "artifacts/research/gt-2h-2026-10-20/splits.json").exists():
+        pytest.skip("frozen base split not available")
+
+
+def _stub(n_people=6, n=120):
+    pids, o, X, g, y_abs = _data(n_people, n)
+    st = object.__new__(C.Constrained)
+    st.pids, st.o, st.g = pids, o, g
+    st.issued = np.ones(len(pids), bool)
+    st.y = {30: y_abs, 60: y_abs}
+    st.Xn = {"F0": X}
+    st.cols = {"F0": ["a", "b", "c"]}
+    st.fit_log, st.failures, st.ledger, st.segment = [], [], None, "test"
+    st.t = pd.DataFrame({"patient_id": pids, "origin": o})
+    plan = SimpleNamespace(fold="stub", development=tuple(f"p{i}" for i in range(n_people)), calibration=(),
+                           assessment=(), inner=(("p0", "p1"), ("p2", "p3"), ("p4", "p5")))
+    return st, plan
+
+
+def test_every_fit_attempt_reaches_the_on_disk_ledger_immediately(tmp_path):
+    st, plan = _stub()
+    st.ledger = tmp_path / "fits.jsonl"
+    st.fit(_cfg(), 30, ["p0", "p1", "p2"], plan, "inner-1")                  # early-stopped: 2 physical fits
+    st.fit(_cfg(), 30, ["p0", "p1", "p2"], plan, "outer", rounds=5)          # fixed rounds: 1 physical fit
+    rows = [json.loads(x) for x in st.ledger.read_text().splitlines()]
+    assert [r["physical_fits"] for r in rows] == [2, 1] and all(r["segment"] == "test" for r in rows)
+
+
+def test_a_failed_or_partial_r0_control_aborts_the_fold_instead_of_qualifying_candidates():
+    st, plan = _stub()
+    st.r0_cfg = lambda h: {"id": f"R0-{h}", "r0": True}
+    st.inner_oof = lambda cfg, h, plan: (np.full(len(st.pids), np.nan), [], True)
+    with pytest.raises(RuntimeError, match="R0 inner fit failed"):
+        st.develop_fold(plan)
+    part = np.where(st.pids == "p0", np.nan, 150.0)                          # one person missing, no failure flag
+    st.inner_oof = lambda cfg, h, plan: (part, [10], False)
+    with pytest.raises(RuntimeError, match="partial"):
+        st.develop_fold(plan)
+    ok, why = C.check_feasible({"mae": 1.0, "high": 1.0, "avail": 1.0}, {"mae": 30.0, "high": 30.0, "avail": 0.8,
+                                                                         "failed": True}, 60)
+    assert not ok and "control R0 failed in this fold" in why
+
+
+def test_an_outer_fit_failure_of_the_selected_member_falls_back_to_r0_for_both_horizons():
+    st, plan = _stub()
+    st.rec = {30: {"rounds": 5}, 60: {"rounds": 5}}
+    r0 = {h: {**_cfg(cid=f"R0-{h}"), "r0": True} for h in (30, 60)}
+    cand = {h: _cfg(cid=f"cand-{h}") for h in (30, 60)}
+    st.member_cfg = lambda mid, h: (r0[h], 96, 240) if mid.startswith("R0") else (cand[h], None, None)
+    real_fit = C.Constrained.fit
+
+    def fit(self, cfg, h, people, plan_, scope, rounds=None):
+        if cfg["id"] == "cand-60":
+            return None, {"error": "boom", "config": cfg["id"]}
+        return real_fit(self, cfg, h, people, plan_, scope, rounds)
+    st.fit = fit.__get__(st)
+    ddoc = {"selected": {"m30": "cand|off|30", "m60": "cand|off|60"},
+            "best_iterations": {"cand-30|30": [4, 5, 6], "cand-60|60": [4, 5, 6]}}
+    members, fitted, failed = st.fit_members(plan, ddoc)
+    assert failed["error"] == "boom" and members["S"] == {30: "R0_30", 60: "R0_60"}
+    assert fitted[("cand-30", 30)].rounds == 5                                 # median of the inner best iterations
+
+
+def test_resume_refuses_a_development_fold_changed_after_publication(tmp_path, monkeypatch):
+    _need_base()
+    monkeypatch.setattr(C, "OUT", tmp_path)
+    monkeypatch.setattr(C, "LOG", tmp_path / "progress.log")
+    (tmp_path / "run_manifest.json").write_text(json.dumps({"hashes": C.hashes(), "started_at": "x"}))
+    C.publish_fold(tmp_path / "development", "outer-1", {"selected": {"m60": "a"}}, {"x": np.arange(3.0)})
+    assert C.fold_state(tmp_path / "development", "outer-1") == "complete"
+    (tmp_path / "development" / "outer-1.json").write_text(json.dumps({"selected": {"m60": "b"}}))
+    with pytest.raises(RuntimeError, match="checksum"):
+        C.fold_state(tmp_path / "development", "outer-1")
+    with pytest.raises(SystemExit, match="Refusing to resume"):
+        C.run(resume=True)
+    (tmp_path / "development" / "outer-1.json").unlink()
+    with pytest.raises(RuntimeError, match="missing"):
+        C.fold_state(tmp_path / "development", "outer-1")
+    # an interrupted publication (no sidecar yet) is not a published fold
+    C._save_arrays(tmp_path / "development" / "outer-2.npz", {"x": np.arange(2.0)})
+    assert C.fold_state(tmp_path / "development", "outer-2") == "absent"
+
+
+def test_validate_distinguishes_incomplete_from_complete_and_invalid(tmp_path, monkeypatch, capsys):
+    _need_base()
+    monkeypatch.setattr(C, "OUT", tmp_path)
+    monkeypatch.setattr(C, "REPORT", tmp_path / "r.md")
+    h = C.hashes()
+    (tmp_path / "run_manifest.json").write_text(json.dumps({"hashes": h}))
+    assert C.validate() == 2 and json.loads(capsys.readouterr().out)["status"] == "intact-incomplete"
+    assert C.validate(checkpoint=True) == 0
+    (tmp_path / "assessment_opened.json").write_text(json.dumps({"opened_at": "z", "hashes": h}))
+    assert C.validate(checkpoint=True) == 1                                     # lock without frozen development
+    (tmp_path / "assessment_opened.json").unlink()
+    (tmp_path / "run_manifest.json").write_text(json.dumps({"hashes": {**h, "inputs_sha256": "other"}}))
+    assert C.validate(checkpoint=True) == 1                                     # data/recipe changed
+
+
+def test_fingerprints_cover_the_recipe_table_bytes_and_base_protocol():
+    _need_base()
+    names = {p.name for p in C.input_paths()}
+    assert {"manifest.json", "multimodal_5min__cgmacros.parquet", "splits.json", "gt-2h-2026-10-20.yaml"} <= names
+    assert {"inputs_sha256", "recipe_fingerprint", "code_sha256", "protocol_sha256"} <= set(C.hashes())
+
+
+def test_final_package_round_trip_checksum_and_calibration_identity(tmp_path):
+    pids, o, X, g, y_abs = _data()
+    dev = np.isin(pids, ["p0", "p1", "p2", "p3"])
+    cal = pids == "p4"
+    fp, _ = C.fit_tree(_cfg(), X, y_abs - g, y_abs, pids, o, dev, 1, ["a", "b", "c"], rounds=20)
+    ident = fp.identity("pol", "feat")
+    rec = C.calibrate(np.abs(y_abs[cal] - (g[cal] + fp.predict_delta(X[cal]))), ident)
+    entry = {"fp": fp, "policy": {"k": 96}, "columns": ["a", "b", "c"], "calibration": rec, "scales": {}}
+    C.write_package(tmp_path / "pkg", {30: entry}, {"experiment_id": "t"})
+    loaded = C.load_package(tmp_path / "pkg")
+    model, e = loaded[30]
+    assert np.allclose(model.predict(X[:20]), fp.predict_delta(X[:20]))
+    with pytest.raises(FileExistsError):
+        C.write_package(tmp_path / "pkg", {30: entry}, {})
+    # a calibration made for another fit (e.g. development + calibration refit) is refused at load time
+    fp2, _ = C.fit_tree(_cfg(), X, y_abs - g, y_abs, pids, o, dev | cal, 1, ["a", "b", "c"], rounds=20)
+    C.write_package(tmp_path / "mixed", {30: {**entry, "fp": fp2}}, {})
+    with pytest.raises(CalibrationError):
+        C.load_package(tmp_path / "mixed")
+    f = tmp_path / "pkg" / "model_30.txt"
+    f.write_text(f.read_text() + "\n# tampered\n")
+    with pytest.raises(ValueError, match="checksum"):
+        C.load_package(tmp_path / "pkg")

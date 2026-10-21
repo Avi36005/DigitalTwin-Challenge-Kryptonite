@@ -11,7 +11,8 @@ calibrated on the reserved calibration people and scored once on the assessment 
 Usage:  uv run python scripts/constrained_study.py run        # fresh run (refuses if a run already exists)
         uv run python scripts/constrained_study.py resume     # continue an interrupted run (identical hashes only)
         uv run python scripts/constrained_study.py render     # rewrite the report from summary.json
-        uv run python scripts/constrained_study.py validate   # check locks, hashes, identities and saved artifacts
+        uv run python scripts/constrained_study.py validate [--checkpoint]   # locks, hashes, identities, artifacts
+        uv run python scripts/constrained_study.py package    # only if ALL gates passed: declared final packaging
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
+import os
 import sys
 import tempfile
 import time
@@ -327,6 +329,8 @@ def availability(pred: np.ndarray, rows: np.ndarray) -> float:
 def check_feasible(c: dict, r0: dict, h: int) -> tuple[bool, list[str]]:
     """Inner development filters for an alternative (c) versus R0 (r0) at horizon h."""
     why = []
+    if r0.get("failed"):
+        why.append("control R0 failed in this fold")
     if c.get("failed"):
         why.append("fit failed in this fold")
     if c.get("mae") is None:
@@ -620,6 +624,8 @@ class Constrained:
         self.split_hash = load_frozen(R.BASE)["split_hash"]
         self.fit_log: list[dict] = []
         self.failures: list[dict] = []
+        self.ledger: Path | None = None
+        self.segment: str = ""
 
     @staticmethod
     def _table_key(research_dir) -> str:
@@ -650,8 +656,11 @@ class Constrained:
         rows = np.isin(self.pids, list(train_people)) & self.issued & np.isfinite(yd)
         fp, info = fit_tree(cfg, self.Xn[cfg["features"]], yd, self.y[h], self.pids, self.o, rows, SEED + h,
                             self.cols[cfg["features"]], rounds=rounds, early_stop=rounds is None)
-        info.update({"fold": plan.fold, "scope": scope, "horizon": h, "family": cfg["family"]})
+        info.update({"fold": plan.fold, "scope": scope, "horizon": h, "family": cfg["family"],
+                     "physical_fits": 2 if rounds is None else 1, "segment": self.segment})
         self.fit_log.append(info)
+        if self.ledger is not None:
+            _append_fits([info], self.ledger)
         if fp is None:
             self.failures.append(info)
             log(f"FIT FAILED {plan.fold} {scope} {cfg['id']} h{h}: {info.get('error')}")
@@ -699,6 +708,9 @@ class Constrained:
         r0 = {}
         for h in HS:
             oof, _, failed = self.inner_oof(self.r0_cfg(h), h, plan)
+            if failed or availability(oof, devrows) < 1.0:
+                # no candidate may qualify against a failed or partial control: the fold (and run) is incomplete
+                raise RuntimeError(f"{plan.fold}: R0 inner fit failed or is partial at {h} min; fold incomplete")
             fin = self.personalise(oof, h, devrows, 96, 240)
             r0[h] = {**score(fin, h), "failed": failed, "config": f"R0-{h}", "policy": "k96_hl240", "k": 96,
                      "half_life": 240, "r0": True, "family": "lightgbm"}
@@ -795,6 +807,32 @@ class Constrained:
         k, hl = next((k, hl) for n, k, hl in POLICIES if n == pol)
         return cfg, k, hl
 
+    def fit_members(self, plan, ddoc: dict) -> tuple[dict, dict, dict | None]:
+        """Fit every predictor of R0 and of the selected procedure ONCE on the plan's development people (fixed rounds:
+        R0 frozen; candidates the median inner best iteration). An S member failure -> declared R0 fallback."""
+        sel = ddoc["selected"]
+        members = {"R0": {30: "R0_30", 60: "R0_60"}, "S": {30: sel["m30"], 60: sel["m60"]}}
+        fitted: dict[tuple, FittedPredictor] = {}
+        failed = None
+        for h in HS:
+            for proc in ("R0", "S"):
+                cfg, _, _ = self.member_cfg(members[proc][h], h)
+                key = (cfg["id"], h)
+                if key in fitted:
+                    continue
+                rounds = self.rec[h]["rounds"] if cfg.get("r0") else int(np.median(ddoc["best_iterations"][f"{cfg['id']}|{h}"]))
+                fp, info = self.fit(cfg, h, list(plan.development), plan, "outer", rounds)
+                if fp is None:
+                    if cfg.get("r0"):
+                        raise RuntimeError(f"{plan.fold}: R0 outer fit failed for h{h}: {info.get('error')}")
+                    log(f"{plan.fold} S member {cfg['id']} failed in the outer fit -> R0 fallback for this fold")
+                    failed = info
+                    continue
+                fitted[key] = fp
+        if failed is not None:
+            members["S"] = {30: "R0_30", 60: "R0_60"}
+        return members, fitted, failed
+
     def assess_fold(self, plan, ddoc: dict, darr: dict) -> tuple[dict, dict[str, np.ndarray]]:
         t0 = time.time()
         dev = list(plan.development)
@@ -805,27 +843,12 @@ class Constrained:
         assert not (set(plan.calibration) & set(plan.assessment))
         sel = ddoc["selected"]
         arrays: dict[str, np.ndarray] = {}
-        fitted: dict[tuple, FittedPredictor] = {}
-        doc: dict[str, Any] = {"fold": plan.fold, "selected": sel, "procedures": {}}
-        members = {"R0": {30: "R0_30", 60: "R0_60"}, "S": {30: sel["m30"], 60: sel["m60"]}}
-        for h in HS:  # fit every needed predictor ONCE on development people; an S member failure -> declared R0 fallback
-            for proc in ("R0", "S"):
-                cfg, _, _ = self.member_cfg(members[proc][h], h)
-                key = (cfg["id"], h)
-                if key in fitted:
-                    continue
-                rounds = self.rec[h]["rounds"] if cfg.get("r0") else int(np.median(ddoc["best_iterations"][f"{cfg['id']}|{h}"]))
-                fp, info = self.fit(cfg, h, dev, plan, "outer", rounds)
-                if fp is None:
-                    if cfg.get("r0"):
-                        raise RuntimeError(f"R0 outer fit failed for h{h}: {info.get('error')}")
-                    log(f"{plan.fold} S member {cfg['id']} failed in the outer fit -> R0 fallback for this fold")
-                    members["S"] = {30: "R0_30", 60: "R0_60"}
-                    doc["outer_fit_failed_fallback"] = info
-                    continue
-                fitted[key] = fp
-        if doc.get("outer_fit_failed_fallback"):
-            doc["selected"] = sel = {**sel, "fallback": True, "m30": "R0_30", "m60": "R0_60",
+        doc: dict[str, Any] = {"fold": plan.fold, "development_selection": ddoc["selected"], "selected": sel,
+                               "procedures": {}}
+        members, fitted, failed = self.fit_members(plan, ddoc)
+        if failed is not None:
+            doc["outer_fit_failed_fallback"] = failed
+            doc["selected"] = sel = {**sel, "fallback": True, "family": None, "m30": "R0_30", "m60": "R0_60",
                                      "threshold": ddoc["r0p"]["threshold"]}
         for proc, mem in members.items():
             pdoc = {}
@@ -872,14 +895,16 @@ class Constrained:
             trend[str(h)] = {"window": best[1], "damping": best[2], "dev_mae": best[0]}
             arrays[f"linear_trend_final_{h}"] = np.where(ass, best[3], np.nan)
         doc["linear_trend"] = trend
-        # warnings on assessment people (thresholds from development only)
+        # warnings on assessment people (thresholds from development only); an S that is R0 uses R0's 1/day point
+        s1 = ddoc["r0_1day"] if sel["fallback"] else ddoc["s_1day"]
+        doc["s_1day_effective"] = s1
         fin = lambda p: {h: arrays[f"{p}_final_{h}"] for h in HS}  # noqa: E731
         doc["warnings"] = {
             "S": warn_metrics(self.t, ass, self.issued, fin("S"), sel["threshold"], True),
             "R0-P": warn_metrics(self.t, ass, self.issued, fin("R0"), ddoc["r0p"]["threshold"], True),
             "R0-serving-threshold": warn_metrics(self.t, ass, self.issued, fin("R0"), SERVING_MARGIN, True),
-            "S-1day": warn_metrics(self.t, ass, self.issued, fin("S"), (ddoc["s_1day"] or {}).get("threshold"), True)
-            if ddoc["s_1day"] else None,
+            "S-1day": warn_metrics(self.t, ass, self.issued, fin("S"), (s1 or {}).get("threshold"), True)
+            if s1 else None,
             "R0-1day": warn_metrics(self.t, ass, self.issued, fin("R0"), (ddoc["r0_1day"] or {}).get("threshold"), True)
             if ddoc["r0_1day"] else None}
         doc["seconds"] = round(time.time() - t0, 1)
@@ -890,12 +915,27 @@ class Constrained:
 # ===================================================================================================== orchestration
 
 
-def hashes(st: Constrained | None = None) -> dict:
+N_FOLDS = 5
+
+
+def input_paths() -> list[Path]:
+    """Data, recipe and protocol inputs whose bytes must not change during a run (resume refuses otherwise)."""
+    import retrain_study as R
+    from glucotwin.research.protocol import research_dir
+
+    tab = research_dir(R.BASE) / "tables"
+    return [R.SERVING_DIR / "manifest.json", tab / f"{R.TRACK}__cgmacros.parquet", tab / f"{R.TRACK}__cgmacros.json",
+            research_dir(R.BASE) / "splits.json", ROOT / f"configs/experiments/{R.BASE}.yaml", R.PROTO_PATH]
+
+
+def hashes() -> dict:
     import retrain_study as R
     from glucotwin.research.protocol import load_frozen, research_dir
 
     return {"protocol_sha256": sha256(PROTO_PATH.read_bytes()).hexdigest(),
             "code_sha256": fingerprint(file_hashes(code_paths())),
+            "inputs_sha256": fingerprint(file_hashes(input_paths())),
+            "recipe_fingerprint": fingerprint(R.recipe()),
             "split_hash": load_frozen(R.BASE)["split_hash"], "table_cache_key": Constrained._table_key(research_dir)}
 
 
@@ -903,16 +943,64 @@ def _env() -> dict:
     import catboost
     import lightgbm
     import retrain_study as R
-    return {**{k: v for k, v in R.env().items() if k != "protocol_sha256"}, "catboost": catboost.__version__, "lightgbm": lightgbm.__version__, "threads": THREADS}
+    return {**{k: v for k, v in R.env().items() if k != "protocol_sha256"}, "catboost": catboost.__version__,
+            "lightgbm": lightgbm.__version__, "threads": THREADS}
+
+
+def _atomic_bytes(path: Path, data: bytes) -> None:
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, path)
 
 
 def _save_arrays(path: Path, arrays: dict[str, np.ndarray]) -> None:
-    np.savez_compressed(path, **{k.replace("|", "__"): v for k, v in arrays.items()})
+    import io
+
+    buf = io.BytesIO()
+    np.savez_compressed(buf, **{k.replace("|", "__"): v for k, v in arrays.items()})
+    _atomic_bytes(path, buf.getvalue())
 
 
 def _load_arrays(path: Path) -> dict[str, np.ndarray]:
     z = np.load(path)
     return {k.replace("__", "|"): z[k] for k in z.files}
+
+
+def publish_fold(d: Path, fold: str, doc: dict, arrays: dict[str, np.ndarray]) -> None:
+    """Arrays, then JSON, then the checksum sidecar (written last: its presence marks a complete publication)."""
+    d.mkdir(parents=True, exist_ok=True)
+    _save_arrays(d / f"{fold}.npz", arrays)
+    _atomic_bytes(d / f"{fold}.json", json.dumps(doc, default=float).encode())
+    side = {"json": sha256((d / f"{fold}.json").read_bytes()).hexdigest(),
+            "npz": sha256((d / f"{fold}.npz").read_bytes()).hexdigest()}
+    _atomic_bytes(d / f"{fold}.sha256.json", json.dumps(side).encode())
+
+
+def fold_state(d: Path, fold: str) -> str:
+    """'absent' (never published or an interrupted publication without its sidecar) or 'complete' (verified);
+    raises RuntimeError when a published pair is missing a file or does not match its checksums."""
+    side = d / f"{fold}.sha256.json"
+    if not side.exists():
+        return "absent"
+    h = json.loads(side.read_text())
+    for kind in ("json", "npz"):
+        f = d / f"{fold}.{kind}"
+        if not f.exists():
+            raise RuntimeError(f"{f.name} missing although {side.name} marks it published")
+        if sha256(f.read_bytes()).hexdigest() != h[kind]:
+            raise RuntimeError(f"{f.name} does not match its published checksum")
+    return "complete"
+
+
+def _verify_lock(lock: Path, h_now: dict) -> dict:
+    doc = json.loads(lock.read_text())
+    if doc.get("hashes") != h_now:
+        raise RuntimeError(f"{lock.name} was written under different hashes")
+    for k, v in doc.get("files", {}).items():
+        f = ROOT / k
+        if not f.exists() or sha256(f.read_bytes()).hexdigest() != v:
+            raise RuntimeError(f"{k} changed or vanished after {lock.name} froze it")
+    return doc
 
 
 def run(resume: bool) -> None:
@@ -929,71 +1017,182 @@ def run(resume: bool) -> None:
         if diff:
             sys.exit(f"Refusing to resume: {diff} changed since the run started. Mark the run invalid and start a "
                      "separately labelled rerun instead.")
-        log(f"resume requested; hashes match ({h_now['protocol_sha256'][:12]})")
+        try:
+            for lk in ("development_complete.json", "assessment_opened.json"):
+                if (OUT / lk).exists():
+                    _verify_lock(OUT / lk, h_now)
+            for sub in ("development", "assessment"):
+                for i in range(1, N_FOLDS + 1):
+                    fold_state(OUT / sub, f"outer-{i}")
+        except RuntimeError as exc:
+            sys.exit(f"Refusing to resume: {exc}")
+        man.setdefault("resumes", []).append(datetime.now(UTC).isoformat(timespec="seconds"))
+        _atomic_bytes(man_p, json.dumps(man, indent=1).encode())
+        log(f"resume requested; hashes, locks and saved folds verified ({h_now['protocol_sha256'][:12]})")
     else:
+        import retrain_study as R
         man = {"experiment_id": PROTO["experiment_id"], "started_at": datetime.now(UTC).isoformat(timespec="seconds"),
-               "hashes": h_now, "env": _env(), "code_files": file_hashes(code_paths())}
-        man_p.write_text(json.dumps(man, indent=1))
+               "hashes": h_now, "env": _env(), "code_files": file_hashes(code_paths()),
+               "input_files": file_hashes(input_paths()), "resolved_r0_recipe": {str(k): v for k, v in R.recipe().items()}}
+        _atomic_bytes(man_p, json.dumps(man, indent=1).encode())
         log(f"run started; protocol {h_now['protocol_sha256'][:12]} code {h_now['code_sha256']}")
     st = Constrained()
+    st.ledger = OUT / "fits.jsonl"
+    st.segment = man["resumes"][-1] if man.get("resumes") else man["started_at"]
     plans = [p for p in st.plans if p.fold != "final"]
-    (OUT / "development").mkdir(exist_ok=True)
-    (OUT / "assessment").mkdir(exist_ok=True)
+    assert [p.fold for p in plans] == [f"outer-{i}" for i in range(1, N_FOLDS + 1)]
     counts = json.loads((OUT / "fit_counts.json").read_text()) if (OUT / "fit_counts.json").exists() else {"segments": []}
+
+    def account(phase, fold, n0, s0):
+        rows = st.fit_log[n0:]
+        counts["segments"].append({"phase": phase, "fold": fold, "segment": st.segment, "logical_fits": len(rows),
+                                   "physical_fits": sum(r["physical_fits"] for r in rows),
+                                   "fit_seconds": round(sum(r["seconds"] for r in rows), 1),
+                                   "wall_seconds": round(time.time() - s0, 1),
+                                   "failures": sum(1 for r in rows if "error" in r)})
+        _atomic_bytes(OUT / "fit_counts.json", json.dumps(counts, indent=1).encode())
+
     # ---- phase 1: development choices for every fold (no calibration or assessment label is read)
+    dc = OUT / "development_complete.json"
     for p in plans:
-        jp = OUT / "development" / f"{p.fold}.json"
-        if jp.exists():
-            log(f"{p.fold} development already saved; reused unchanged")
+        if fold_state(OUT / "development", p.fold) == "complete":
+            log(f"{p.fold} development already published and verified; reused unchanged")
             continue
+        if dc.exists():
+            sys.exit(f"{p.fold} development missing although development was frozen; run invalid")
         n0, s0 = len(st.fit_log), time.time()
         doc, arr = st.develop_fold(p)
-        _save_arrays(OUT / "development" / f"{p.fold}.npz", arr)
-        jp.write_text(json.dumps(doc, default=float))
-        counts["segments"].append({"phase": "development", "fold": p.fold, "fits": len(st.fit_log) - n0,
-                                   "fit_seconds": round(sum(f["seconds"] for f in st.fit_log[n0:]), 1),
-                                   "wall_seconds": round(time.time() - s0, 1),
-                                   "failures": sum(1 for f in st.fit_log[n0:] if "error" in f)})
-        _append_fits(st.fit_log[n0:])
-        (OUT / "fit_counts.json").write_text(json.dumps(counts, indent=1))
-    dc = OUT / "development_complete.json"
+        publish_fold(OUT / "development", p.fold, doc, arr)
+        account("development", p.fold, n0, s0)
     if not dc.exists():
-        dc.write_text(json.dumps({"completed_at": datetime.now(UTC).isoformat(timespec="seconds"), "hashes": h_now,
-                                  "files": file_hashes(sorted((OUT / "development").glob("*")))}, indent=1))
+        _atomic_bytes(dc, json.dumps({"completed_at": datetime.now(UTC).isoformat(timespec="seconds"), "hashes": h_now,
+                                      "files": file_hashes(sorted((OUT / "development").glob("outer-*")))}, indent=1).encode())
         log("development complete for all folds (choices frozen)")
+    _verify_lock(dc, h_now)
     # ---- phase 2: assessment (lock first)
     lock = OUT / "assessment_opened.json"
     if not lock.exists():
-        lock.write_text(json.dumps({"opened_at": datetime.now(UTC).isoformat(timespec="seconds"), "hashes": h_now},
-                                   indent=1))
+        _atomic_bytes(lock, json.dumps({"opened_at": datetime.now(UTC).isoformat(timespec="seconds"), "hashes": h_now},
+                                       indent=1).encode())
         log("assessment lock written; outer folds opened")
+    _verify_lock(lock, h_now)
     for p in plans:
-        jp = OUT / "assessment" / f"{p.fold}.json"
-        if jp.exists():
-            log(f"{p.fold} assessment already saved; reused unchanged")
+        if fold_state(OUT / "assessment", p.fold) == "complete":
+            log(f"{p.fold} assessment already published and verified; reused unchanged")
             continue
+        fold_state(OUT / "development", p.fold)
         ddoc = json.loads((OUT / "development" / f"{p.fold}.json").read_text())
         darr = _load_arrays(OUT / "development" / f"{p.fold}.npz")
         n0, s0 = len(st.fit_log), time.time()
         doc, arr = st.assess_fold(p, ddoc, darr)
-        _save_arrays(OUT / "assessment" / f"{p.fold}.npz", arr)
-        jp.write_text(json.dumps(doc, default=float))
-        counts["segments"].append({"phase": "assessment", "fold": p.fold, "fits": len(st.fit_log) - n0,
-                                   "fit_seconds": round(sum(f["seconds"] for f in st.fit_log[n0:]), 1),
-                                   "wall_seconds": round(time.time() - s0, 1),
-                                   "failures": sum(1 for f in st.fit_log[n0:] if "error" in f)})
-        _append_fits(st.fit_log[n0:])
-        (OUT / "fit_counts.json").write_text(json.dumps(counts, indent=1))
+        publish_fold(OUT / "assessment", p.fold, doc, arr)
+        account("assessment", p.fold, n0, s0)
     summary = summarise(st, plans)
-    (OUT / "summary.json").write_text(json.dumps(summary, indent=1, default=float))
+    _atomic_bytes(OUT / "summary.json", json.dumps(summary, indent=1, default=float).encode())
     REPORT.write_text(render(summary))
     log("summary saved and report rendered")
 
 
-def _append_fits(rows: list[dict]) -> None:
-    with (OUT / "fits.jsonl").open("a") as f:
+def _append_fits(rows: list[dict], path: Path | None = None) -> None:
+    with (path or OUT / "fits.jsonl").open("a") as f:
         for r in rows:
             f.write(json.dumps(r, default=float) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
+
+
+# ===================================================================================================== final packaging
+
+
+def write_package(pdir: Path, entries: dict[int, dict], meta: dict) -> dict:
+    """Serialise one frozen predictor per horizon with its correction policy and calibration record.
+    entries[h] = {"fp": FittedPredictor, "policy": dict, "calibration": dict, "scales": dict, "columns": list}."""
+    if pdir.exists():
+        raise FileExistsError(f"{pdir} exists; a package is never overwritten")
+    pdir.mkdir(parents=True)
+    files, hz = {}, {}
+    for h, e in entries.items():
+        fp = e["fp"]
+        name = f"model_{h}.txt" if fp.family == "lightgbm" else f"model_{h}.cbm"
+        fp.model.save_model(str(pdir / name))
+        files[name] = sha256((pdir / name).read_bytes()).hexdigest()
+        hz[str(h)] = {"file": name, "family": fp.family, "config": fp.cfg_id, "rounds": fp.rounds,
+                      "columns": e["columns"], "correction_policy": e["policy"], "calibration": e["calibration"],
+                      "trend_scales": e["scales"], "predictor_sha256": fp.model_hash}
+    man = {**meta, "horizons": hz, "files": files, "checksum": fingerprint(files),
+           "registry": "not registered (isolated candidate; artifacts/registry.json untouched)"}
+    (pdir / "manifest.json").write_text(json.dumps(man, indent=1, default=float))
+    return man
+
+
+def load_package(pdir: Path) -> dict:
+    """Verify every file checksum and each horizon's calibration identity; returns {h: (model, entry)}."""
+    man = json.loads((pdir / "manifest.json").read_text())
+    if man["checksum"] != fingerprint(man["files"]):
+        raise ValueError("package manifest checksum mismatch")
+    for name, h in man["files"].items():
+        if sha256((pdir / name).read_bytes()).hexdigest() != h:
+            raise ValueError(f"{name}: checksum mismatch; refusing the package")
+    out = {}
+    for h, e in man["horizons"].items():
+        ident = e["calibration"]["identity"]
+        if ident["predictor_sha256"] != e["predictor_sha256"] or ident["rounds"] != e["rounds"]:
+            raise CalibrationError(f"{h} min: calibration was made for a different predictor")
+        check_identity(e["calibration"], ident)
+        if e["family"] == "lightgbm":
+            import lightgbm as lgb
+            model = lgb.Booster(model_file=str(pdir / e["file"]))
+        else:
+            from catboost import CatBoostRegressor
+            model = CatBoostRegressor()
+            model.load_model(str(pdir / e["file"]))
+        out[int(h)] = (model, e)
+    return out
+
+
+def package() -> None:
+    """Declared final packaging, only after ALL gates passed: FINAL plan (12 development / 2 calibration people), the
+    identical development selection, one fit on the development people, calibration on the reserved people."""
+    s = json.loads((OUT / "summary.json").read_text())
+    if not s.get("all_gates_passed"):
+        sys.exit("Not all gates passed; under the protocol no candidate is packaged.")
+    man = json.loads((OUT / "run_manifest.json").read_text())
+    if man["hashes"] != hashes():
+        sys.exit("Hashes changed since the evaluated run; refusing to package.")
+    st = Constrained()
+    st.ledger, st.segment = OUT / "fits.jsonl", "final-packaging"
+    plan = next(p for p in st.plans if p.fold == "final")
+    fd = OUT / "final_development"
+    if fold_state(fd, "final") != "complete":
+        doc, arr = st.develop_fold(plan)
+        publish_fold(fd, "final", doc, arr)
+    ddoc, darr = json.loads((fd / "final.json").read_text()), _load_arrays(fd / "final.npz")
+    members, fitted, failed = st.fit_members(plan, ddoc)
+    if failed is not None or ddoc["selected"]["fallback"]:
+        sys.exit("Final development selection fell back to R0; no new candidate to package (recorded).")
+    devrows = np.isin(st.pids, list(plan.development)) & st.issued
+    cal = np.isin(st.pids, list(plan.calibration)) & st.issued
+    entries = {}
+    for h in HS:
+        cfg, k, hl = st.member_cfg(members["S"][h], h)
+        fp = fitted[(cfg["id"], h)]
+        fin = st.personalise(st.predict(fp, cfg, cal), h, cal, k, hl)
+        ident = fp.identity(st.policy_hash(k, hl), st.feature_hash[cfg["features"]])
+        dres = np.abs(st.y[h] - darr[f"S_final_{h}"])
+        dm = devrows & np.isfinite(dres)
+        scales = trend_scale(dres[dm], st.slope[dm], st.pids[dm])
+        cm = cal & np.isfinite(fin) & np.isfinite(st.y[h])
+        entries[h] = {"fp": fp, "policy": dataclasses.asdict(st.policy(k, hl)), "columns": st.cols[cfg["features"]],
+                      "calibration": calibrate(np.abs(st.y[h] - fin)[cm], ident, scale_of(st.slope[cm], scales)),
+                      "scales": scales}
+    meta = {"experiment_id": PROTO["experiment_id"], "decision": PROTO["decision"], "created_at":
+            datetime.now(UTC).isoformat(timespec="seconds"), "hashes": man["hashes"],
+            "development_people": list(plan.development), "calibration_people": list(plan.calibration),
+            "warning_threshold_margin_mg_dl": ddoc["selected"]["threshold"], "selection": ddoc["selected"],
+            "feature_hash": {str(h): st.feature_hash[st.member_cfg(members["S"][h], h)[0]["features"]] for h in HS}}
+    m = write_package(OUT / "candidate", entries, meta)
+    load_package(OUT / "candidate")
+    log(f"candidate packaged at {OUT / 'candidate'} (checksum {m['checksum']})")
 
 
 def summarise(st: Constrained, plans) -> dict:
@@ -1116,17 +1315,19 @@ def summarise(st: Constrained, plans) -> dict:
         "development_complete": json.loads((OUT / "development_complete.json").read_text()),
         "assessment_opened": json.loads((OUT / "assessment_opened.json").read_text()),
         "finished_at": datetime.now(UTC).isoformat(timespec="seconds"),
-        "fit_totals": {"fits": len(fits), "lightgbm": sum(f["family"] == "lightgbm" for f in fits),
+        "fit_totals": {"fits": len(fits), "physical_fits": sum(f.get("physical_fits", 1) for f in fits), "lightgbm": sum(f["family"] == "lightgbm" for f in fits),
                        "catboost": sum(f["family"] == "catboost" for f in fits),
                        "failures": sum("error" in f for f in fits),
                        "fit_seconds": round(sum(f["seconds"] for f in fits), 1),
                        "wall_seconds": round(sum(s_["wall_seconds"] for s_ in counts["segments"]), 1)},
         "failures": [f for f in fits if "error" in f],
-        "fold_choices": {f: {"selected": d["selected"] | {"inner_warn": {k: v for k, v in d["selected"]["inner_warn"].items()
-                                                                          if k != "per_person"}},
+        "fold_choices": {f: {"selected": folds[f]["selected"] | {"inner_warn": {k: v for k, v in folds[f]["selected"]["inner_warn"].items()
+                                                                                    if k != "per_person"}},
+                             "development_selection": {k: v for k, v in d["selected"].items() if k != "inner_warn"},
+                             "outer_fit_failed_fallback": folds[f].get("outer_fit_failed_fallback"),
                              "r0p_threshold": d["r0p"]["threshold"], "r0p_fallback": d["r0p"]["fallback"],
                              "r0_1day_threshold": (d["r0_1day"] or {}).get("threshold"),
-                             "s_1day_threshold": (d["s_1day"] or {}).get("threshold"),
+                             "s_1day_threshold": (folds[f].get("s_1day_effective") or {}).get("threshold"),
                              "shortlists": d["shortlists"], "r0_inner": d["r0_inner"],
                              "feasible_candidates": {f"{fam}|{h}": sum(1 for c in d["candidates"] if c["feasible"]
                                                                        and c["family"] == fam and c["horizon"] == h)
@@ -1198,7 +1399,7 @@ def render(d: dict) -> str:
          f"Protocol committed before any formal fit (sha256 `{man['hashes']['protocol_sha256'][:12]}`, code "
          f"`{man['env']['git_head'][:7]}`); run started {man['started_at']} UTC; development choices for all folds "
          f"frozen {d['development_complete']['completed_at']}; outer folds opened {d['assessment_opened']['opened_at']}; "
-         f"finished {d['finished_at']}. Fresh fits: {ft['fits']:,} (LightGBM {ft['lightgbm']:,}, CatBoost "
+         f"finished {d['finished_at']}. Fresh fits: {ft['fits']:,} logical ({ft['physical_fits']:,} physical incl. early-stopping passes; LightGBM {ft['lightgbm']:,}, CatBoost "
          f"{ft['catboost']:,}), {ft['fit_seconds']:.0f} s fitting, {ft['wall_seconds']:.0f} s wall; failures "
          f"{ft['failures']}. LightGBM {man['env']['lightgbm']}, CatBoost {man['env']['catboost']}, split "
          f"`{man['hashes']['split_hash']}`.", "",
@@ -1286,48 +1487,79 @@ def render(d: dict) -> str:
 # ===================================================================================================== validate
 
 
-def validate() -> int:
-    problems = []
-    man = json.loads((OUT / "run_manifest.json").read_text())
-    if man["hashes"]["protocol_sha256"] != sha256(PROTO_PATH.read_bytes()).hexdigest():
-        problems.append("protocol file changed since the run started")
-    for lk in ("development_complete.json", "assessment_opened.json"):
-        if not (OUT / lk).exists():
-            problems.append(f"missing lock {lk}")
-    dc = json.loads((OUT / "development_complete.json").read_text()) if (OUT / "development_complete.json").exists() else {}
-    for k, v in dc.get("files", {}).items():
-        if sha256((ROOT / k).read_bytes()).hexdigest() != v:
-            problems.append(f"development file changed after freezing: {k}")
-    if (OUT / "assessment_opened.json").exists() and dc:
-        if json.loads((OUT / "assessment_opened.json").read_text())["opened_at"] < dc["completed_at"]:
-            problems.append("assessment opened before development completed")
+def validate(checkpoint: bool = False) -> int:
+    """complete-valid -> 0; intact-incomplete -> 2 (0 with --checkpoint); invalid -> 1."""
+    problems: list[str] = []
+    done = {"development": 0, "assessment": 0}
+    man_p = OUT / "run_manifest.json"
+    if not man_p.exists():
+        print(json.dumps({"status": "invalid", "problems": ["no run_manifest.json"]}, indent=1))
+        return 1
+    man = json.loads(man_p.read_text())
+    h_now = hashes()
+    for k, v in h_now.items():
+        if man["hashes"].get(k) != v:
+            problems.append(f"{k} differs from the run manifest (protocol/code/data/recipe changed)")
+    for sub in done:
+        for i in range(1, N_FOLDS + 1):
+            try:
+                if fold_state(OUT / sub, f"outer-{i}") == "complete":
+                    done[sub] += 1
+            except RuntimeError as exc:
+                problems.append(f"{sub}/outer-{i}: {exc}")
+    dc, lk = OUT / "development_complete.json", OUT / "assessment_opened.json"
+    if done["assessment"] and not lk.exists():
+        problems.append("assessment results exist without the assessment lock")
+    if lk.exists() and not dc.exists():
+        problems.append("assessment opened before development was frozen")
+    for f in (dc, lk):
+        if f.exists():
+            try:
+                _verify_lock(f, man["hashes"])
+            except RuntimeError as exc:
+                problems.append(str(exc))
+    if dc.exists() and done["development"] != N_FOLDS:
+        problems.append("development frozen with missing folds")
+    if dc.exists() and lk.exists() and json.loads(lk.read_text())["opened_at"] < json.loads(dc.read_text())["completed_at"]:
+        problems.append("assessment opened before development completed")
+    if (done["development"] or done["assessment"]) and not (OUT / "fits.jsonl").exists():
+        problems.append("fit ledger missing")
+    complete = done["development"] == N_FOLDS and done["assessment"] == N_FOLDS and (OUT / "summary.json").exists()
+    if done["assessment"] == N_FOLDS and not (OUT / "summary.json").exists():
+        problems.append("all folds assessed but summary.json missing")
     if (OUT / "summary.json").exists():
+        if done["assessment"] != N_FOLDS:
+            problems.append("summary.json present without all assessed folds")
         s = json.loads((OUT / "summary.json").read_text())
-        for k, v in s["artifact_sha256"].items():
-            if k.endswith("assessment_predictions.parquet") or k.endswith("inner_scores.parquet"):
+        for k, v in s.get("artifact_sha256", {}).items():
+            if k.endswith(("assessment_predictions.parquet", "inner_scores.parquet")):
                 continue  # rewritten together with summary.json
-            if sha256((ROOT / k).read_bytes()).hexdigest() != v:
+            if not (ROOT / k).exists() or sha256((ROOT / k).read_bytes()).hexdigest() != v:
                 problems.append(f"artifact changed: {k}")
-        for fold in s["outer_identities"]:
+        for fold in s.get("outer_identities", {}):
+            a_doc = json.loads((OUT / "assessment" / f"{fold}.json").read_text())
+            dev_people = sorted(json.loads((OUT / "development" / f"{fold}.json").read_text())["development"])
             for p in ("S", "R0"):
                 for h in ("30", "60"):
-                    a = json.loads((OUT / "assessment" / f"{fold}.json").read_text())["procedures"][p][h]
+                    a = a_doc["procedures"][p][h]
                     try:
                         check_identity(a["calibration"], a["identity"])
                     except CalibrationError as e:
                         problems.append(f"{fold} {p} {h}: {e}")
-                    if a["identity"]["training_participants_hash"] != fingerprint(
-                            sorted(json.loads((OUT / "development" / f"{fold}.json").read_text())["development"])):
+                    if a["identity"]["training_participants_hash"] != fingerprint(dev_people):
                         problems.append(f"{fold} {p} {h}: predictor not fitted on exactly the development people")
-            if s["fold_choices"][fold]["selected"]["fallback"]:
+            if a_doc["selected"]["fallback"]:
                 z = _load_arrays(OUT / "assessment" / f"{fold}.npz")
                 for h in HS:
                     if not np.array_equal(z[f"S_final_{h}"], z[f"R0_final_{h}"], equal_nan=True):
                         problems.append(f"{fold}: fallback S differs from R0 at {h} min")
         if REPORT.exists() and REPORT.read_text() != render(s):
             problems.append("report differs from render(summary.json)")
-    print(json.dumps({"ok": not problems, "problems": problems}, indent=1))
-    return 0 if not problems else 1
+    status = "invalid" if problems else ("complete-valid" if complete else "intact-incomplete")
+    print(json.dumps({"status": status, "folds_published": done, "problems": problems}, indent=1))
+    if status == "invalid":
+        return 1
+    return 0 if complete or checkpoint else 2
 
 
 if __name__ == "__main__":
@@ -1339,6 +1571,8 @@ if __name__ == "__main__":
     elif cmd == "render":
         REPORT.write_text(render(json.loads((OUT / "summary.json").read_text())))
     elif cmd == "validate":
-        sys.exit(validate())
+        sys.exit(validate(checkpoint="--checkpoint" in sys.argv[2:]))
+    elif cmd == "package":
+        package()
     else:
         sys.exit(__doc__)

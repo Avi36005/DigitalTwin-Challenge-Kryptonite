@@ -442,7 +442,14 @@ def render(d: dict) -> str:
             L += ["", f"Release guardrails vs R0 (false alarms ≤ +0.10/day, time in warning ≤ +2 pt, warned ≥ 30 min ≥ −2 pt): "
                   f"**{'passed' if rg['passed'] else 'not met'}** ({rg['fa_per_day_delta']:+.2f}/day, "
                   f"{rg['time_in_warning_delta_points']:+.1f} pt, {rg['warned30_delta_points']:+.1f} pt).", ""]
-    L += ["## 80 % ranges (calibrated on each fold's calibration people for the exact procedure)", "",
+    L += ["## 80 % ranges — descriptive only (see erratum)", "",
+          "**Erratum / limitation (added 2026-10-21 under D-053; saved summary, predictions and protocol unchanged, no "
+          "refit):** the residual quantiles were computed from predictors fitted on development people only and applied "
+          "to the assessment predictors refitted on development + calibration people (`run()`: assessment fit on "
+          "development + calibration, calibration residuals from a separate development-only fit). The calibrated and "
+          "the assessed predictors therefore differ, so the coverage and width below are descriptive evidence from "
+          "mismatched fits, not an exact-predictor split-conformal result. D-053 (`gt-constrained-2026-10-21`) uses one "
+          "frozen development-only predictor for both calibration and assessment.", "",
           "| Procedure | 30 min coverage (width) | 60 min coverage (width) | 60 min per-person range | 60 min rising > 2 / steady |", "|---|---|---|---|---|"]
     for k, r in d["ranges"].items():
         L.append(f"| {k} | {pct(r['30']['coverage'])} ({f(r['30']['width_mean'])}) | {pct(r['60']['coverage'])} ({f(r['60']['width_mean'])}) | "

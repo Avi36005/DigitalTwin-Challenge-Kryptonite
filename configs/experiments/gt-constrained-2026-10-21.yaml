@@ -21,6 +21,11 @@
 # CatBoost early-stopped (MAE on tails) + refit 0.6–2.5 s per inner fit (best 45–114). Estimated full nested
 # development: LightGBM 32 configurations ≈ 30 min, CatBoost 16 ≈ 20 min, correction grid ≈ 15 min. Hence both the L1
 # objective (32 LightGBM configurations per horizon) and the optional CatBoost family are INCLUDED (decision frozen here).
+# AMENDMENT BEFORE ANY FORMAL FIT (2026-10-21, after commit 2e2b01a, still before any formal fit or outer result): an
+# independent read-only audit of the drafts found orchestration gaps. Added: verified resume (fold checksums and lock
+# hashes), complete/incomplete validation states, R0 control failure aborts a fold, outer-fit failure fallback rule,
+# durable per-fit ledger with logical vs physical fit counts, wider input fingerprints and the implemented final
+# packaging operation. No selection rule, grid, threshold, gate or portfolio changed.
 experiment_id: gt-constrained-2026-10-21
 decision: D-053
 kind: nested-constrained-selection-study
@@ -29,7 +34,7 @@ random_seed: 20261053
 base_experiment: gt-2h-2026-10-20   # frozen table, features, split (split_hash e3695ca98334797c): 5 outer folds, each with 3 inner folds and 2 calibration people; final plan 12 dev / 2 cal
 track: multimodal_5min              # native 5-minute CGMacros track; targets matched within 2.5 min; eligibility, purge and gap/reset rules of the base protocol
 horizons: [30, 60]
-threads: 6                          # num_threads / thread_count for every fit; one study process (a foundation-model job uses 2 other cores)
+threads: 6                          # num_threads / thread_count for every fit; one study process. Confirmed with the lead before the formal run: the D-054 foundation job has finished and nothing else heavy runs (10 cores)
 
 roles:
   development: >-
@@ -123,6 +128,11 @@ inner_selection:   # per outer fold, development people only
     way on the inner splits with its own correction.
   candidate: "(family, configuration, correction policy) per horizon"
   failure: "any failed fit for a configuration in this fold makes every candidate of that configuration infeasible (no scoring on surviving people)"
+  control_failure: "a failed or partial (any missing development forecast) R0 inner fit aborts the fold and the run as incomplete; no candidate is ever qualified against a failed control"
+  outer_failure: >-
+    if an outer fit of a selected S member fails, S for that fold is R0 (both horizons) with the R0-P threshold and R0's
+    1/day operating point; the development selection and the effective assessed procedure are both saved and reported.
+    A failed R0 outer fit aborts the run as incomplete.
   filter_60: [no failure, availability drop vs R0 ≤ 0.5 points, inner 60-min gain vs R0 ≥ 0.5 mg/dL, high-target 60-min MAE − R0 ≤ +1.0 mg/dL]
   filter_30: [no failure, availability drop vs R0 ≤ 0.5 points, inner 30-min MAE − R0 ≤ +0.25 mg/dL, high-target 30-min MAE − R0 ≤ +1.0 mg/dL]
   retention: >-
@@ -191,18 +201,29 @@ reporting: >-
   bias, rapid-rise/steady/falling, first 24 h, availability, per-person differences; warning onsets/detected/missed,
   share15/30/60, FA/day, time in warning, episode durations, precision, lead distribution; ranges pooled/per person/strata.
 bootstrap_unit: participant (2000 resamples)
+fit_accounting: "every fit attempt (success or failure) is appended and fsynced to fits.jsonl as it completes; logical fits (one configuration fit) and physical fits (early-stopping pass + refit = 2) are counted separately per run segment"
+fingerprints: >-
+  protocol sha256; code (runner, retrain_study, history, adapt, warnings, calibration, metrics, alerts, adaptation);
+  inputs (serving recipe manifest read by retrain_study.recipe(), cached table parquet + key, base split, base and
+  retrain protocols); resolved R0 recipe fingerprint (stored in run_manifest.json); split hash; table cache key.
 locks_and_resume: >-
   development choices of every fold are saved (development/<fold>.json + inner predictions) before any outer fit;
   development_complete.json then assessment_opened.json (protocol, code and data hashes) are written before the first
   outer fit; each finished fold's outer results are checkpointed; resume continues only with identical protocol/code/
   data hashes, never re-chooses a saved fold and never deletes a lock. A bug invalidating evaluation marks the run invalid.
+  Each fold is published atomically (arrays, JSON, then a checksum sidecar); resume and assessment verify every saved
+  fold pair and both locks first and refuse a missing or changed file. `validate` reports complete-valid (exit 0),
+  intact-incomplete (exit 2; 0 with --checkpoint) or invalid (exit 1).
 final_packaging:   # only if ALL gates pass; frozen now, never chosen from assessment scores
   partition: "FINAL plan of gt-2h-2026-10-20: 12 development people (inner 4/4/4) and its 2 calibration people"
   procedure: >-
     rerun the identical development selection on the FINAL plan's development people (seed unchanged), fit the selected
     predictor once on those 12 people with the median inner rounds, calibrate ranges on the 2 calibration people with
     that same frozen predictor, threshold from inner development; package model dir + checksum + calibration identity
-    under artifacts/research/gt-constrained-2026-10-21/candidate/ (registry untouched).
+    under artifacts/research/gt-constrained-2026-10-21/candidate/ (registry untouched) via
+    `scripts/constrained_study.py package`, which refuses unless every gate passed and the hashes match the evaluated
+    run; the package loader verifies file checksums and each horizon's calibration identity. If the FINAL selection
+    falls back to R0 nothing is packaged.
 labels: 14 previously inspected CGMacros Type 2 people — internal validation, not independent confirmation or clinical evidence
 artifacts:
   root: artifacts/research/gt-constrained-2026-10-21
