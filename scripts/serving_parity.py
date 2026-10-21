@@ -62,7 +62,12 @@ def revision() -> dict[str, object]:
     sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     dirty = bool(subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"], cwd=ROOT,
                                 capture_output=True, text=True).stdout.strip())
-    return {"commit": sha, "dirty": dirty}
+    # untracked, non-ignored files (e.g. a new runner not yet committed) are named so the checked code is traceable
+    raw = subprocess.run(["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"], cwd=ROOT,
+                         capture_output=True, text=True).stdout
+    untracked = sorted(r[3:] for r in raw.split("\0") if r.startswith("?? ")
+                       and not r[3:].startswith("reports/verification/"))
+    return {"commit": sha, "dirty": dirty, "untracked": untracked}
 
 
 def sha256_file(path: Path) -> str:

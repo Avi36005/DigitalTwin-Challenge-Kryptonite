@@ -15,6 +15,7 @@ Usage (from the repository root):
       --junit out/pytest.xml -- uv run pytest -q --junitxml=out/pytest.xml
   uv run python scripts/verification_ledger.py add --ledger L.json --suite X --status blocked --note "reason"
   uv run python scripts/verification_ledger.py render --ledger L.json --out LEDGER.md
+  uv run python scripts/verification_ledger.py scrub --dir reports/verification/overnight   (before committing)
 """
 
 from __future__ import annotations
@@ -36,6 +37,8 @@ IST = timezone(timedelta(hours=5, minutes=30), "IST")
 STATUSES = ("passed", "failed", "skipped", "blocked", "not run")
 SERVING_EXPERIMENT = "gt-primary-2026-10-13-fusion"
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+SCRATCH = re.compile(r"/(?:private/)?tmp/claude-\d+/[^/\s\"']+/[^/\s\"']+/scratchpad")
+HOSTNAME_ATTR = re.compile(r'hostname="(?!chromium|firefox|webkit)[^"]*"')
 
 
 # ------------------------------------------------------------------------------------------------ helpers
@@ -43,6 +46,13 @@ ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 def now() -> dict[str, str]:
     t = datetime.now(UTC)
     return {"utc": t.isoformat(timespec="seconds"), "ist": t.astimezone(IST).strftime("%Y-%m-%d %H:%M:%S IST")}
+
+
+def scrub_text(text: str) -> str:
+    """Remove local identifiers from saved evidence: session scratch paths, the home directory, JUnit host names."""
+    text = SCRATCH.sub("<session-scratch>", text)
+    text = text.replace(str(Path.home().resolve()), "~").replace(str(Path.home()), "~")
+    return HOSTNAME_ATTR.sub('hostname="local"', text)
 
 
 def sha256_file(path: Path) -> str:
@@ -69,17 +79,54 @@ def _out(cmd: list[str], cwd: Path | None = None) -> str | None:
     return (r.stdout or r.stderr).strip() if r.returncode == 0 else None
 
 
-def git_revision(repo: Path) -> dict[str, Any]:
-    """Commit, tree hash, branch, dirty flag (tracked files) and the sha256 of the uncommitted tracked diff."""
-    commit = _out(["git", "rev-parse", "HEAD"], repo)
-    dirty_names = _out(["git", "status", "--porcelain", "--untracked-files=no"], repo) or ""
+def porcelain(repo: Path) -> tuple[list[str], list[str]]:
+    """(changed tracked paths, untracked non-ignored paths) from NUL-separated porcelain v1 output (no trimming, so
+    the two status columns and the path are never confused; renames carry an extra source-path field)."""
+    raw = subprocess.run(["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"], cwd=repo,
+                         capture_output=True, check=False).stdout.decode("utf-8", "surrogateescape")
+    fields = raw.split("\0")
+    tracked: list[str] = []
+    untracked: list[str] = []
+    i = 0
+    while i < len(fields):
+        rec = fields[i]
+        i += 1
+        if len(rec) < 4:
+            continue
+        xy, path = rec[:2], rec[3:]
+        if xy == "??":
+            untracked.append(path)
+        else:
+            tracked.append(path)
+            if "R" in xy or "C" in xy:
+                i += 1  # the rename/copy source path follows as its own field
+    return tracked, untracked
+
+
+def git_revision(repo: Path, exclude: list[Path] | None = None) -> dict[str, Any]:
+    """Commit, tree hash, branch, dirty flag and digests of everything that differs from the commit: the uncommitted
+    tracked diff and every untracked, non-ignored file (a new runner or test that has not been committed yet is part
+    of what was tested). Paths under ``exclude`` (the ledger's own evidence directory) are not counted."""
+    repo = repo.resolve()
+    skip = [p.resolve() for p in exclude or []]
+
+    def kept(path: str) -> bool:
+        full = (repo / path).resolve()
+        return not any(full == d or d in full.parents for d in skip)
+
+    tracked, untracked = porcelain(repo)
+    tracked = [p for p in tracked if kept(p)]
+    untracked = sorted(p for p in untracked if kept(p))
     diff = subprocess.run(["git", "diff", "HEAD", "--binary"], cwd=repo, capture_output=True, check=False).stdout
+    files = {p: (sha256_file(repo / p) if (repo / p).is_file() else None) for p in untracked}
     return {
-        "commit": commit, "tree": _out(["git", "rev-parse", "HEAD^{tree}"], repo),
+        "commit": _out(["git", "rev-parse", "HEAD"], repo), "tree": _out(["git", "rev-parse", "HEAD^{tree}"], repo),
         "branch": _out(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo),
-        "worktree": str(repo.resolve()), "dirty": bool(dirty_names.strip()),
-        "dirty_files": [ln[3:] for ln in dirty_names.splitlines() if ln.strip()],
+        "worktree": str(repo), "dirty": bool(tracked or untracked),
+        "dirty_files": tracked, "untracked_files": files,
         "uncommitted_diff_sha256": hashlib.sha256(diff).hexdigest() if diff else None,
+        "untracked_sha256": (hashlib.sha256("".join(f"{k}\0{v}\n" for k, v in files.items()).encode()).hexdigest()
+                             if files else None),
     }
 
 
@@ -198,7 +245,7 @@ def load(path: Path) -> dict[str, Any]:
 def save(path: Path, ledger: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(ledger, indent=1, ensure_ascii=False) + "\n")
+    tmp.write_text(scrub_text(json.dumps(ledger, indent=1, ensure_ascii=False)) + "\n")
     tmp.replace(path)
 
 
@@ -216,7 +263,8 @@ def cmd_snapshot(a: argparse.Namespace) -> int:
     repo = Path(a.repo).resolve()
     ledger_path = Path(a.ledger)
     ledger = load(ledger_path)
-    snap = {"label": a.label, "at": now(), "revision": git_revision(repo), "versions": dependency_versions(repo),
+    snap = {"label": a.label, "at": now(), "revision": git_revision(repo, [ledger_path.parent]),
+            "versions": dependency_versions(repo),
             "artifacts": artifact_hashes(Path(a.artifact_root).resolve() if a.artifact_root else repo)}
     if a.artifact_root and Path(a.artifact_root).resolve() != repo:
         snap["artifacts_in_worktree"] = artifact_hashes(repo)
@@ -241,14 +289,19 @@ def cmd_run(a: argparse.Namespace) -> int:
     for kv in a.env or []:
         k, _, v = kv.partition("=")
         env[k] = v
-    rev = git_revision(repo)
+    rev = git_revision(repo, [ledger_path.parent])
+    junit = Path(a.junit).resolve() if a.junit else None
+    stale_removed = False
+    if junit is not None and junit.exists():
+        junit.unlink()  # never attribute an earlier run's totals to this command
+        stale_removed = True
     start = now()
     with open(log, "wb") as fh:
         fh.write(f"$ (cd {cwd} && {' '.join(cmd)})\n".encode())
         proc = subprocess.run(cmd, cwd=cwd, env=env, stdout=fh, stderr=subprocess.STDOUT, check=False)
     end = now()
     text = log.read_text(errors="replace")
-    counts = parse_junit(Path(a.junit)) if a.junit else None
+    counts = parse_junit(junit) if junit is not None else None
     if counts is None:
         counts = parse_log(text, a.kind)
     status = a.status or derive_status(proc.returncode, counts)
@@ -258,6 +311,7 @@ def cmd_run(a: argparse.Namespace) -> int:
         "env_overrides": {**{kv.partition("=")[0]: kv.partition("=")[2] for kv in a.env or []},
                           **{k: "<unset>" for k in a.unset or []}},
         "log": rel(log, repo), "junit": rel(a.junit, repo) if a.junit else None,
+        "junit_written": bool(junit is not None and junit.exists()), "stale_junit_removed": stale_removed,
         "revision": rev, "note": a.note,
     }
     ledger = load(ledger_path)
@@ -265,7 +319,8 @@ def cmd_run(a: argparse.Namespace) -> int:
     save(ledger_path, ledger)
     tail = "\n".join(ANSI.sub("", text).strip().splitlines()[-4:])
     print(f"[{status}] {a.suite}: exit {proc.returncode}; {json.dumps(counts) if counts else 'no counts'}\n{tail}")
-    return 0
+    # the suite's own exit code, so `&&` chains stop on a failure; --collect continues a matrix explicitly
+    return 0 if a.collect else proc.returncode
 
 
 def cmd_add(a: argparse.Namespace) -> int:
@@ -278,7 +333,7 @@ def cmd_add(a: argparse.Namespace) -> int:
     ledger["entries"].append({
         "suite": a.suite, "command": a.cmd, "cwd": a.cwd, "start": now(), "end": None,
         "exit_code": a.exit_code, "status": a.status, "counts": counts, "env_overrides": {},
-        "log": a.log, "junit": None, "revision": git_revision(repo), "note": a.note,
+        "log": a.log, "junit": None, "revision": git_revision(repo, [ledger_path.parent]), "note": a.note,
     })
     save(ledger_path, ledger)
     return 0
@@ -301,7 +356,7 @@ def cmd_render(a: argparse.Namespace) -> int:
         r, art = s["revision"], s.get("artifacts", {})
         lines += [f"## Snapshot `{s['label']}` — {s['at']['ist']}", "",
                   f"- Revision: `{(r.get('commit') or '')[:12]}` on `{r.get('branch')}`, tree `{(r.get('tree') or '')[:12]}`, "
-                  f"{'dirty: ' + ', '.join(r['dirty_files']) if r.get('dirty') else 'clean tracked tree'}",
+                  f"{'dirty: ' + ', '.join([*r.get('dirty_files', []), *r.get('untracked_files', {})]) if r.get('dirty') else 'clean tree'}",
                   "- Versions: " + ", ".join(f"{k} {v}" for k, v in s.get("versions", {}).items() if v)]
         if art.get("registry"):
             lines.append(f"- `artifacts/registry.json` sha256 `{art['registry']['sha256']}`; serving "
@@ -341,8 +396,22 @@ def cmd_render(a: argparse.Namespace) -> int:
         lines.append(f"| {i} | {e['suite']} | {cmd} | {rev} | {st} → {en} | {e.get('exit_code', '–')} | "
                      f"**{e['status']}** | {p} | {f} | {s} | {'<br>'.join(notes).replace('|', '/')} |")
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    Path(a.out).write_text("\n".join(lines) + "\n")
+    Path(a.out).write_text(scrub_text("\n".join(lines) + "\n"))
     print(f"wrote {a.out}")
+    return 0
+
+
+def cmd_scrub(a: argparse.Namespace) -> int:
+    """Scrub saved logs / JUnit files under a directory in place (run before committing evidence)."""
+    changed = 0
+    for p in sorted(Path(a.dir).rglob("*")):
+        if p.is_file() and p.suffix in {".log", ".xml", ".json", ".md", ".txt"}:
+            old = p.read_text(errors="replace")
+            new = scrub_text(old)
+            if new != old:
+                p.write_text(new)
+                changed += 1
+    print(f"scrubbed {changed} file(s) under {a.dir}")
     return 0
 
 
@@ -368,6 +437,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--unset", action="append", help="environment variable removed for the command")
     r.add_argument("--status", choices=STATUSES, help="override the derived status (state why in --note)")
     r.add_argument("--note")
+    r.add_argument("--collect", action="store_true",
+                   help="exit 0 even when the suite fails (keep running a matrix; read the ledger for statuses)")
     r.add_argument("command", nargs=argparse.REMAINDER)
     r.set_defaults(fn=cmd_run)
 
@@ -388,6 +459,10 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--out", required=True)
     m.add_argument("--title", default="Verification ledger")
     m.set_defaults(fn=cmd_render)
+
+    c = sub.add_parser("scrub", help="remove the home directory and host names from saved evidence files")
+    c.add_argument("--dir", required=True)
+    c.set_defaults(fn=cmd_scrub)
 
     a = ap.parse_args(argv)
     return a.fn(a)
