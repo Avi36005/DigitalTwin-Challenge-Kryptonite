@@ -561,6 +561,10 @@ test.describe("review summary", () => {
     await page.getByRole("button", { name: "Review summary" }).click();
     const dialog = page.getByRole("dialog", { name: "Review summary" });
     const report = dialog.getByRole("article", { name: "Review summary report" });
+    // opened before every query of this replay time has answered, the app declines ("Summary not created … try again");
+    // its own readiness signal is the Create button becoming enabled, then the copy is created as a user would
+    await expect(dialog.getByRole("button", { name: /^(Create|Recreate at current time)$/ })).toBeEnabled();
+    if (!(await report.isVisible())) await dialog.getByRole("button", { name: "Create", exact: true }).click();
     await expect(report).toContainText("Day 9 · 20:35 (replay time)");
     await expect(report).toContainText("Research replay review — not a medical report");
     await expect(report).toContainText("lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion");
@@ -645,5 +649,51 @@ test.describe("review queue", () => {
     await expect(page.getByRole("heading", { name: "Review queue", level: 1 })).toBeVisible();
     await expect(page.getByRole("table", { name: "Review queue" }).or(page.getByText("Nothing to review yet"))).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  });
+});
+
+test.describe("keyboard, motion and tablet layout", () => {
+  test("forecast details open from the keyboard, close on Escape, return focus, and do not animate under reduced motion", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/app");
+    const sid = await startReplay(page, "synthetic_demo", "SYN-B");
+    for (let i = 0; i < 12; i++) await page.getByRole("button", { name: "Step 1 h forward" }).click();
+    await expect.poll(async () => (await session(page, sid)).clock_at).toContain("2000-01-03T12");
+    const trigger = page.getByRole("button", { name: "View forecast details" });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const drawer = page.getByRole("dialog", { name: "Forecast details" });
+    await expect(drawer).toBeVisible();
+    // focus is inside the drawer, and the drawer's entrance takes no time under reduced motion
+    expect(await drawer.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+    expect(await drawer.evaluate((el) => getComputedStyle(el).animationDuration)).toBe("0s");
+    // Tab never reaches the page behind the modal drawer (the native modal makes it inert; after the last control the
+    // browser may move focus to its own UI, which leaves document.body active)
+    for (let i = 0; i < 8; i++) {
+      await page.keyboard.press("Tab");
+      expect(await drawer.evaluate((el) => {
+        const a = document.activeElement;
+        return !a || a === document.body || el.contains(a);
+      })).toBe(true);
+    }
+    await page.keyboard.press("Escape");
+    await expect(drawer).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+
+  test("tablet width: every review-queue row keeps its data state and Open link on screen", async ({ page }) => {
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await page.goto("/app");
+    await startReplay(page, "synthetic_demo", "SYN-B");
+    await page.goto("/app/review-queue");
+    const table = page.getByRole("table", { name: "Review queue" });
+    const open = table.getByRole("link", { name: /^Open replay for/ }).first();
+    await expect(open).toBeVisible();
+    const box = await open.boundingBox();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(820);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(820);
+    const data = table.getByText(/^(Fresh|Stale) · |No reading yet/).first();
+    const dbox = await data.boundingBox();
+    expect(dbox!.x + dbox!.width).toBeLessThanOrEqual(820);
   });
 });
