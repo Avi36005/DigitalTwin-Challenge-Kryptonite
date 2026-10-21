@@ -12,6 +12,7 @@ once in the repository, at the path the README links.
 | Results at a glance (each row names its model and evaluation setting) | [README](../README.md#results-at-a-glance) |
 | Presentation with details and outcomes | [`GlucoTwin_Presentation.pdf`](../docs/submission/GlucoTwin_Presentation.pdf) · [`.pptx`](../docs/submission/GlucoTwin_Presentation.pptx) |
 | Architecture diagram | [`GlucoTwin_Architecture.pdf`](../docs/submission/GlucoTwin_Architecture.pdf) |
+| Video script and recording checklist | [`demo_script.md`](../docs/demo_script.md) · [`GlucoTwin_Demo_Script.pdf`](../docs/submission/GlucoTwin_Demo_Script.pdf) |
 | Demo video (unlisted YouTube, at least 20 minutes) | Not yet recorded or uploaded; the link is added here and in [README §8](../README.md#8-demo-video) after upload |
 | Team details | [`docs/team_details.md`](../docs/team_details.md) |
 | Source code | This repository (public link added after publication): [`apps/web`](../apps/web) · [`services/api`](../services/api) · [`ml/glucotwin`](../ml/glucotwin) |

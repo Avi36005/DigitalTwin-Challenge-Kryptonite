@@ -17,7 +17,7 @@ simulated patients.
 | Brief requirement | Where it is shown | Honest status |
 |---|---|---|
 | Fuse static EHR-like data with dynamic wearable data | One LightGBM per horizon reads 8 baseline profile values and 38 glucose and wearable features: README [§7](../README.md#what-the-profile-fusion-does-and-does-not-show) · [model card](model_card.md) · app **Model evidence** screen ([screenshot](../reports/ui/18-model-evidence-fusion-disclosures.png)) | **Met, with caveats.** The profile is read by the model but shows no reliable benefit on new people: +0.34 [−0.28, +0.89] mg/dL at 30 min and −0.75 [−2.19, +0.61] at 60 min on people held out entirely; with 14 people it may act as an identity code. The constraint was declared after the test segment had been inspected. Wearable activity inputs made new-person forecasts worse in this cohort. Chosen for the brief, not for accuracy. |
-| Predict an adverse event ahead of time (e.g. a spike 2 h ahead) | Demo model: 60-minute *Research warning* in the workspace ([screenshot](../reports/ui/08-recording-1920-warning-pending.png), README GIF). Two hours: separate research benchmark ([report](../reports/two_hour_benchmark.md)) | **Partly met.** Demo model: 61 of 64 new high-glucose onsets warned; 40 false alarms, 1.49 per observed patient-day; median forecast lead 30 min. Two hours ahead (research procedure, **not** the demo model): MAE 30.6 at 120 min (persistence 35.9; better for 14 of 14 people); 315 of 329 onsets at 1.62 false alarms per observed day, but median forecast lead only 15 min (IQR 5–65): a two-hour forecast, not two hours of notice. On 98 independent ShanghaiT2DM people (CGM only, assessed once): 29.55 vs 31.68 mg/dL at 120 min, better for 78 of 98 ([external check](../reports/two_hour_external.md)). The demo warning is active at 11.8 % of eligible times ([time in warning](../reports/warning_time_share.md)). |
+| Predict an adverse event ahead of time (e.g. a spike 2 h ahead) | Demo model: 60-minute *Research warning* in the workspace ([screenshot](../reports/ui/08-recording-1920-warning-pending.png), README GIF). Two hours: separate research benchmark ([report](../reports/two_hour_benchmark.md)) | **Partly met.** Demo model: 61 of 64 new high-glucose onsets warned; 40 false alarms, 1.49 per observed patient-day; median forecast lead 30 min. Two hours ahead (research procedure, **not** the demo model): MAE 30.6 at 120 min (persistence 35.9; better for 14 of 14 people); 315 of 329 onsets at 1.62 false alarms per observed day, but median forecast lead only 15 min (IQR 5–65): a two-hour forecast, not two hours of notice. On 98 independent ShanghaiT2DM people (a separate CGM-only research procedure, not the serving fusion model; D-045 was its first 120-minute assessment and the cohort's second opening): 29.55 vs 31.68 mg/dL at 120 min, better for 78 of 98 ([external check](../reports/two_hour_external.md)). The demo warning is active at 11.8 % of eligible times ([time in warning](../reports/warning_time_share.md)). |
 | Conceptual dashboard for a doctor | Working React workspace: README [§5](../README.md#5-healthcare-use-case) · [screenshots](../reports/ui/README.md) | **Met** as a working research workspace. A review queue lists the 50 most recent replays, unreviewed warnings first (an order of work, not a risk ranking; [screenshot](../reports/ui/20-review-queue.png)); each replay shows one person, from recorded or synthetic data, never a live device. |
 | Open, anonymised or synthetic data | CGMacros 1.0.0 (de-identified, CC BY-NC-SA 4.0), ShanghaiT2DM (CC BY 4.0), synthetic fixtures (CC0-1.0): [data card](data_card.md) · README [§9](../README.md#9-open-source-license) · app **Data sources** screen ([screenshot](../reports/ui/16-data-sources.png)) | **Met.** The datasets are downloaded by each user and not redistributed. |
 | Submission items (twelve README items, video, PDFs) | README [checklist](../README.md#submission-checklist-unstop-form) · [submission checklist](submission_checklist.md) | **Partly met on 20 October 2026:** items 1–7 and 9–11 Ready; item 8 (demo video) missing — not yet recorded or uploaded; item 12 (public access) unverified — repository not yet public. The README checklist holds the current status. |
@@ -25,8 +25,9 @@ simulated patients.
 ## 3. The 5-minute path
 
 1. **Video.** Unlisted YouTube link in README [§8](../README.md#8-demo-video) (minimum 20 minutes). Chapter timestamps
-   added after upload. For a short look, watch the chapters *Warnings with honest outcomes (Day 9)*, *Guardrails in
-   action: a real sensor gap* and *Measured results* ([chapter plan](demo_script.md)).
+   added after upload. For a short look, watch *Warnings with outcomes, a review and a frozen summary* (07:15),
+   *A real sensor gap* (08:45) and *Results* (10:00) ([script](demo_script.md); planned times, confirmed after the
+   timed rehearsal).
 2. **README GIF** ([`demo-recorded-warning.gif`](../reports/ui/demo-recorded-warning.gif)): recorded CGMacros data,
    Participant 01. A research warning is issued at Day 9 · 20:30 and the onset follows at 20:45 (forecast lead 15 min);
    the same participant had two false alarms earlier that day, and across the test 40 of 101 warning episodes were
@@ -50,7 +51,11 @@ computed on synthetic participants is clinical evidence. Recorded-data replays n
 ### Three-minute judge journey (recorded data, local install)
 
 Each click shows one claim, on a local install with CGMacros imported (`make data experiment`). Without the download,
-the synthetic demonstration shows the same screens on fictional participants.
+the synthetic demonstration shows the same screens on fictional participants. Routes: landing `/`, workspace and
+replays `/app`, review queue `/app/review-queue`, model evidence `/app/evidence`, data quality `/app/data-quality`. The
+forecast, outcome and warning values below belong to the current serving model
+(`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`); `TODO-VALUES` (phase 2): re-record them if the model changes.
+The same walkthrough, condensed, closes the [video script](demo_script.md#three-minute-judge-walkthrough-local-install-recorded-data).
 
 | Time | Step and click | What it shows ([screenshots](../reports/ui/journey/)) | Claim it supports |
 |---|---|---|---|
@@ -100,6 +105,8 @@ scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an e
 | D-050 | [`gt-ranges-2026-10-21`](../configs/experiments/gt-ranges-2026-10-21.yaml): ranges for the serving pipeline | Protocol commit `0de0889`, 20 Oct 23:09 IST, before any candidate | [ranges](../reports/serving_ranges_study.md) — served ranges kept |
 | D-051 | [`gt-tune-2026-10-21`](../configs/experiments/gt-tune-2026-10-21.yaml): nested tuning, history vs current features | Protocol commit `e7ff594`, 20 Oct 23:14 IST, before any fit | [tuning](../reports/tune_study.md) — small internal gain, below the bar |
 | D-052 | [`gt-joint-2026-10-21`](../configs/experiments/gt-joint-2026-10-21.yaml): joint model + correction selection | Protocol commit `903419d`, 21 Oct 00:10 IST, before any fit | [joint selection](../reports/joint_study.md) — gates not met |
+| D-053 | [`gt-constrained-2026-10-21`](../configs/experiments/gt-constrained-2026-10-21.yaml): constrained, peak-aware LightGBM fusion selection | Protocol commit `2e2b01a`, 21 Oct 22:31 IST, before any formal fit | Result pending (`TODO-VALUES`, phase 2: from the locked summary only) |
+| D-054 | [`gt-foundation-2026-10-21`](../configs/experiments/gt-foundation-2026-10-21.yaml): zero-shot foundation baseline, CGM only | Protocol commit `1967c25`, 21 Oct 21:31 IST, before any participant forecast | [foundation baseline](../reports/foundation_baseline.md) — better than persistence (60 min 22.92 vs 24.47), not better than the refitted serving recipe (22.50); not served |
 
 * **The negative result (D-044):** the classifier looked perfect on episode counts (329 of 329 onsets, 0.18 false
   alarms per day) only because its inner-fold threshold made it warn at 99 % of eligible times; its ROC AUC was 0.64.

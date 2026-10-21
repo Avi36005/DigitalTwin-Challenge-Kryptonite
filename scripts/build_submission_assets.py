@@ -1157,6 +1157,8 @@ def team_folder(sub: dict) -> Path:
         ("Presentation with details and outcomes", "[`GlucoTwin_Presentation.pdf`](../docs/submission/GlucoTwin_Presentation.pdf) · "
                                                    "[`.pptx`](../docs/submission/GlucoTwin_Presentation.pptx)"),
         ("Architecture diagram", "[`GlucoTwin_Architecture.pdf`](../docs/submission/GlucoTwin_Architecture.pdf)"),
+        ("Video script and recording checklist", "[`demo_script.md`](../docs/demo_script.md) · "
+                                                 "[`GlucoTwin_Demo_Script.pdf`](../docs/submission/GlucoTwin_Demo_Script.pdf)"),
         (f"Demo video (unlisted YouTube, at least {sub['video']['minimum_duration'].split(':')[0]} minutes)", video),
         ("Team details", "[`docs/team_details.md`](../docs/team_details.md)"),
         ("Source code", f"{repo}: [`apps/web`](../apps/web) · [`services/api`](../services/api) · [`ml/glucotwin`](../ml/glucotwin)"),
@@ -1183,6 +1185,88 @@ def team_folder(sub: dict) -> Path:
     ])
     (d / "README.md").write_text(text)
     return d / "README.md"
+
+
+def build_script_pdf(md: Path, path: Path) -> None:
+    """Render the narration script (Markdown) to a clean A4 PDF: headings, spoken lines (quoted), tables, lists."""
+    import re
+
+    from reportlab.lib.colors import HexColor
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    def inline(t: str) -> str:
+        t = t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        t = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)
+        t = re.sub(r"`([^`]+)`", r'<font face="Courier">\1</font>', t)
+        t = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", t)
+        return re.sub(r"\*([^*]+)\*", r"<i>\1</i>", t)
+
+    base = ParagraphStyle("p", fontName="Helvetica", fontSize=9.5, leading=13, textColor=HexColor(INK), spaceAfter=5)
+    st = {1: ParagraphStyle("h1", parent=base, fontName="Helvetica-Bold", fontSize=17, leading=21, spaceAfter=8),
+          2: ParagraphStyle("h2", parent=base, fontName="Helvetica-Bold", fontSize=12.5, leading=16, spaceBefore=10),
+          3: ParagraphStyle("h3", parent=base, fontName="Helvetica-Bold", fontSize=10.5, leading=14, spaceBefore=6)}
+    quote = ParagraphStyle("q", parent=base, leftIndent=14, fontName="Helvetica", textColor=HexColor(INK),
+                           borderPadding=(0, 0, 0, 6))
+    cell = ParagraphStyle("c", parent=base, fontSize=8, leading=10, spaceAfter=0)
+    story, para, table, quote_buf = [], [], [], []
+
+    def flush():
+        if para:
+            story.append(Paragraph(inline(" ".join(para)), base))
+            para.clear()
+        if quote_buf:
+            txt = " ".join(quote_buf).replace("\x00", "<br/><br/>")
+            story.append(Paragraph(inline(txt).replace("&lt;br/&gt;", "<br/>"), quote))
+            quote_buf.clear()
+        if table:
+            rows = [[Paragraph(inline(c.strip()), cell) for c in r.strip().strip("|").split("|")] for r in table
+                    if not re.match(r"^\|[-| ]+\|$", r.strip())]
+            n = max(len(r) for r in rows)
+            rows = [r + [Paragraph("", cell)] * (n - len(r)) for r in rows]
+            t = Table(rows, colWidths=[(A4[0] - 100) / n] * n, repeatRows=1)
+            t.setStyle(TableStyle([("LINEBELOW", (0, 0), (-1, -1), 0.4, HexColor(LIGHT)),
+                                   ("LINEBELOW", (0, 0), (-1, 0), 0.8, HexColor(INK)), ("VALIGN", (0, 0), (-1, -1), "TOP")]))
+            story.extend([t, Spacer(1, 6)])
+            table.clear()
+
+    for line in md.read_text().splitlines():
+        if line.startswith("|"):
+            if para or quote_buf:
+                flush()
+            table.append(line)
+            continue
+        if table:
+            flush()
+        if line.startswith(">"):
+            if para:
+                flush()
+            body = line[1:].strip()
+            quote_buf.append(body if body else "\x00")
+            continue
+        if quote_buf and not line.startswith(">"):
+            flush()
+        m = re.match(r"^(#{1,3}) (.*)", line)
+        if m:
+            flush()
+            story.append(Paragraph(inline(m.group(2)), st[len(m.group(1))]))
+        elif line.strip() == "---":
+            flush()
+            story.append(Spacer(1, 6))
+        elif re.match(r"^(\* |\d+\. )", line):
+            flush()
+            para.append(("• " if line.startswith("* ") else "") + re.sub(r"^\* ", "", line))
+        elif not line.strip():
+            flush()
+        else:
+            if line.startswith("**") and para:  # stage-direction labels (Screen:, Clicks:, Expected …) start new lines
+                flush()
+            para.append(line.strip())
+    flush()
+    doc = SimpleDocTemplate(str(path), pagesize=A4, leftMargin=50, rightMargin=50, topMargin=46, bottomMargin=46,
+                            title="GlucoTwin — demonstration video script", author="Team Kryptonite, VESIT")
+    doc.build(story)
 
 
 def export_pdf_from_pptx(pptx: Path) -> bool:
@@ -1218,6 +1302,7 @@ def main() -> None:
     if not export_pdf_from_pptx(OUT / "GlucoTwin_Presentation.pptx"):
         build_pdf(deck, OUT / "GlucoTwin_Presentation.pdf")  # fallback without LibreOffice: same content, own layout
     print(f"slides: {len(deck)} -> {OUT}")
+    build_script_pdf(ROOT / "docs/demo_script.md", OUT / "GlucoTwin_Demo_Script.pdf")
     print(team_folder(submission()))
 
 

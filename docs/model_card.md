@@ -193,7 +193,9 @@ also credit one onset to two warnings; the offline metrics were not affected by 
 * The warning score is uncalibrated, and its threshold rule ignores review workload.
 * The research event threshold is not a triage rule.
 * The test segment had already been inspected before the corrected run and before the fusion constraint.
-* The optional Chronos-Bolt research track was not run.
+* No foundation model was part of this experiment. A separate zero-shot Chronos-Bolt-tiny baseline on CGM only was run
+  later as research (D-054): better than persistence, not better than the serving recipe refitted per fold, not
+  fine-tuned and not served ([report](../reports/foundation_baseline.md)).
 
 ## Ethics and licensing
 
