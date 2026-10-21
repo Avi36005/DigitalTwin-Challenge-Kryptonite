@@ -1,7 +1,7 @@
 /* Review queue: the shared session rows with six columns. Flat rows and dividers; unreviewed rows get a thin blue rule. */
 .rows--queue .rows__head,
 .rows--queue .rows__row {
-  grid-template-columns: minmax(170px, 1.3fr) minmax(110px, 0.8fr) minmax(150px, 1fr) minmax(200px, 1.6fr) minmax(150px, 1fr) 80px;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(100px, 0.7fr) minmax(120px, 0.8fr) minmax(240px, 2.1fr) minmax(150px, 1fr) 72px;
 }
 .rows--queue .rows__head,
 .rows--queue .rows__row {
@@ -42,6 +42,10 @@
 }
 
 @media (max-width: 760px) {
+  /* the sessions list joins time and state with a dot; queue cells stack, so the dot would dangle */
+  .rows--queue .rows__time::after {
+    content: none;
+  }
   .queue__counts,
   .queue__last,
   .queue__data {
@@ -49,4 +53,26 @@
     flex-basis: 100%;
     font-size: 13px;
   }
+}
+
+/* one data-source label for the whole list (rows repeat it only when sources differ) */
+.source-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: var(--gt-fs-small);
+  color: var(--gt-text-2);
+}
+.source-line svg {
+  flex: none;
+  color: var(--gt-text-2);
+}
+.source-line strong {
+  font-weight: 500;
+  color: var(--gt-text);
+}
+.queue-loading {
+  display: grid;
+  gap: 8px;
 }
