@@ -126,7 +126,8 @@ episode.
    - prediction ranges (target vs measured coverage, widths, per-participant range);
    - research warnings (raw counts, both time bases, qualified lead and episode-start-to-onset);
    - per-participant variation;
-   - secondary analyses (leave-one-out labelled secondary; Chronos-Bolt "Not run");
+   - secondary analyses (leave-one-out labelled secondary; Chronos-Bolt "Not run" within this experiment — the later,
+     separate zero-shot baseline D-054 is research only: [`reports/foundation_baseline.md`](../reports/foundation_baseline.md));
    - protocol.
 7. A limitations summary with its full list.
 
