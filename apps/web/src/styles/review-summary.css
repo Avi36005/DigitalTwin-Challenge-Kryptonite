@@ -60,7 +60,8 @@
   .review-print-root .review-doc__table th,
   .review-print-root .review-doc__table td { border-bottom-color: #bbb; }
   .review-print-root .review-doc__foot { font-size: 8.5pt; color: #444; }
-  .review-print-root .review-doc__sec,
+  /* sections may break across pages (a long warning list would otherwise leave page 1 half empty); single warnings,
+     guardrails, table rows and section headings stay whole */
   .review-print-root .review-doc__warnings li,
   .review-print-root .review-doc__guards li,
   .review-print-root .review-doc__table tr { break-inside: avoid; }
