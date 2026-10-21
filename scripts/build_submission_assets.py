@@ -399,7 +399,7 @@ def reanalysis_slide() -> dict | None:
                 "first 24 hours; the intervals cross zero, so no benefit is claimed.",
                 *([blend_bullet()] if blend_bullet() else []),
                 *([retrain_bullet()] if retrain_bullet() else []),
-                *([tune_bullet()] if tune_bullet() else []),
+                *([joint_bullet()] if joint_bullet() else []),
                 "The demo model's ranges are already pooled over all 14 people; its under-coverage most likely comes from drift between "
                 "time segments, so this fix is not applied to it."]}
 
@@ -422,14 +422,31 @@ def tune_bullet() -> str | None:
             f"[{r['ci95'][0]:+.2f}, {r['ci95'][1]:+.2f}]. Declared bar −0.5; not adopted.")
 
 
+JOINT = ROOT / "artifacts/research/gt-joint-2026-10-21/summary.json"
+
+
+def joint_bullet() -> str | None:
+    """D-052: joint model + correction selection inside each fold, against the refitted serving recipe."""
+    if not JOINT.exists():
+        return None
+    d = json.loads(JOINT.read_text())
+    g = d["gate"]
+    rg = d.get("release_guardrails", {})
+    return (f"Not adopted — joint selection (D-052, 1,570 fresh fits): {g['mean_diff_60']:+.2f} [{g['ci95_60'][0]:+.2f}, "
+            f"{g['ci95_60'][1]:+.2f}] mg/dL at 60 min vs the refitted serving recipe, but {g['high_worsening_60']:+.2f} on peaks "
+            f"above 180 and {rg.get('fa_per_day_delta', 0):+.2f} false alarms/day — gates not met.")
+
+
 def retrain_bullet() -> str | None:
     """D-049: four freshly fitted arms of the fusion recipe, development decision only."""
     if not RETRAIN.exists():
         return None
     g = {a: v["checks"]["gain_60"] for a, v in json.loads(RETRAIN.read_text())["selection"]["by_arm"].items()}
-    return ("Not adopted — retraining with participant balance, rising-glucose weights or 24-hour history (D-049, fresh fits): "
-            f"60-min gains {g['A1_participant_balanced']:+.2f}, {g['A2_balanced_rising_2x']:+.2f} and "
-            f"{g['B1_balanced_long_history']:+.2f} mg/dL against a 0.5 target; the demo model is unchanged.")
+    t = json.loads(TUNE.read_text())["paired"]["C1_with_history|C0_current_features|final|60"] if TUNE.exists() else None
+    return ("Not adopted — fixed and tuned retraining (D-049, D-051): best 60-min gain "
+            f"{g['B1_balanced_long_history']:+.2f} mg/dL (fixed)"
+            + (f", {t['mean_diff']:+.2f} [{t['ci95'][0]:+.2f}, {t['ci95'][1]:+.2f}] with tuning" if t else "")
+            + ", below the declared 0.5 bar.")
 
 
 def blend_bullet() -> str | None:

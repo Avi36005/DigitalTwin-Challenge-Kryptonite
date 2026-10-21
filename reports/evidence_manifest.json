@@ -722,11 +722,35 @@
    "pending_readme": true,
    "split_hash": "e3695ca98334",
    "artifact_sha256": {
-    "artifacts/research/gt-joint-2026-10-21/summary.json": null
+    "artifacts/research/gt-joint-2026-10-21/summary.json": "0feafab67e20ce254f0c6e89e6f6d6a8b3a66d0019d28d2786e03ffc75312bdb"
    },
-   "status": "artifact missing",
-   "checks": [],
-   "detail": "artifacts/research/gt-joint-2026-10-21/summary.json not on this installation"
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "S 60-min personalised MAE",
+     "artifact": "21.62",
+     "readme": "21.62",
+     "result": "matches"
+    },
+    {
+     "label": "R0 60-min personalised MAE (refitted serving recipe)",
+     "artifact": "22.50",
+     "readme": "22.50",
+     "result": "matches"
+    },
+    {
+     "label": "S − R0 at 60 min (participant bootstrap)",
+     "artifact": "−0.88 [−1.75, −0.13]",
+     "readme": "−0.88 [−1.75, −0.13]",
+     "result": "matches"
+    },
+    {
+     "label": "primary gate",
+     "artifact": "not met",
+     "readme": "not met",
+     "result": "matches"
+    }
+   ]
   },
   {
    "id": "joint-d052-operational",
@@ -741,11 +765,23 @@
    "pending_readme": true,
    "split_hash": "e3695ca98334",
    "artifact_sha256": {
-    "artifacts/research/gt-joint-2026-10-21/summary.json": null
+    "artifacts/research/gt-joint-2026-10-21/summary.json": "0feafab67e20ce254f0c6e89e6f6d6a8b3a66d0019d28d2786e03ffc75312bdb"
    },
-   "status": "artifact missing",
-   "checks": [],
-   "detail": "artifacts/research/gt-joint-2026-10-21/summary.json not on this installation"
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "release guardrails vs R0",
+     "artifact": "not met",
+     "readme": "not met",
+     "result": "matches"
+    },
+    {
+     "label": "candidate 80 % range coverage, 60 min",
+     "artifact": "78.4",
+     "readme": "78.4",
+     "result": "matches"
+    }
+   ]
   },
   {
    "id": "parity",

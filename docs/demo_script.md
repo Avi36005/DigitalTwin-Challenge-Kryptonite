@@ -30,15 +30,14 @@ number written here. The deck has 24 slides; slides not shown in the video stay 
 | 11:30–12:30 | Synthetic edge cases | 1:00 | Synthetic Participants E and C | 85 |
 | 12:30–13:30 | Model evidence and the safety guardrails | 1:00 | Model evidence | 153 |
 | 13:30–15:00 | Cutaway: measured results (end of the main narrative) | 1:30 | Slides 14, 17 | 153 |
-| 15:00–17:15 | Extension: research beyond the demo model | 2:15 | Slides 18, 19, 20 | 475 |
+| 15:00–17:15 | Extension: research beyond the demo model | 2:15 | Slides 18, 19, 20 | 182 |
 | 17:15–18:45 | Extension: the evidence inside the app | 1:30 | Model evidence (research view), Data quality | 105 |
 | 18:45–20:30 | Limits, next steps and links | 1:45 | Slides 22–24 | 189 |
 
 **Format (team decision, 20 Oct 2026):** slides only for the first two minutes, the app from **02:00**. The first fifteen
 minutes are the main narrative — 10:45 of it in the live app (about 72 %), with two short slide cutaways — and chapters
-12–14 extend it past the 20-minute minimum. Narration words are counted from this file (2,246 in total, recounted on
-21 Oct 2026): 1,095 in the 12.25 live minutes and 1,151 in the slide minutes. Chapter 12 (475 words) is longer than its
-2:15 slot at 130 words per minute; trim it or let it run long before the extension's later chapters. At about
+12–14 extend it past the 20-minute minimum. Narration words are counted from this file (1,953 in total, recounted on
+21 Oct 2026): 1,095 in the 12.25 live minutes and 858 in the slide minutes. At about
 130 words per minute, rehearse with a timer; if a live chapter runs short, pause on the screen rather than speed up.
 This is an estimate — only a timed rehearsal and the rendered file establish the real duration. YouTube chapters:
 paste the fourteen start times above into the video description.
@@ -220,35 +219,19 @@ page); scroll through the list.
 
 ## Chapter 12 — Extension: research beyond the demo model (15:00–17:15) · slides 18, 19, 20
 
-> *[Slide 18]* Those people were seen in training, so we also ran a protocol frozen before fitting, holding each person
-> out entirely. The research procedure — Ridge on glucose only, not the demo model — scored 13.88 and 22.30 against
-> 15.34 and 24.47 for persistence, and with warnings limited to two false alarms a day it caught 301 of 329 onsets at
-> 1.31 per observed day. On ninety-eight people from an independent cohort, ShanghaiT2DM, opened once, a
-> separate fifteen-minute model scored 11.15 against 12.14 at thirty minutes; at sixty minutes the difference is
-> inconclusive.
+> *[Slide 18]* Those people were seen in training, so we also held each person out entirely, under a protocol frozen
+> before fitting. A research procedure scored 13.88 and 22.30 against 15.34 and 24.47 for persistence. On ninety-eight
+> people from an independent cohort, ShanghaiT2DM, a separate fifteen-minute model scored 11.15 against 12.14 at
+> thirty minutes.
 >
-> *[Slide 19]* The brief's example is a spike predicted two hours ahead, so on submission day we declared one more
-> protocol before fitting anything — decision D-043 — with the same folds and a 120-minute horizon, each person held
-> out. At two hours, error was 30.6 against 35.9 for persistence: 5.25 lower, interval minus 6.44 to minus 4.05, better
-> for all fourteen people. The two-hour warning caught 315 of 329 onsets at 1.62 false alarms per observed day, against
-> 313 at 1.48 for the sixty-minute warning. Its median forecast lead was fifteen minutes; a quarter of warnings came
-> sixty-five minutes or more ahead. Ranges covered 76.5 percent. The health-record inputs gave no reliable benefit at
-> two hours: minus 0.86, interval minus 2.60 to plus 1.02, and with Ridge they made error worse. These fourteen people
-> were already inspected, so this is internal validation; it is not the demo model, and nothing was promoted.
+> *[Slide 19]* The brief's example is a spike two hours ahead. With each person held out, two-hour error was 30.6
+> against 35.9 for persistence, better for all fourteen people. The two-hour warning caught 315 of 329 onsets, but its
+> median lead was fifteen minutes: a two-hour forecast, not two hours of notice.
 >
-> *[Slide 20]* Then we tried to fix three weaknesses, declaring each test before computing it — decision D-046. One
-> worked: calibrating the ranges on all development people instead of two raised two-hour coverage from 76.5 to 79.8
-> percent, against a target of 80. Two did not: no rule reliably warned more onsets at least thirty minutes ahead at the same
-> alarm budget, and using the health record as a new person's starting correction gave minus 0.53 milligrams per
-> decilitre, an interval that crosses zero. We report all three.
-> Tonight we also tested blending the two tree models, again declared before scoring — decision D-048. On
-> development people it improved sixty-minute error by only 0.02 milligrams per decilitre, far short of the half a
-> milligram we required, so we kept the current model and never opened the held-out results. We then retrained the
-> model itself four ways — decision D-049 — including twenty-four hours of past glucose history. The best gained 0.41
-> milligrams per decilitre, again short of the bar we set in advance, so the model you saw is still the one we evaluated.
-> With equal tuning for both, each person held out, the history features beat the same model without them by 0.37
-> milligrams, better for ten of fourteen people — a small internal gain, under our half-milligram bar, so we report it
-> and do not switch.
+> *[Slide 20]* Every attempt to improve the model was declared before we looked. Calibrating ranges on more people
+> brought coverage close to eighty percent. Our best retraining chose the model and the patient correction together:
+> it lowered sixty-minute error by 0.88 milligrams against the current recipe, but made peaks above 180 worse and
+> raised false alarms, so it failed our own rules and the model you saw is unchanged. We report what did not work too.
 
 ## Chapter 13 — Extension: the evidence inside the app (17:15–18:45)
 

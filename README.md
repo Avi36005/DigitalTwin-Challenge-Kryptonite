@@ -398,6 +398,15 @@ difference is −0.65 [−1.41, +0.07], 8 of 14 — not established. The declare
 not adopted and the demo model is unchanged. These 14 people were inspected in earlier experiments and the hypothesis
 followed earlier results: internal evidence, not independent confirmation ([report](reports/tune_study.md)).
 
+**Joint selection: better on average, worse on peaks — not adopted** (`gt-joint-2026-10-21`, D-052, declared before
+any fit; 1,570 fresh fits, LightGBM and CatBoost). Inside each held-out fold, model settings and patient correction were
+chosen together on the personalised error and the model family chosen on development people only. Result on the 14
+people each held out once: personalised 60-minute error 21.62 mg/dL for the selected procedure vs 22.50 for the refitted serving recipe (S − R0 −0.88 [−1.75, −0.13]); primary gate not met; release guardrails not met; candidate 80 % range covered 78.4 % at 60 min. The average gain cleared its size and interval bars and 30-minute error fell
+0.50 mg/dL, but 60-minute error on readings above 180 mg/dL rose 1.70 mg/dL (limit 1.0); the 60-minute warning caught
+more onsets early (34 % of all onsets ≥ 30 min ahead vs 19 %) at 0.60 more false alarms per observed day and 5.4 points
+more time in warning, beyond the declared limits. So the demo model is unchanged; previously inspected people, internal
+validation ([report](reports/joint_study.md)).
+
 **Serving ranges: a candidate, not switched** (`gt-ranges-2026-10-21`, D-050, declared before any candidate was
 computed; point forecasts unchanged). A range per glucose trend did not pass its pre-test rule, so the single range per
 horizon is kept. Calibrated on the validation and calibration segments together instead of the calibration segment
@@ -609,7 +618,7 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
   [Time in warning](reports/warning_time_share.md) · [Cold-start profile](reports/cold_start_profile.md) ·
   [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Model blend (negative)](reports/blend_experiment.md) · [Retraining study (negative)](reports/retrain_study.md) · [Serving parity](reports/serving_parity.md) ·
   [Serving ranges study](reports/serving_ranges_study.md) · [Warning notice](reports/warning_utility.md) ·
-  [Tuned retraining](reports/tune_study.md) ·
+  [Tuned retraining](reports/tune_study.md) · [Joint selection](reports/joint_study.md) ·
   [Error by glucose trend](reports/error_by_trend.md) · [Evidence manifest](reports/evidence_manifest.md) · [Review summary check](reports/review_summary_check.md) · [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
 * **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
   [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·
