@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="133" failures="0" errors="0" time="3.140741957">
+    <testsuite name="src/components/evidence/ResearchAfterDemo.test.tsx" timestamp="2026-10-21T22:03:48.634Z" hostname="local" tests="5" failures="0" errors="0" skipped="0" time="0.213271708">
+        <testcase classname="src/components/evidence/ResearchAfterDemo.test.tsx" name="research after the demo model &gt; tags each finding and never presents an experiment as the demo model" time="0.182235333">
+        </testcase>
+        <testcase classname="src/components/evidence/ResearchAfterDemo.test.tsx" name="research after the demo model &gt; says when the research was not run on this installation" time="0.002780042">
+        </testcase>
+        <testcase classname="src/components/evidence/ResearchAfterDemo.test.tsx" name="research after the demo model &gt; says an unreadable or mismatched summary is unreadable, never &apos;not run&apos;" time="0.015600958">
+        </testcase>
+        <testcase classname="src/components/evidence/ResearchAfterDemo.test.tsx" name="research after the demo model &gt; separates the one declared claim rule from this page&apos;s descriptions" time="0.006229542">
+        </testcase>
+        <testcase classname="src/components/evidence/ResearchAfterDemo.test.tsx" name="research after the demo model &gt; reports a failed request instead of an empty section" time="0.002265375">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/review/ReviewSummary.test.tsx" timestamp="2026-10-21T22:03:48.635Z" hostname="local" tests="5" failures="0" errors="0" skipped="0" time="0.3512405">
+        <testcase classname="src/components/review/ReviewSummary.test.tsx" name="ReviewSummary &gt; freezes the report: a playing replay does not change the open copy" time="0.194949208">
+        </testcase>
+        <testcase classname="src/components/review/ReviewSummary.test.tsx" name="ReviewSummary &gt; renders a saved note as text, never as HTML" time="0.0401005">
+        </testcase>
+        <testcase classname="src/components/review/ReviewSummary.test.tsx" name="ReviewSummary &gt; refuses to create a copy while data for the replay time is still loading, with the reason" time="0.014853667">
+        </testcase>
+        <testcase classname="src/components/review/ReviewSummary.test.tsx" name="ReviewSummary &gt; discards the copy after a rewind and on another participant" time="0.0517055">
+        </testcase>
+        <testcase classname="src/components/review/ReviewSummary.test.tsx" name="ReviewSummary &gt; downloads exactly the frozen snapshot as JSON" time="0.046221334">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/review/snapshot.test.ts" timestamp="2026-10-21T22:03:48.635Z" hostname="local" tests="10" failures="0" errors="0" skipped="0" time="0.0097025">
+        <testcase classname="src/components/review/snapshot.test.ts" name="review snapshot &gt; keeps the replay cutoff and the wall-clock generation time apart" time="0.002595875">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="review snapshot &gt; never includes observations, warnings or outcomes from after the cutoff" time="0.001020834">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="review snapshot &gt; does not show a forecast issued after the cutoff and never substitutes zeros" time="0.001020166">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="review snapshot &gt; marks a stale reading and keeps unavailable ranges unavailable" time="0.000396666">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="review snapshot &gt; keeps profile values that were not yet known at the cutoff unknown" time="0.000401125">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="review snapshot &gt; lists the most recent warnings, states the total and carries saved review notes as text" time="0.000713041">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="review snapshot &gt; ignores data from another participant or revision" time="0.000350208">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="review snapshot &gt; survives a JSON round trip unchanged" time="0.000891458">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="snapshot readiness &gt; is ready only when every response belongs to this revision and replay time" time="0.000438583">
+        </testcase>
+        <testcase classname="src/components/review/snapshot.test.ts" name="nodeText &gt; flattens small JSX fragments to plain text" time="0.000282375">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/twin/Panels.test.tsx" timestamp="2026-10-21T22:03:48.637Z" hostname="local" tests="24" failures="0" errors="0" skipped="0" time="0.247553458">
+        <testcase classname="src/components/twin/Panels.test.tsx" name="summary group &gt; states that a range is unavailable instead of drawing one" time="0.021699916">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="summary group &gt; labels a range with its target coverage, never as a confidence score" time="0.004735375">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="summary group &gt; keeps the layout and explains an unavailable forecast once — never zero, never &apos;low risk&apos;" time="0.009746292">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="summary group &gt; gives the sparse-history reason with the actual reading count" time="0.082217291">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="summary group &gt; says the model is unavailable instead of blaming sensor history" time="0.002111917">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="summary group &gt; shows loading — not &apos;no reading released&apos; — while released events are still being fetched" time="0.007798834">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="summary group &gt; labels a stale forecast and stale reading" time="0.023645333">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="summary group &gt; does not display a forecast issued after the replay clock" time="0.001765292">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="review status &gt; shows the warning score as a margin, not a probability" time="0.003619167">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="review status &gt; distinguishes an already-high state from a forecast warning" time="0.002926292">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="review status &gt; reports insufficient information when the twin abstains" time="0.00369375">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="review status &gt; names the forecast that fired a warning and the trigger level, not &apos;above 180&apos;" time="0.005974125">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="review status &gt; does not claim a validation-chosen or early trigger for the synthetic model" time="0.002697917">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="review status &gt; keeps an earlier warning visible as awaiting its outcome when the latest forecast does not fire" time="0.006127667">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="review status &gt; reports a missing model separately from abstention" time="0.002446459">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="warning history &gt; keeps the forecast lead and the whole-episode duration apart" time="0.006280666">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="warning history &gt; shows which forecast fired each warning against the trigger" time="0.002319542">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="guardrails &gt; passes a fresh, complete forecast and states that the synthetic model has no measured coverage" time="0.011421167">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="guardrails &gt; never shows a stale stream&apos;s last complete forecast as a success" time="0.004291333">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="guardrails &gt; shows the fusion model&apos;s profile gate and the twin&apos;s reasons when it abstains, and no range" time="0.003112583">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="guardrails &gt; confirms the profile check, states the correction cap and counts warning outcomes" time="0.003913083">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="guardrails &gt; flags ranges whose measured coverage is under target instead of ticking them" time="0.002840084">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="guardrails &gt; says how many warnings fall in the final test period, so earlier ones are not read as test results" time="0.002213334">
+        </testcase>
+        <testcase classname="src/components/twin/Panels.test.tsx" name="guardrails &gt; lists the eleven guardrails on the evidence page" time="0.026842292">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/twin/TwinExplanation.test.tsx" timestamp="2026-10-21T22:03:48.638Z" hostname="local" tests="3" failures="0" errors="0" skipped="0" time="0.089046833">
+        <testcase classname="src/components/twin/TwinExplanation.test.tsx" name="twin explanation &gt; shows population, correction and the API&apos;s final estimate per horizon, with the correction&apos;s bound" time="0.077246209">
+        </testcase>
+        <testcase classname="src/components/twin/TwinExplanation.test.tsx" name="twin explanation &gt; says a stale forecast is stale and explains nothing when the twin abstained" time="0.0080025">
+        </testcase>
+        <testcase classname="src/components/twin/TwinExplanation.test.tsx" name="twin explanation &gt; never explains a forecast issued after the replay clock" time="0.000805958">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/twin/WarningReview.test.tsx" timestamp="2026-10-21T22:03:48.638Z" hostname="local" tests="9" failures="0" errors="0" skipped="0" time="0.870866083">
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; names the warning and keeps a pending outcome pending" time="0.175928">
+        </testcase>
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; saves the typed note through the acknowledgement call and closes" time="0.250197334">
+        </testcase>
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; sends no note when the field is empty" time="0.058132125">
+        </testcase>
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; does not save anything on cancel" time="0.104212208">
+        </testcase>
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; keeps the typed note after an error and retries" time="0.15091225">
+        </testcase>
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; never submits a warning from an earlier revision" time="0.051877625">
+        </testcase>
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; says nothing was saved when the warning disappears while the dialog is open" time="0.045298542">
+        </testcase>
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; shows a saved note as text, never as HTML" time="0.01829925">
+        </testcase>
+        <testcase classname="src/components/twin/WarningReview.test.tsx" name="warning review &gt; limits the note to the API&apos;s 500 characters" time="0.013290333">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/chart.test.ts" timestamp="2026-10-21T22:03:48.639Z" hostname="local" tests="5" failures="0" errors="0" skipped="0" time="0.002064417">
+        <testcase classname="src/lib/chart.test.ts" name="temporal visibility &gt; hides a meal observed earlier but logged after the replay clock" time="0.000725041">
+        </testcase>
+        <testcase classname="src/lib/chart.test.ts" name="temporal visibility &gt; never shows readings observed after the clock" time="0.000383084">
+        </testcase>
+        <testcase classname="src/lib/chart.test.ts" name="temporal visibility &gt; keeps long gaps visibly missing instead of bridging them" time="0.000106041">
+        </testcase>
+        <testcase classname="src/lib/chart.test.ts" name="temporal visibility &gt; reveals an outcome only once the target time has passed and its reading is available" time="0.000104667">
+        </testcase>
+        <testcase classname="src/lib/chart.test.ts" name="temporal visibility &gt; rejects a forecast whose origin is after the replay clock (e.g. a late response after rewind)" time="0.0001475">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/evidence.test.ts" timestamp="2026-10-21T22:03:48.639Z" hostname="local" tests="10" failures="0" errors="0" skipped="0" time="0.0077745">
+        <testcase classname="src/lib/evidence.test.ts" name="evidence semantics &gt; names forecast availability as availability, never as coverage or accuracy" time="0.001458625">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="evidence semantics &gt; names both warning-rate denominators and the episode-start lead" time="0.000320417">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="evidence semantics &gt; chooses the default comparison by rule, not by score, and keeps a better candidate visible in the full list" time="0.001628916">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="evidence semantics &gt; names feature sets in plain words whatever their version" time="0.000400791">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="evidence semantics &gt; computes improvement from the report&apos;s values and never invents precision" time="0.000294083">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="evidence semantics &gt; reads the feature set from a model version to decide whether profile values are inputs" time="0.000425125">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="chart y-range &gt; grows to include real extremes but does not shrink on ordinary updates" time="0.000274542">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="research evidence helpers &gt; picks the default comparison by rule, not by score" time="0.000411084">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="research evidence helpers &gt; states the false-alarm denominator and never calls recall accuracy" time="0.000250792">
+        </testcase>
+        <testcase classname="src/lib/evidence.test.ts" name="research evidence helpers &gt; formats signed differences with a true minus sign and summarises per-fold selections" time="0.000547875">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/explain.test.ts" timestamp="2026-10-21T22:03:48.639Z" hostname="local" tests="6" failures="0" errors="0" skipped="0" time="0.00352775">
+        <testcase classname="src/lib/explain.test.ts" name="how the twin reached a forecast &gt; reports the forecast&apos;s own components and its final estimate, without re-adding them" time="0.001528917">
+        </testcase>
+        <testcase classname="src/lib/explain.test.ts" name="how the twin reached a forecast &gt; keeps a missing wearable summary missing and says which profile values the forecast could know" time="0.000249375">
+        </testcase>
+        <testcase classname="src/lib/explain.test.ts" name="how the twin reached a forecast &gt; does not read a profile from another revision, and says the profile is not an input of a dynamic-only model" time="0.000181875">
+        </testcase>
+        <testcase classname="src/lib/explain.test.ts" name="how the twin reached a forecast &gt; counts warning outcomes as known at the cutoff, and only from this session revision" time="0.000172542">
+        </testcase>
+        <testcase classname="src/lib/explain.test.ts" name="how the twin reached a forecast &gt; uses measured coverage only for the exact model that issued the forecast" time="0.0001545">
+        </testcase>
+        <testcase classname="src/lib/explain.test.ts" name="profile values the model reads &gt; lists only the issuing model&apos;s profile inputs as read and the rest as context" time="0.000107666">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/outcome.test.ts" timestamp="2026-10-21T22:03:48.640Z" hostname="local" tests="5" failures="0" errors="0" skipped="0" time="0.004708083">
+        <testcase classname="src/lib/outcome.test.ts" name="horizonOutcome &gt; is pending before the target time, even when a later reading exists in the list" time="0.001897375">
+        </testcase>
+        <testcase classname="src/lib/outcome.test.ts" name="horizonOutcome &gt; matches the observed reading within 2.5 minutes and reports both errors" time="0.000683166">
+        </testcase>
+        <testcase classname="src/lib/outcome.test.ts" name="horizonOutcome &gt; says the correction moved the forecast closer, further or made no difference" time="0.000425417">
+        </testcase>
+        <testcase classname="src/lib/outcome.test.ts" name="horizonOutcome &gt; is unknown when no reading lies near the target (a gap), but pending while one could still arrive" time="0.000222833">
+        </testcase>
+        <testcase classname="src/lib/outcome.test.ts" name="horizonOutcome &gt; follows the replay clock after a rewind: a reading not yet released is not used" time="0.000222125">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/queue.test.ts" timestamp="2026-10-21T22:03:48.640Z" hostname="local" tests="12" failures="0" errors="0" skipped="0" time="0.005368334">
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; counts unreviewed and reviewed warnings and describes the latest one" time="0.001435167">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; keeps counts unknown — not zero — while loading or after a failure" time="0.000488459">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; states a partial total when some rows failed" time="0.000250125">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; refuses an answer about a different session even when its revision matches" time="0.000215333">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; refuses an answer about a different participant" time="0.000151875">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; refuses a delayed answer from an earlier revision and accepts the newer revision after a rewind" time="0.000265083">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; shows a playing replay at the snapshot&apos;s own clock, never an earlier clock with later warnings" time="0.000298375">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; refuses parts that disagree on the clock" time="0.000130875">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; keeps an outcome resolved after the cutoff pending, consistently with the counts" time="0.000215458">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; orders administratively, never by replay time across participants" time="0.000459584">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; counts several replays of one participant as replays, not more patients" time="0.000300958">
+        </testcase>
+        <testcase classname="src/lib/queue.test.ts" name="review queue rows &gt; names the input state of the latest forecast" time="0.000142375">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/researchSummaries.test.ts" timestamp="2026-10-21T22:03:48.640Z" hostname="local" tests="2" failures="0" errors="0" skipped="0" time="0.001738958">
+        <testcase classname="src/lib/researchSummaries.test.ts" name="research summaries wording &gt; states the re-analysis results exactly as the saved summary has them" time="0.000943292">
+        </testcase>
+        <testcase classname="src/lib/researchSummaries.test.ts" name="research summaries wording &gt; keeps the two-hour notice, the external cohort and the rejected classifier honest" time="0.000172584">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/routes.test.tsx" timestamp="2026-10-21T22:03:48.641Z" hostname="local" tests="7" failures="0" errors="0" skipped="0" time="0.384411917">
+        <testcase classname="src/lib/routes.test.tsx" name="route migration &gt; moves an old replay link to the workspace without touching the session or other query state" time="0.000741625">
+        </testcase>
+        <testcase classname="src/lib/routes.test.tsx" name="route migration &gt; keeps the landing page at / when there is no session" time="0.000128875">
+        </testcase>
+        <testcase classname="src/lib/routes.test.tsx" name="route migration &gt; redirects every old workspace page and preserves query and hash" time="0.000113042">
+        </testcase>
+        <testcase classname="src/lib/routes.test.tsx" name="route migration &gt; builds workspace URLs in one place" time="0.000117875">
+        </testcase>
+        <testcase classname="src/lib/routes.test.tsx" name="router redirects &gt; replaces /?session=&lt;id&gt; with /app?session=&lt;id&gt; (no extra history entry)" time="0.24990825">
+        </testcase>
+        <testcase classname="src/lib/routes.test.tsx" name="router redirects &gt; redirects /evidence to /app/evidence with replace, keeping the hash" time="0.070220375">
+        </testcase>
+        <testcase classname="src/lib/routes.test.tsx" name="router redirects &gt; renders the landing page at / even when the API is unreachable" time="0.061014875">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/snapshot.test.ts" timestamp="2026-10-21T22:03:48.641Z" hostname="local" tests="3" failures="0" errors="0" skipped="0" time="0.001396083">
+        <testcase classname="src/lib/snapshot.test.ts" name="snapshotLine &gt; names the export date and commit of a published snapshot" time="0.000673291">
+        </testcase>
+        <testcase classname="src/lib/snapshot.test.ts" name="snapshotLine &gt; says nothing for evidence read from the saved artifacts" time="0.00009575">
+        </testcase>
+        <testcase classname="src/lib/snapshot.test.ts" name="snapshotLine &gt; still labels a snapshot whose manifest lacks details" time="0.000056667">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/lib/trendAccuracy.test.ts" timestamp="2026-10-21T22:03:48.641Z" hostname="local" tests="3" failures="0" errors="0" skipped="0" time="0.004944458">
+        <testcase classname="src/lib/trendAccuracy.test.ts" name="trendAccuracy &gt; reads the stratum of the forecast&apos;s own trend for the exact model" time="0.003385167">
+        </testcase>
+        <testcase classname="src/lib/trendAccuracy.test.ts" name="trendAccuracy &gt; is null for another model version, a missing trend or no saved trend errors" time="0.000195667">
+        </testcase>
+        <testcase classname="src/lib/trendAccuracy.test.ts" name="trendAccuracy &gt; uses exclusive lower and inclusive upper bounds" time="0.000094625">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/pages/ReviewQueuePage.test.tsx" timestamp="2026-10-21T22:03:48.641Z" hostname="local" tests="9" failures="0" errors="0" skipped="0" time="0.391427375">
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; says there is nothing to review when no replay exists, and offers to start one" time="0.118018667">
+        </testcase>
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; lists a replay with no warnings as such, read from one snapshot" time="0.036838542">
+        </testcase>
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; does not claim &apos;no unreviewed warnings&apos; while counts are still loading" time="0.018295083">
+        </testcase>
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; marks a failed row as not known, keeps the partial total honest, and retries on request" time="0.07862425">
+        </testcase>
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; refuses a delayed answer from an earlier revision instead of showing its counts" time="0.026625583">
+        </testcase>
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; keeps each of several replays of one participant linked to its own session" time="0.046974125">
+        </testcase>
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; reports a failed session list instead of an empty queue, with a retry" time="0.024064584">
+        </testcase>
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; names a shared data source once for the page, and per row only when sources differ" time="0.016395625">
+        </testcase>
+        <testcase classname="src/pages/ReviewQueuePage.test.tsx" name="review queue page &gt; keeps a per-row source label when the listed replays come from different sources" time="0.023751416">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/state/deployment.test.tsx" timestamp="2026-10-21T22:03:48.642Z" hostname="local" tests="12" failures="0" errors="0" skipped="0" time="0.305531208">
+        <testcase classname="src/state/deployment.test.tsx" name="public demonstration banner &gt; names the synthetic model and the expiry when the API is a public demonstration" time="0.080988667">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="public demonstration banner &gt; renders nothing on a local installation or when the health check fails" time="0.003851834">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="public demonstration banner &gt; appears above the landing page" time="0.046294792">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="recorded data is never requested in a public demonstration &gt; participants page asks the API for synthetic participants only and hides the recorded-data filter" time="0.039889334">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="recorded data is never requested in a public demonstration &gt; overview offers no recorded demo even if a recorded participant were listed" time="0.026391625">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="recorded data is never requested in a public demonstration &gt; a local installation still shows recorded data as today" time="0.018360625">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="new replay dialog &gt; public: recorded data is disabled with its reason and the synthetic participant is chosen" time="0.0542125">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="model labels &gt; public: a synthetic forecast is labelled as the synthetic demonstration model, never the fusion model" time="0.001367084">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="model labels &gt; local: unchanged" time="0.000804542">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="a replay that is gone &gt; public: says it expired or belongs to another browser and offers a new replay" time="0.018374709">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="a replay that is gone &gt; local: keeps the existing explanation" time="0.011875208">
+        </testcase>
+        <testcase classname="src/state/deployment.test.tsx" name="friendly API errors &gt; words rate limits, the synthetic-only rule and (public only) a missing session" time="0.000388916">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/state/replay.test.tsx" timestamp="2026-10-21T22:03:48.642Z" hostname="local" tests="3" failures="0" errors="0" skipped="0" time="0.246167792">
+        <testcase classname="src/state/replay.test.tsx" name="revision-keyed caches &gt; rejects a late response that belongs to an older revision of the session" time="0.055359083">
+            <system-err>
+An update to Probe inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() =&gt; {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you&apos;re testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/state/replay.test.tsx" name="revision-keyed caches &gt; keeps two sessions&apos; forecasts isolated" time="0.007271125">
+        </testcase>
+        <testcase classname="src/state/replay.test.tsx" name="replay controls &gt; recovers visibly from a failed control command and allows retry" time="0.181105209">
+            <system-err>
+The current testing environment is not configured to support act(...)
+
+            </system-err>
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,0 +1,43 @@
+
+> @glucotwin/web@0.1.0 build
+> tsc -b && vite build
+
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 2595 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                              0.62 kB │ gzip:   0.37 kB
+dist/assets/inter-vietnamese-opsz-normal-Ci9T9ieq.woff2     15.26 kB
+dist/assets/inter-greek-ext-opsz-normal-BmPQvyvo.woff2      17.37 kB
+dist/assets/inter-cyrillic-opsz-normal-BFQXbQ-f.woff2       29.63 kB
+dist/assets/inter-greek-opsz-normal-BM0NlUE_.woff2          30.20 kB
+dist/assets/inter-cyrillic-ext-opsz-normal-CfYZpDVp.woff2   41.52 kB
+dist/assets/inter-latin-opsz-normal-BwkfbSeq.woff2          72.92 kB
+dist/assets/inter-latin-ext-opsz-normal-DpK-iCPk.woff2     133.33 kB
+dist/assets/ReviewQueuePage-C-2zxYfx.css                     1.98 kB │ gzip:   0.66 kB
+dist/assets/EvidencePage-CLfXKdcc.css                        2.50 kB │ gzip:   0.84 kB
+dist/assets/WorkspaceIndex-DkdHzbgs.css                      5.74 kB │ gzip:   1.46 kB
+dist/assets/index-CyAHMeFF.css                              46.48 kB │ gzip:   9.88 kB
+dist/assets/chevron-right-Bf6qChoH.js                        0.15 kB │ gzip:   0.15 kB
+dist/assets/format-z76DxI6E.js                               0.48 kB │ gzip:   0.29 kB
+dist/assets/Disclosure-RAAN_xPU.js                           0.83 kB │ gzip:   0.43 kB
+dist/assets/evaluation-jNWQaM7X.js                           0.95 kB │ gzip:   0.33 kB
+dist/assets/ShellContext-CRhvhkVL.js                         1.12 kB │ gzip:   0.65 kB
+dist/assets/SessionsPage-D1r-Y0zK.js                         1.18 kB │ gzip:   0.71 kB
+dist/assets/forecast-CjJ3F6Nr.js                             2.48 kB │ gzip:   1.07 kB
+dist/assets/AppShell-CFkg51ok.js                             5.16 kB │ gzip:   2.17 kB
+dist/assets/OverviewPage-CUYiR4cE.js                         5.33 kB │ gzip:   1.90 kB
+dist/assets/replay-BDsS3ZXY.js                               5.43 kB │ gzip:   2.11 kB
+dist/assets/ParticipantsPage-CD5H-aFr.js                     7.45 kB │ gzip:   2.73 kB
+dist/assets/Sidebar-R3CHd98j.js                              8.06 kB │ gzip:   2.97 kB
+dist/assets/snapshot-WduC_4eC.js                            10.19 kB │ gzip:   4.24 kB
+dist/assets/Dialogs-DUsgsUzb.js                             12.78 kB │ gzip:   4.52 kB
+dist/assets/ReviewQueuePage-D3NOn2Kg.js                     13.69 kB │ gzip:   4.92 kB
+dist/assets/DataQualityPage-CV9Wv2cH.js                     14.17 kB │ gzip:   4.53 kB
+dist/assets/EvidencePage-CDqBBTZ1.js                        63.73 kB │ gzip:  17.39 kB
+dist/assets/index-D8D-8M1X.js                              382.63 kB │ gzip: 120.68 kB
+dist/assets/WorkspaceIndex-BuV1qCV9.js                     470.64 kB │ gzip: 134.80 kB
+
+✓ built in 341ms
+$ (cd ~/projects/Digitaltwin/.claude/worktrees/qa/apps/web && npm run build)

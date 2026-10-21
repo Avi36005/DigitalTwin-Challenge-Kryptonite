@@ -1,0 +1,9 @@
+{
+ "status": "complete-valid",
+ "folds_published": {
+  "development": 5,
+  "assessment": 5
+ },
+ "problems": []
+}
+$ (cd ~/projects/Digitaltwin/.claude/worktrees/qa && uv run python scripts/constrained_study.py validate)
