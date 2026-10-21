@@ -1,0 +1,108 @@
+# GlucoTwin research protocol gt-foundation-2026-10-21 — zero-shot foundation-model CGM-only baseline (decision D-054).
+#
+# Declared on 2026-10-21 (21:31 IST) BEFORE any foundation forecast was computed on a participant. Run only by
+# scripts/foundation_baseline.py inside an ISOLATED optional environment (~/.cache/glucotwin-chronos/venv); the project's
+# CPU path never imports torch or chronos. It never reads or writes the model registry and promotes nothing.
+#
+# What had been seen before this file was frozen (inspection log):
+#   - The 14 CGMacros Type 2 people are previously inspected (see gt-2h-2026-10-20 inspection_log, D-049, D-051, D-052).
+#   - Feasibility pilot (21:29 IST): latency and memory of the checkpoint on a SYNTHETIC sine series only (no participant
+#     data): warm single-origin ~3.5 ms, batched ~0.54 ms per series at context 512 with 2 CPU threads, RSS < 1 GB.
+#   - Data checks without any forecast: 99.92 % of consecutive CGM readings are exactly 5 min apart (native cadence
+#     confirmed); available_at equals observed_at for every stored reading; 39,939 table origins, 39,761 issued.
+#   - No foundation-model forecast or error on any participant had been computed.
+experiment_id: gt-foundation-2026-10-21
+kind: zero-shot-foundation-baseline
+declared_on: "2026-10-21"
+decision: D-054
+base_experiment: gt-2h-2026-10-20   # frozen table, origins, quality, targets and the 5 outer participant folds
+horizons: [30, 60]
+
+model:
+  family: Chronos-Bolt (encoder-decoder, per-series instance normalisation; no cross-series attention)
+  checkpoint: amazon/chronos-bolt-tiny
+  revision: a0e552de83495b5c28c14c71c374f3e33280b340   # pinned; weights sha256 recorded in the run metadata
+  license: apache-2.0
+  parameters: 8652672
+  mode: zero-shot inference only (no fine-tuning, no LoRA, no adapter training)
+  why_this_checkpoint: >-
+    One public checkpoint was approved for this sprint. Bolt-tiny fits the 90-minute / 2-thread / 5 GB budget with the
+    full five-minute origin mask. Chronos-2 and larger Bolt sizes were NOT downloaded or tested; using Bolt is not
+    evidence about Chronos-2.
+  pretraining_corpus_note: >-
+    The public pretraining corpus may include public CGM data; whether any CGMacros recording was included is unknown.
+    Zero-shot results therefore do not prove the participants were unseen by the checkpoint.
+  environment: {python: "3.12", torch: "2.14.1", chronos_forecasting: "2.3.2", transformers: "5.20.2", threads: 2, device: cpu}
+
+inputs:
+  signal: CGM glucose only (mg/dL). No meals, activity, profile, labs, calendar or known-future covariates.
+  context: >-
+    For each origin t, a fixed-length regular grid of 512 five-minute slots ending at t (slot k at t - 5 (511 - k) min,
+    about 42.6 h). A reading enters only if observed_at <= t AND available_at <= t, and is placed in the slot within
+    2.5 min of its observed_at (latest reading wins a slot). Empty slots and slots before the recording are NaN (the
+    model's native missing-value mask). Nothing after the origin is ever read.
+  context_length: 512
+  per_origin_isolation: >-
+    Every origin is a separate univariate series; batches only stack independent rows (no cross-series / cross-learning
+    / group attention mode exists or is enabled). A later origin in a batch can never supply information to an earlier one.
+  horizon_mapping: >-
+    Native cadence verified at 5 min. Output step j (1-based) is time t + 5 j: +30 min = step 6 (index 5), +60 min =
+    step 12 (index 11). prediction_length = 12 (within the checkpoint's native 64, single block, no autoregressive rollout).
+  point_summary: median (the 0.5 quantile output), fixed now; no switch to another quantile after seeing results.
+  raw_quantiles: 0.1 … 0.9 outputs are cached for description only and are NOT counted as calibrated ranges.
+
+origins:
+  primary: >-
+    FULL MASK — every origin of the gt-2h-2026-10-20 table that the shared feature builder issued (quality ok or degraded)
+    and whose target is matched (±2.5 min) at that horizon, for all 14 people. Each person is attributed to its outer
+    fold of gt-2h-2026-10-20 for joins; zero-shot forecasts do not depend on the fold.
+  secondary_schedule_rule: >-
+    Only if the full mask exceeds the compute budget (projected > 45 min of inference), every 6th issued origin per person
+    (30-min schedule starting at each person's first issued origin), with every comparator scored on exactly that
+    schedule. Sparse results cannot qualify for the five-minute warning/release gate. (Pilot says the full mask fits.)
+  join_key: [patient_id, origin, horizon]   # origin in float minutes since the project epoch, as in the base table
+
+comparators_on_identical_origins:
+  persistence: g_last at the origin (as in gt-2h-2026-10-20)
+  R0: >-
+    refitted serving recipe (population and personalised/final) read from the saved D-052 outer-assessment predictions
+    (artifacts/research/gt-joint-2026-10-21/assessment_predictions.npz, aligned to the same table rows). Descriptive.
+
+metrics:
+  primary: macro per-participant MAE (each person weighted equally) at 30 and 60 min, foundation minus persistence
+  also: [pooled (row-weighted) MAE, RMSE, high-target MAE (target > 180 mg/dL; participants with >= 50 such origins for
+         the macro version), per-person MAE, paired participant bootstrap 2000 resamples (seed 20261021) of the macro
+         difference]
+  sign_convention: "difference = foundation − comparator; negative means the foundation forecast has lower error"
+  latency: warm single-origin ms, batched ms per origin, origins per second, peak RSS, all on the stated hardware
+
+fusion_residual_candidate:
+  declared_feasible: true   # from the pilot latency, before the formal run
+  status: secondary, descriptive; NOT entered into the D-053 family selection (not declared there before its run)
+  template_F1: >-
+    LightGBM with the serving model's frozen per-horizon parameters and rounds (as R0), fitted per outer fold on that
+    fold's development + calibration people (the same outer boundary and training people as R0), target = observed
+    target − foundation median for that horizon, features = dyn-prof-v2 (46, profile/wearable/history inputs as served)
+    + foundation median − g_last and (q0.9 − q0.1) for that horizon; unweighted; then the R0 patient correction
+    (shrinkage k 96, half-life 240 min) applied causally from an empty state. Scored once on the fold's assessment people.
+  comparison: F1 final minus R0 final, 60-min macro MAE on identical origins, paired participant bootstrap; also 30 min
+    and targets > 180. Reported only; no adoption in this sprint without the lead's separately declared gate.
+  only_template: true   # at most one residual template; no search
+
+fine_tuning: not run (zero-shot only; no participant-held-out fine-tuning claim is made)
+
+cache:
+  root: artifacts/research/gt-foundation-2026-10-21
+  predictions: >-
+    zero_shot_predictions.parquet: one row per issued origin with q0.1…q0.9 at steps 6 and 12, the SHA-256 of the exact
+    float32 context, the origin hash and the checkpoint weights SHA-256. Forecasts are generated per origin from its own
+    causal window; nothing is sliced from a whole-recording forecast.
+  determinism_check: a fixed subset is re-predicted in a different batch composition; maximum absolute difference reported
+
+labels: >-
+  CGM-only, zero-shot research baseline on 14 previously inspected CGMacros Type 2 people — internal, not independent
+  confirmation, not clinical evidence, not fusion, not fine-tuned. Does not satisfy the fusion requirement by itself.
+budget: {compute_integration_minutes: 90, threads: 2, peak_rss_gb: 5}
+artifacts:
+  root: artifacts/research/gt-foundation-2026-10-21
+  report: reports/foundation_baseline.md
