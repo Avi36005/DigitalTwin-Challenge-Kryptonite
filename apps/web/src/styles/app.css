@@ -1574,11 +1574,29 @@ th[aria-sort="descending"] .th-sort {
   background: var(--gt-text);
 }
 .legend__key--fc {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--gt-accent);
-  box-shadow: 0 -5px 0 -3px var(--gt-accent), 0 5px 0 -3px var(--gt-accent);
+}
+.legend__key--range {
+  width: 10px;
+  height: 12px;
+  border-top: 2px solid #7fa3ee;
+  border-bottom: 2px solid #7fa3ee;
+  background: linear-gradient(#7fa3ee, #7fa3ee) center / 2px 100% no-repeat;
+}
+.legend__key--pop {
+  width: 8px;
+  height: 8px;
+  border: 1.6px solid var(--gt-text-3);
+  background: #fff;
+}
+.legend__key--gap {
+  width: 14px;
+  height: 10px;
+  background: var(--gt-hover-strong);
+  border: 1px solid var(--gt-divider);
 }
 .legend__key--earlier {
   width: 7px;
@@ -1844,6 +1862,15 @@ th[aria-sort="descending"] .th-sort {
 }
 .warn__outcome--muted {
   color: var(--gt-text-3);
+}
+.warn__outcome--onset {
+  color: var(--gt-text);
+}
+.warn__outcome--onset svg {
+  color: var(--gt-accent);
+}
+.warn__outcome--false {
+  color: var(--gt-text-2);
 }
 .warn__meta {
   margin-top: 2px;
@@ -2897,4 +2924,44 @@ fieldset.field {
 .demo-banner strong {
   color: var(--gt-accent-text);
   font-weight: 600;
+}
+
+/* ================================================================== state cues
+   A small icon in front of the words of a state: warning (bell), sensor gap / stale reading (timer off), abstention
+   (dashed circle), data-quality limitation (triangle), observed outcome (check / cross). Never colour alone. */
+.cue svg {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 5px;
+}
+
+/* forecast details: the outcome's state at the replay clock, above the per-horizon lines */
+.outcome-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--gt-divider);
+  border-bottom: 1px solid var(--gt-divider);
+  font-size: var(--gt-fs-small);
+  color: var(--gt-text-2);
+}
+.outcome-state svg {
+  flex: none;
+  margin-top: 2px;
+}
+.outcome-state strong {
+  color: var(--gt-text);
+  font-weight: 600;
+}
+.outcome-state[data-state="resolved"] svg {
+  color: var(--gt-accent);
+}
+.outcome-state[data-state="pending"] svg,
+.outcome-state[data-state="partial"] svg {
+  color: var(--gt-attention-mark);
+}
+.outcome-state[data-state="unknown"] svg {
+  color: var(--gt-text-3);
 }

@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts";
 import type { Forecast, ObservationEvent, ReplaySession } from "@/api/types";
-import { hourTicks, observedSeries, outcomeFor, stableYMax, visibleAt } from "@/lib/chart";
+import { GAP_MINUTES, hourTicks, observedSeries, outcomeFor, stableYMax, visibleAt } from "@/lib/chart";
 import { fmtGlucose } from "@/lib/format";
 import { hhmm, ms, replayTime } from "@/lib/time";
 import { useMediaQuery } from "@/lib/useMediaQuery";
@@ -22,14 +22,17 @@ import { Button } from "../ui";
 
 const MIN = 60_000;
 const INK = "#111827"; // observed glucose
-const BLUE = "#2563EB"; // model forecasts
+const BLUE = "#2563EB"; // the final forecast (what the twin issues)
+const RANGE = "#7FA3EE"; // its prediction range: lighter blue, so the estimate itself reads first
+const POP = "#64748B"; // population forecast and the patient correction from it: neutral slate, never the forecast blue
+const GAP_FILL = "#F1F5F9"; // sensor gap: no reading for longer than the gap limit
 const AXIS_TEXT = "#475569";
 const Y_MIN = 40;
 
 type Pt = {
   t: number;
   v: number | null;
-  kind: "observed" | "forecast" | "earlier" | "selected" | "meal";
+  kind: "observed" | "forecast" | "earlier" | "selected" | "meal" | "population";
   err?: [number, number];
   horizon?: number;
   origin?: number;
@@ -38,6 +41,9 @@ type Pt = {
   upper?: number | null;
   label?: string;
   forecastId?: string;
+  /** population forecast and patient correction recorded with this estimate */
+  pop?: number | null;
+  corr?: number | null;
 };
 
 export function GlucoseChart({ session, events, latest, history, selected, onSelect, reduceMotion, eventsLoaded = true }: {
@@ -76,9 +82,26 @@ export function GlucoseChart({ session, events, latest, history, selected, onSel
       .map((e) => ({
         t: ms(e.target_at), v: e.predicted_mg_dl, kind, horizon: e.horizon_minutes, origin: ms(f.as_of), target: ms(e.target_at),
         lower: e.lower_mg_dl, upper: e.upper_mg_dl, forecastId: f.forecast_id,
+        pop: e.components?.population_mg_dl ?? null, corr: e.components?.patient_correction_mg_dl ?? null,
         err: e.lower_mg_dl != null && e.upper_mg_dl != null ? [e.predicted_mg_dl! - e.lower_mg_dl, e.upper_mg_dl - e.predicted_mg_dl!] : [0, 0],
       }));
   const latestPts = latest ? forecastPts(latest, "forecast") : [];
+  // the latest forecast's population value per horizon; the dashed connector to the final estimate is the correction
+  const popPts: Pt[] = latestPts.filter((p) => p.pop != null && p.v != null)
+    .map((p) => ({ ...p, kind: "population" as const, v: p.pop as number }));
+  const corrSegs = popPts.filter((p) => Math.abs((p.v ?? 0) - (latestPts.find((x) => x.horizon === p.horizon)?.v ?? 0)) >= 0.5)
+    .map((p) => [{ t: p.t, v: p.v }, { t: p.t, v: latestPts.find((x) => x.horizon === p.horizon)!.v }]);
+  // sensor gaps in the window: released readings more than GAP_MINUTES apart, or none since the last one up to the clock
+  const gaps = useMemo(() => {
+    const pts = observed.filter((p) => p.v !== null);
+    const out: { x1: number; x2: number; open: boolean }[] = [];
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i].t - pts[i - 1].t > GAP_MINUTES * MIN) out.push({ x1: Math.max(pts[i - 1].t, from), x2: pts[i].t, open: false });
+    }
+    const last = pts[pts.length - 1];
+    if (last && clock - last.t > GAP_MINUTES * MIN) out.push({ x1: Math.max(last.t, from), x2: clock, open: true });
+    return out.filter((g) => g.x2 > from);
+  }, [observed, clock, from]);
   const selectedPts = selected && selected.forecast_id !== latest?.forecast_id ? forecastPts(selected, "selected") : [];
   const earlierPts: Pt[] = useMemo(() => {
     if (!earlier) return [];
@@ -134,11 +157,14 @@ export function GlucoseChart({ session, events, latest, history, selected, onSel
 
       <ul className="legend" aria-label="Chart legend">
         <li><span className="legend__key legend__key--obs" aria-hidden />Observed glucose</li>
-        <li><span className="legend__key legend__key--fc" aria-hidden />Latest forecast, 30 and 60 min, with range</li>
+        <li><span className="legend__key legend__key--fc" aria-hidden />Latest forecast, 30 and 60 min</li>
+        <li><span className="legend__key legend__key--range" aria-hidden />Prediction range</li>
+        {popPts.length > 0 && <li><span className="legend__key legend__key--pop" aria-hidden />Population forecast, dashed to the final value: patient correction</li>}
         {earlier > 0 && <li><span className="legend__key legend__key--earlier" aria-hidden />Earlier {earlier}-min forecasts</li>}
         {selectedPts.length > 0 && <li><span className="legend__key legend__key--sel" aria-hidden />Selected earlier forecast</li>}
         <li><span className="legend__key legend__key--thr" aria-hidden />Research threshold 180 mg/dL</li>
         {meals.length > 0 && <li><span className="legend__key legend__key--meal" aria-hidden />Meal log (context only, not a model input)</li>}
+        {gaps.length > 0 && <li><span className="legend__key legend__key--gap" aria-hidden />Sensor gap: no reading for over {GAP_MINUTES} min</li>}
       </ul>
 
       <p className="visually-hidden" aria-live="off">{summary}</p>
@@ -159,6 +185,10 @@ export function GlucoseChart({ session, events, latest, history, selected, onSel
                 <ReferenceArea x1={clock} x2={to} fill="#FFFFFF" fillOpacity={0} ifOverflow="hidden"
                   label={{ value: "Forecasts", position: "insideTop", fill: AXIS_TEXT, fontSize: 11, offset: 8 }} />
               )}
+              {gaps.map((g) => (
+                <ReferenceArea key={`${g.x1}-${g.x2}`} x1={g.x1} x2={g.x2} fill={GAP_FILL} fillOpacity={1} ifOverflow="hidden"
+                  label={{ value: g.open ? "No reading since" : "Sensor gap", position: "insideBottom", fill: AXIS_TEXT, fontSize: 11, offset: 18 }} />
+              ))}
               <ReferenceLine y={180} stroke="#D97706" strokeDasharray="5 5" strokeWidth={1.2}
                 label={{ value: "Research threshold 180", position: "insideBottomLeft", fill: "#92400E", fontSize: 11 }} />
               <Line data={observed} dataKey="v" type="linear" stroke={INK} strokeWidth={2} dot={false}
@@ -183,9 +213,22 @@ export function GlucoseChart({ session, events, latest, history, selected, onSel
                   <ErrorBar dataKey="err" direction="y" width={6} stroke={BLUE} strokeWidth={1.2} strokeDasharray="2 2" />
                 </Scatter>
               )}
+              {corrSegs.map((seg, i) => (
+                <Line key={`corr-${i}`} data={seg} dataKey="v" type="linear" stroke={POP} strokeWidth={1.3} strokeDasharray="3 3"
+                  dot={false} activeDot={false} legendType="none" tooltipType="none" {...anim} />
+              ))}
+              {popPts.length > 0 && (
+                <Scatter data={popPts} dataKey="v" {...anim}
+                  shape={(d: { cx?: number; cy?: number }) => (
+                    <rect x={(d.cx ?? 0) - 4} y={(d.cy ?? 0) - 4} width={8} height={8} fill="#fff" stroke={POP} strokeWidth={1.6} />
+                  )} />
+              )}
               {latestPts.length > 0 && (
-                <Scatter data={latestPts} dataKey="v" fill={BLUE} {...anim}>
-                  <ErrorBar dataKey="err" direction="y" width={8} stroke={BLUE} strokeWidth={1.5} />
+                <Scatter data={latestPts} dataKey="v" {...anim}
+                  shape={(d: { cx?: number; cy?: number }) => (
+                    <circle cx={d.cx} cy={d.cy} r={5} fill={BLUE} stroke="#fff" strokeWidth={1.5} />
+                  )}>
+                  <ErrorBar dataKey="err" direction="y" width={10} stroke={RANGE} strokeWidth={2} />
                 </Scatter>
               )}
               {meals.length > 0 && <Scatter data={meals} dataKey="v" fill="#A16207" shape="triangle" {...anim} />}
@@ -220,6 +263,13 @@ function ChartTip({ active, payload }: { active?: boolean; payload?: { payload: 
         <>
           <div className="chart-tooltip__k">Meal log · eaten {replayTime(p.t)}</div>
           <div>{p.label}</div>
+        </>
+      ) : p.kind === "population" ? (
+        <>
+          <div className="chart-tooltip__k">Population {p.horizon}-min forecast (before patient correction)</div>
+          <div className="chart-tooltip__v num">{fmtGlucose(p.v)} mg/dL</div>
+          <div className="chart-tooltip__k">Issued {replayTime(p.origin ?? 0)} · for {replayTime(p.target ?? p.t)}</div>
+          {p.corr != null && <div className="chart-tooltip__k">Patient correction {p.corr >= 0 ? "+" : "−"}{Math.abs(p.corr).toFixed(1)} mg/dL</div>}
         </>
       ) : p.kind === "observed" ? (
         <>
@@ -273,7 +323,10 @@ function ChartTable({ observed, forecasts, meals }: { observed: { t: number; v: 
     ...observed.filter((p) => p.v !== null).map((p) => ({ t: p.t, what: "Observed glucose", v: `${fmtGlucose(p.v)} mg/dL`, note: "" })),
     ...forecasts.map((p) => ({ t: p.t, what: `${p.horizon}-min forecast${p.kind === "selected" ? " (selected earlier)" : ""}`,
       v: `${fmtGlucose(p.v)} mg/dL`,
-      note: `${p.lower != null ? `range ${fmtGlucose(p.lower)}–${fmtGlucose(p.upper ?? null)} (target coverage 80%)` : "range unavailable"}; issued ${replayTime(p.origin ?? 0)}` })),
+      note: `${p.lower != null ? `range ${fmtGlucose(p.lower)}–${fmtGlucose(p.upper ?? null)} (target coverage 80%)` : "range unavailable"}`
+        + `${p.pop != null ? `; population ${fmtGlucose(p.pop)} mg/dL` : ""}`
+        + `${p.corr != null ? `, patient correction ${p.corr >= 0 ? "+" : "−"}${Math.abs(p.corr).toFixed(1)} mg/dL` : ""}`
+        + `; issued ${replayTime(p.origin ?? 0)}` })),
     ...meals.map((p) => ({ t: p.t, what: "Meal log (context only)", v: "", note: p.label ?? "" })),
   ].sort((a, b) => b.t - a.t);
   return (
