@@ -527,7 +527,9 @@ def test_a_failed_or_partial_r0_control_aborts_the_fold_instead_of_qualifying_ca
     assert not ok and "control R0 failed in this fold" in why
 
 
-def test_an_outer_fit_failure_of_the_selected_member_falls_back_to_r0_for_both_horizons():
+def test_an_outer_fit_failure_of_the_selected_member_falls_back_to_r0_for_both_horizons(tmp_path, monkeypatch):
+    monkeypatch.setattr(C, "OUT", tmp_path)
+    monkeypatch.setattr(C, "LOG", tmp_path / "progress.log")
     st, plan = _stub()
     st.rec = {30: {"rounds": 5}, 60: {"rounds": 5}}
     r0 = {h: {**_cfg(cid=f"R0-{h}"), "r0": True} for h in (30, 60)}
