@@ -120,7 +120,7 @@ function EvidenceScope({ current, servingId, nestedId, onSelect }: {
       text: "ShanghaiT2DM, an independent cohort; a separate 15-minute CGM-only model. Shown in the nested view." },
   ];
   return (
-    <nav className="ev-scope" aria-label="Kinds of evidence">
+    <nav className="ev-scope" aria-label="What each report covers">
       <ol>
         {kinds.map((k) => (
           <li key={k.key} data-current={k.on ? "true" : undefined}>
