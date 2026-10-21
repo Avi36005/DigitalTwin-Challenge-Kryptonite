@@ -54,7 +54,7 @@ Each click shows one claim, on a local install with CGMacros imported (`make dat
 the synthetic demonstration shows the same screens on fictional participants. Routes: landing `/`, workspace and
 replays `/app`, review queue `/app/review-queue`, model evidence `/app/evidence`, data quality `/app/data-quality`. The
 forecast, outcome and warning values below belong to the current serving model
-(`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`); `TODO-VALUES` (phase 2): re-record them if the model changes.
+(`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`), which the final decision of 22 Oct 2026 kept.
 The same walkthrough, condensed, closes the [video script](demo_script.md#three-minute-judge-walkthrough-local-install-recorded-data).
 
 | Time | Step and click | What it shows ([screenshots](../reports/ui/journey/)) | Claim it supports |
@@ -105,7 +105,7 @@ scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an e
 | D-050 | [`gt-ranges-2026-10-21`](../configs/experiments/gt-ranges-2026-10-21.yaml): ranges for the serving pipeline | Protocol commit `0de0889`, 20 Oct 23:09 IST, before any candidate | [ranges](../reports/serving_ranges_study.md) — served ranges kept |
 | D-051 | [`gt-tune-2026-10-21`](../configs/experiments/gt-tune-2026-10-21.yaml): nested tuning, history vs current features | Protocol commit `e7ff594`, 20 Oct 23:14 IST, before any fit | [tuning](../reports/tune_study.md) — small internal gain, below the bar |
 | D-052 | [`gt-joint-2026-10-21`](../configs/experiments/gt-joint-2026-10-21.yaml): joint model + correction selection | Protocol commit `903419d`, 21 Oct 00:10 IST, before any fit | [joint selection](../reports/joint_study.md) — gates not met |
-| D-053 | [`gt-constrained-2026-10-21`](../configs/experiments/gt-constrained-2026-10-21.yaml): constrained, peak-aware LightGBM fusion selection | Protocol commit `2e2b01a`, 21 Oct 22:31 IST, before any formal fit | Result pending (`TODO-VALUES`, phase 2: from the locked summary only) |
+| D-053 | [`gt-constrained-2026-10-21`](../configs/experiments/gt-constrained-2026-10-21.yaml): constrained, peak-aware LightGBM fusion selection | Protocol commit `2e2b01a`, 21 Oct 22:31 IST, before any formal fit | [constrained selection](../reports/constrained_study.md) — near miss: 60 min −1.19 [−2.09, −0.39] vs the refitted recipe and warning/range guardrails passed, but error above 180 +1.07 (limit +1.0): primary gate not met, not adopted |
 | D-054 | [`gt-foundation-2026-10-21`](../configs/experiments/gt-foundation-2026-10-21.yaml): zero-shot foundation baseline, CGM only | Protocol commit `1967c25`, 21 Oct 21:31 IST, before any participant forecast | [foundation baseline](../reports/foundation_baseline.md) — better than persistence (60 min 22.92 vs 24.47), not better than the refitted serving recipe (22.50); not served |
 
 * **The negative result (D-044):** the classifier looked perfect on episode counts (329 of 329 onsets, 0.18 false

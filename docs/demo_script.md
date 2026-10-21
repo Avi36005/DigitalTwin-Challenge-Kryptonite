@@ -17,11 +17,11 @@ in [`reports/ui/journey/`](../reports/ui/journey/)), the remaining scenes by `sc
 through the generated deck. If a value on screen differs, **narrate what the screen shows — never the number written
 here.**
 
-**TODO-VALUES (phase 2).** Values marked **†** belong to the current serving model,
-`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`. If the verified model decision keeps it, they stay. If a new model
-is activated, every † value must be re-recorded from the app (re-run the judge journey and `scripts/demo_sequence.py`);
-never narrate the incumbent's numbers over another model's screen. Lines tagged `TODO-VALUES` are filled only from
-locked, verified summaries. Never invent a number to fill one.
+**Model-specific values (†).** Values marked **†** belong to the serving model,
+`lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`. The final model decision of 22 Oct 2026 kept it (D-053 did not pass
+its primary gate), so these recorded values stand. If a different model is ever activated, every † value must be
+re-recorded from the app (re-run the judge journey and `scripts/demo_sequence.py`); never narrate one model's numbers
+over another model's screen. Research numbers come only from locked, verified summaries.
 
 **Deck.** [`docs/submission/GlucoTwin_Presentation.pdf`](submission/GlucoTwin_Presentation.pdf), 28 slides at this
 writing; the video shows slides 1–4, 7, 14, 19–24 and 26–28. The rest stay in the PDF for the judges. If the deck is
@@ -44,8 +44,8 @@ App time in the first fifteen minutes: 3:30 + 3:45 + 3:30 = **10:45 of 15:00 (ab
 video past the 20-minute minimum with app-led material. YouTube chapters: paste the scene start times above into the
 description after the timed rehearsal confirms them.
 
-**Timing is an estimate, not a measurement.** The spoken lines total about 2,110 words (counted from this file on
-21 Oct 2026, before the phase-2 D-053 sentences): about 130 words a minute on the slides and slower in the app, where
+**Timing is an estimate, not a measurement.** The spoken lines total about 2,230 words (counted from this file on
+21 Oct 2026; the D-053 sentences added on 22 Oct add about 120): about 130 words a minute on the slides and slower in the app, where
 clicks and pauses take the rest of each slot. No timed rehearsal has been recorded yet; it, and the rendered file, set
 the real scene times.
 
@@ -56,9 +56,8 @@ the real scene times.
 * Second window: `docs/submission/GlucoTwin_Presentation.pdf`, presenter view off, slide 1 showing.
 * Recorded data needs `make data experiment`. Aliases (“Participant 01”) are stable across machines; `pt-…` pseudonyms
   are not.
-* Confirm the running model before recording: **Model evidence** (`/app/evidence`) names the serving model. If it is not
-  the model this script was recorded against, stop and re-record the † values first. `TODO-VALUES` (phase 2): the final
-  model ID.
+* Confirm the running model before recording: **Model evidence** (`/app/evidence`) names the serving model. It must read
+  `lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion`; if not, stop and re-record the † values first.
 * Start a timer. If a live scene runs short, stay on the screen and point rather than speed up; if long, drop the
   optional lines marked *(optional)*.
 
@@ -223,7 +222,7 @@ mg/dL at 60 min, range 53–105 †, labelled *Degraded data*.
 > *[Slide 14]* “Three kinds of evidence, never blended. The serving model, on later recordings of the same fourteen
 > people: average error 12.96 and 20.26 milligrams at thirty and sixty minutes, against 14.84 and 23.23 for carrying
 > the last reading forward †. With each person held out entirely, a CGM-only procedure: 13.88 and 22.30, against 15.34
-> and 24.47. `TODO-VALUES (phase 2): one sentence for D-053 from its locked summary.` On ninety-eight independent people
+> and 24.47. Our newest study came close — 22.00 against 23.20 for the refitted recipe — but missed its peak limit. On ninety-eight independent people
 > from Shanghai, a separate CGM-only model: 10.90 and 19.31, against 12.14 and 20.44. Different models, different
 > tests.”
 
@@ -262,8 +261,7 @@ the disclosures notice; the guardrail list with the file that enforces each.
 >
 > And the app is the evaluation. We replayed every test participant through this same service and compared it with the
 > saved experiment: all 15,440 test forecasts matched within 0.05 milligrams per decilitre. What you see in the app is
-> what we measured.” `TODO-VALUES (phase 2): parity count and tolerance for the final serving model, from the verified
-> serving-parity report.`
+> what we measured.”
 
 **Transition:** “Finally, the newest research — and what we did with it.”
 **Fallback:** if the recent-replay link is gone, start Participant 12 again and seek to 10:27.
@@ -274,16 +272,18 @@ the disclosures notice; the guardrail list with the file that enforces each.
 [screenshot](../reports/ui/21-research-after-demo-model.png)).
 **Clicks:** scroll the research list; point at each experiment's tag (*Shown*, *Not shown*, *Negative result*).
 **Expected on screen:** each experiment with who it was evaluated on, when it was opened, and a tag per finding.
-`TODO-VALUES (phase 2): whether the D-053 and D-054 entries appear here, and their tags, after the UI and evidence
-merges.`
+The two newest studies (D-053, D-054) are not in this in-app list; they are on slides 22–23 and in the README, so the
+last sentences below are said over this screen, then shown on slide 22 in Scene 16.
 
 > “Every attempt to improve the model is listed here, read from its saved files, with who it was evaluated on and a tag
 > for each finding: shown, not shown, or a negative result. We declared each study before its own run. Later studies
 > reused previously inspected participants, so those results are internal validation. Our joint-selection study lowered
 > the average sixty-minute error but made peaks above 180 worse and raised false alarms, so it failed our own gates. The
-> zero-shot foundation model beat persistence on every one of the fourteen people, but not our refitted recipe.”
-> `TODO-VALUES (phase 2): one or two sentences on D-053 — adopted with the new model ID, or not adopted with the gate
-> that failed — from its locked summary.`
+> zero-shot foundation model beat persistence on every one of the fourteen people, but not our refitted recipe. And our
+> last study, declared before its run, chose model settings and the patient correction with a guard on high readings. It
+> lowered sixty-minute error by 1.19 milligrams against the refitted recipe, for eleven of fourteen people, and passed
+> the warning and range checks — but error above 180 rose by 1.07, past our limit of 1.0. One gate failed, so we did
+> not adopt it. The model you have been watching is unchanged.”
 
 **Transition (to slide 26):** “So where does that leave us?”
 **Fallback:** if the research view is unavailable on this installation, it says “Not run on this installation”; switch
@@ -361,7 +361,8 @@ quality: sources, model-input limits, coverage.
 > *[Slide 21]* “Pooled calibration brought research ranges close to eighty percent. Blending, retraining, tuning and
 > joint selection each failed our declared bars.”
 >
-> *[Slide 22]* `TODO-VALUES (phase 2): D-053 result in one sentence, from its locked summary.`
+> *[Slide 22]* “The peak-aware study was a near miss: better on average, warnings and ranges within limits, but 1.07
+> worse above 180 against a limit of 1.0 — so it stays research.”
 >
 > *[Slide 23]* “A zero-shot foundation model, on glucose alone, beat persistence for all fourteen people at sixty
 > minutes — 22.92 against 24.47 — but not our refitted recipe at 22.50.”
@@ -391,7 +392,7 @@ Hold slide 28 for five seconds of silence before stopping the recording, so trim
 ## Three-minute judge walkthrough (local install, recorded data)
 
 For a judge with three minutes and the app running (`make data experiment`, then `make dev`). Without the download, the
-synthetic demonstration shows the same screens on fictional participants. † = model-specific (TODO-VALUES, see above).
+synthetic demonstration shows the same screens on fictional participants. † = values of the serving model (see above).
 
 | Time | Route and click | Look for |
 |---|---|---|

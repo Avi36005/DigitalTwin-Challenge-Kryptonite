@@ -383,6 +383,50 @@ def c_joint_operational() -> list[Check]:
             ("candidate 80 % range coverage, 60 min", v["range"], D052_RX["range"])]
 
 
+CONSTRAINED = "gt-constrained-2026-10-21"
+FOUNDATION = "gt-foundation-2026-10-21"
+
+
+def _ci(x: float, lo: float, hi: float) -> str:
+    return f"{sgn(x, 2)} [{sgn(lo, 2)}, {sgn(hi, 2)}]"
+
+
+def c_constrained() -> list[Check]:
+    d = need(ART / "research" / CONSTRAINED / "summary.json")
+    P, pg = d["procedures"], d["primary_gate"]
+    p60 = d["paired"]["S|R0|final|60"]
+    return [("S 60-min personalised MAE", num(P["S"]["60"]["mae"], 2), r"D-053 personalised 60-minute error ([\d.]+) mg/dL"),
+            ("R0 60-min personalised MAE (refitted in the same folds)", num(P["R0"]["60"]["mae"], 2),
+             r"for the selected procedure vs ([\d.]+) for the serving recipe refitted in the same folds"),
+            ("S − R0 at 60 min (participant bootstrap)", _ci(p60["mean_diff"], *p60["ci95"]),
+             r"\(S − R0 ([−+][\d.]+ \[[−+][\d.]+, [−+][\d.]+\]), lower for \d+ of 14\)"),
+            ("people better at 60 min", str(p60["improved"]), r"S − R0 [^)]*, lower for (\d+) of 14\)"),
+            ("30-min change", sgn(pg["values"]["worsening_30"], 2), r"30-minute change ([−+][\d.]+);"),
+            ("high-target change at 60 min", sgn(pg["values"]["high_worsening_60"], 2),
+             r"error on readings above 180 changed by ([−+][\d.]+) mg/dL"),
+            ("primary gate", "passed" if pg["passed"] else "not met", r"so the primary gate was (not met|passed)\."),
+            ("false alarms per observed day, S", num(d["warnings"]["S"]["fa_day"], 2), r"\(([\d.]+) vs [\d.]+ false alarms per observed day;"),
+            ("false alarms per observed day, R0-P", num(d["warnings"]["R0-P"]["fa_day"], 2), r"\([\d.]+ vs ([\d.]+) false alarms per observed day;"),
+            ("onsets warned ≥ 30 min ahead, S", pct(d["warnings"]["S"]["share30"]), r"day; ([\d.]+) % vs [\d.]+ % of\s*onsets warned"),
+            ("onsets warned ≥ 30 min ahead, R0-P", pct(d["warnings"]["R0-P"]["share30"]), r"day; [\d.]+ % vs ([\d.]+) % of\s*onsets warned"),
+            ("operational gate", "passed" if d["operational_gate"]["passed"] else "not met", r"The warning guardrails (passed|not met)"),
+            ("range coverage 30 min", pct(d["ranges"]["S"]["30"]["coverage"]), r"80 % ranges covered ([\d.]+) % / [\d.]+ % at 30 / 60 min"),
+            ("range coverage 60 min", pct(d["ranges"]["S"]["60"]["coverage"]), r"80 % ranges covered [\d.]+ % / ([\d.]+) % at 30 / 60 min")]
+
+
+def c_foundation() -> list[Check]:
+    h = need(ART / "research" / FOUNDATION / "summary.json")["horizons"]["60"]
+    vp, vr, f1 = h["FM_vs_persistence"], h["FM_vs_R0saved_final"], h["F1_final_vs_R0refit_final"]
+    dp, dr, df = vp["diff_macro"], vr["diff_macro"], f1["diff_macro"]
+    return [("foundation 60-min MAE", num(vp["macro"]["FM"], 2), r"its 60-minute error was ([\d.]+) mg/dL against"),
+            ("persistence 60-min MAE (identical origins)", num(vp["macro"]["persistence"], 2), r"mg/dL against ([\d.]+) for persistence"),
+            ("foundation − persistence", _ci(dp["mean"], dp["lo"], dp["hi"]), r"for persistence \(([−+][\d.]+ \[[−+][\d.]+, [−+][\d.]+\]), lower for"),
+            ("people better than persistence", str(dp["people_better"]), r"for persistence \([^)]*, lower for (\d+) of 14\)"),
+            ("refitted serving recipe 60-min MAE (saved D-052 R0)", num(vr["macro"]["R0"], 2), r"\) and ([\d.]+) for the serving recipe refitted with each person held out"),
+            ("foundation − refitted recipe", _ci(dr["mean"], dr["lo"], dr["hi"]), r"held out \(([−+][\d.]+ \[[−+][\d.]+,\s*[−+][\d.]+\]): not better\)"),
+            ("F1 residual − same-code refit (descriptive)", _ci(df["mean"], df["lo"], df["hi"]), r"scored ([−+][\d.]+ \[[−+][\d.]+, [−+][\d.]+\]) against the same-code refit")]
+
+
 def c_synthetic() -> list[Check]:
     reg = need(ART / "registry.json")
     sid = reg["serving"]["synthetic_demo"]
@@ -491,6 +535,17 @@ CLAIMS: list[dict[str, Any]] = [
          type="participant-held-out internal (research candidate)", protocol=f"configs/experiments/{JOINT}.yaml",
          split=TWO_H, artifact=f"artifacts/research/{JOINT}/summary.json", report="reports/joint_study.md",
          fn=c_joint_operational, pending_readme=True),
+    dict(id="constrained-d053", claim="Peak-aware constrained selection vs the refitted serving recipe: primary gate not met, not adopted (D-053)",
+         model="nested selected procedure S (LightGBM/CatBoost, future-high weight, correction chosen inside each fold) vs R0 refitted in the same folds; research, not serving",
+         population="14 CGMacros Type 2 people, each held out once (previously inspected)", horizon="30, 60 min",
+         type="participant-held-out internal (research candidate)", protocol=f"configs/experiments/{CONSTRAINED}.yaml",
+         split=TWO_H, artifact=f"artifacts/research/{CONSTRAINED}/summary.json", report="reports/constrained_study.md",
+         fn=c_constrained),
+    dict(id="foundation-d054", claim="Zero-shot foundation baseline (CGM only) vs persistence and the refitted recipe (D-054)",
+         model="amazon/chronos-bolt-tiny zero-shot median (pinned revision), not fine-tuned, not served; F1 residual descriptive",
+         population="14 CGMacros Type 2 people, all issued origins (previously inspected)", horizon="60 min",
+         type="internal comparison (research baseline)", protocol=f"configs/experiments/{FOUNDATION}.yaml",
+         artifact=f"artifacts/research/{FOUNDATION}/summary.json", report="reports/foundation_baseline.md", fn=c_foundation),
     dict(id="parity", claim="App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
          model="demo model online (TwinEngine) vs offline", population="final test segment, 14 people", horizon="30, 60 min",
          type="software test", protocol=f"configs/experiments/{FUSION}.yaml", artifact="reports/serving_parity.json",

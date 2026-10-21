@@ -784,6 +784,168 @@
    ]
   },
   {
+   "id": "constrained-d053",
+   "claim": "Peak-aware constrained selection vs the refitted serving recipe: primary gate not met, not adopted (D-053)",
+   "model": "nested selected procedure S (LightGBM/CatBoost, future-high weight, correction chosen inside each fold) vs R0 refitted in the same folds; research, not serving",
+   "population": "14 CGMacros Type 2 people, each held out once (previously inspected)",
+   "horizon": "30, 60 min",
+   "type": "participant-held-out internal (research candidate)",
+   "protocol": "configs/experiments/gt-constrained-2026-10-21.yaml",
+   "artifact": "artifacts/research/gt-constrained-2026-10-21/summary.json",
+   "report": "reports/constrained_study.md",
+   "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-constrained-2026-10-21/summary.json": "d5385c8859b58494541d775b8846e422ad8de48c69b520365ec325f594cf7e14"
+   },
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "S 60-min personalised MAE",
+     "artifact": "22.00",
+     "readme": "22.00",
+     "result": "matches"
+    },
+    {
+     "label": "R0 60-min personalised MAE (refitted in the same folds)",
+     "artifact": "23.20",
+     "readme": "23.20",
+     "result": "matches"
+    },
+    {
+     "label": "S − R0 at 60 min (participant bootstrap)",
+     "artifact": "−1.19 [−2.09, −0.39]",
+     "readme": "−1.19 [−2.09, −0.39]",
+     "result": "matches"
+    },
+    {
+     "label": "people better at 60 min",
+     "artifact": "11",
+     "readme": "11",
+     "result": "matches"
+    },
+    {
+     "label": "30-min change",
+     "artifact": "−0.50",
+     "readme": "−0.50",
+     "result": "matches"
+    },
+    {
+     "label": "high-target change at 60 min",
+     "artifact": "+1.07",
+     "readme": "+1.07",
+     "result": "matches"
+    },
+    {
+     "label": "primary gate",
+     "artifact": "not met",
+     "readme": "not met",
+     "result": "matches"
+    },
+    {
+     "label": "false alarms per observed day, S",
+     "artifact": "1.15",
+     "readme": "1.15",
+     "result": "matches"
+    },
+    {
+     "label": "false alarms per observed day, R0-P",
+     "artifact": "1.20",
+     "readme": "1.20",
+     "result": "matches"
+    },
+    {
+     "label": "onsets warned ≥ 30 min ahead, S",
+     "artifact": "21.9",
+     "readme": "21.9",
+     "result": "matches"
+    },
+    {
+     "label": "onsets warned ≥ 30 min ahead, R0-P",
+     "artifact": "16.4",
+     "readme": "16.4",
+     "result": "matches"
+    },
+    {
+     "label": "operational gate",
+     "artifact": "passed",
+     "readme": "passed",
+     "result": "matches"
+    },
+    {
+     "label": "range coverage 30 min",
+     "artifact": "79.4",
+     "readme": "79.4",
+     "result": "matches"
+    },
+    {
+     "label": "range coverage 60 min",
+     "artifact": "77.3",
+     "readme": "77.3",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "foundation-d054",
+   "claim": "Zero-shot foundation baseline (CGM only) vs persistence and the refitted recipe (D-054)",
+   "model": "amazon/chronos-bolt-tiny zero-shot median (pinned revision), not fine-tuned, not served; F1 residual descriptive",
+   "population": "14 CGMacros Type 2 people, all issued origins (previously inspected)",
+   "horizon": "60 min",
+   "type": "internal comparison (research baseline)",
+   "protocol": "configs/experiments/gt-foundation-2026-10-21.yaml",
+   "artifact": "artifacts/research/gt-foundation-2026-10-21/summary.json",
+   "report": "reports/foundation_baseline.md",
+   "split_hash": "—",
+   "artifact_sha256": {
+    "artifacts/research/gt-foundation-2026-10-21/summary.json": "ebf2a2e6cb4bc2dcba531d23fdad6fad71f4e849933ee9537690bb6f939cf4e7"
+   },
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "foundation 60-min MAE",
+     "artifact": "22.92",
+     "readme": "22.92",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 60-min MAE (identical origins)",
+     "artifact": "24.47",
+     "readme": "24.47",
+     "result": "matches"
+    },
+    {
+     "label": "foundation − persistence",
+     "artifact": "−1.54 [−1.81, −1.30]",
+     "readme": "−1.54 [−1.81, −1.30]",
+     "result": "matches"
+    },
+    {
+     "label": "people better than persistence",
+     "artifact": "14",
+     "readme": "14",
+     "result": "matches"
+    },
+    {
+     "label": "refitted serving recipe 60-min MAE (saved D-052 R0)",
+     "artifact": "22.50",
+     "readme": "22.50",
+     "result": "matches"
+    },
+    {
+     "label": "foundation − refitted recipe",
+     "artifact": "+0.42 [−0.70, +1.47]",
+     "readme": "+0.42 [−0.70, +1.47]",
+     "result": "matches"
+    },
+    {
+     "label": "F1 residual − same-code refit (descriptive)",
+     "artifact": "−0.46 [−0.72, −0.21]",
+     "readme": "−0.46 [−0.72, −0.21]",
+     "result": "matches"
+    }
+   ]
+  },
+  {
    "id": "parity",
    "claim": "App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
    "model": "demo model online (TwinEngine) vs offline",

@@ -22,7 +22,7 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 | 11 | Clinician workflow | Screenshot: recorded-data replay in the final test period (later recordings of the same participants) |
 | 12 | Demonstration | Screenshot: forecast details drawer |
 | 13 | Safety guardrails built into the twin | Abstention (history, sparse hour, no new reading; Stale after 15 min), Degraded flags, fusion profile gate, availability-time inputs, bounded personal correction (matured residuals, 6, ±25 mg/dL, 3-h reset), warning outcomes and episode merge, ranges with measured coverage, no clinical claims, locked evaluation and 15,440/15,440 parity — same list as the README's Safety guardrails table |
-| 14 | Results at a glance | One table, three labelled groups never blended: serving model (later recordings of the 14 known people), participant-held-out research (D-032; D-053 *pending* until its locked summary; D-054 from its `summary.json`) and the external CGM-only check (D-045, the cohort's second opening); serving range coverage stated |
+| 14 | Results at a glance | One table, three labelled groups never blended: serving model (later recordings of the 14 known people), participant-held-out research (D-032, D-053 and D-054, each from its saved summary) and the external CGM-only check (D-045, the cohort's second opening); serving range coverage stated |
 | 15 | Forecast accuracy | *Serving model* section label. Test MAE chart + paired differences vs persistence; later recordings of the same 14 people, not new patients |
 | 16 | Personalization | *Serving model.* Forest plot of paired differences; frozen-state control; cold start |
 | 17 | Every participant | *Serving model.* Per-participant chart (14/14 at 30 min, 13/14 at 60 min) |
@@ -30,7 +30,7 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 | 19 | Research: people held out entirely | *Participant-held-out research.* `gt-nested-2026-10-12-v1` from its `report.json`: v2 recipe and Ridge candidate kept separate; high-glucose trade-off; warning burden; not promoted |
 | 20 | Research: warning two hours ahead | *Participant-held-out research.* `gt-2h-2026-10-20` (D-043) from `two_hour_summary.json`: 120-minute error vs persistence, 120- vs 60-minute warnings, profile ablation |
 | 21 | Research: what we fixed, and what we could not | *Participant-held-out research.* D-046 re-analysis and the D-048/D-049/D-051/D-052 negative results, each from its saved summary |
-| 22 | Research: constrained LightGBM (D-053) | *Pending* until phase 2 maps its locked, verified summary; release gates and outcome |
+| 22 | Research: peak-aware selection (D-053), a near miss | From `artifacts/research/gt-constrained-2026-10-21/summary.json`: S vs refitted R0 at 60/30 min, primary gate not met (error above 180 +1.07 vs limit +1.0), warning and range guardrails passed; not adopted |
 | 23 | Research: zero-shot foundation baseline (D-054) | From `artifacts/research/gt-foundation-2026-10-21/summary.json`: vs persistence and vs the refitted serving recipe on identical origins; F1 residual descriptive; not fine-tuned, not served |
 | 24 | External check | *External cohort, CGM only.* ShanghaiT2DM: D-032 (first opening, 30/60 min) and D-045 (first 120-minute assessment, second opening); not the serving fusion model |
 | 25 | Project outcomes | What was built, the provenance finding, measured outcomes, the corrected re-run and the fusion constraint, reproducibility |

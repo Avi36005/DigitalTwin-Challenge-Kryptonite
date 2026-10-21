@@ -307,7 +307,43 @@ PENDING = "pending"
 FOUNDATION = ROOT / "artifacts/research/gt-foundation-2026-10-21/summary.json"
 
 
+CONSTRAINED = ROOT / "artifacts/research/gt-constrained-2026-10-21/summary.json"
+
+
+def constrained_facts() -> dict | None:
+    """D-053, read from its locked summary.json; None until it exists."""
+    if not CONSTRAINED.exists():
+        return None
+    return json.loads(CONSTRAINED.read_text())
+
+
 def pending_slide() -> dict:
+    d = constrained_facts()
+    if d:
+        P, pg, w, rg = d["procedures"], d["primary_gate"], d["warnings"], d["ranges"]["S"]
+        p60, p30 = d["paired"]["S|R0|final|60"], d["paired"]["S|R0|final|30"]
+        ci = lambda x: f"{x['mean_diff']:+.2f} [{x['ci95'][0]:+.2f}, {x['ci95'][1]:+.2f}]"  # noqa: E731
+        hv = pg["values"]["high_worsening_60"]
+        verdict = "passed" if pg["passed"] else "not met"
+        return {"kind": "bullets", "section": SEC_HELDOUT,
+                "title": "Research: peak-aware selection (D-053), a near miss",
+                "bullets": [
+                    "Declared before any formal fit; inside each held-out fold, model settings, a training weight on future "
+                    "readings above 180 and the patient correction were chosen on development people only, with a guard on "
+                    f"high-reading error. {d['fit_totals']['fits']:,} fresh fits, {d['fit_totals']['failures']} failures.",
+                    f"60 min, against the serving recipe refitted in the same folds: {P['S']['60']['mae']:.2f} vs "
+                    f"{P['R0']['60']['mae']:.2f} mg/dL, {ci(p60)}, lower for {p60['improved']} of {p60['n_participants']} people; "
+                    f"30 min {ci(p30)}.",
+                    f"Primary gate {verdict}: error on readings above 180 changed by {hv:+.2f} mg/dL against a declared limit of +1.0.",
+                    f"Warning guardrails {'passed' if d['operational_gate']['passed'] else 'not met'}: {w['S']['fa_day']:.2f} vs "
+                    f"{w['R0-P']['fa_day']:.2f} false alarms per observed day; {100 * w['S']['share30']:.1f} % vs "
+                    f"{100 * w['R0-P']['share30']:.1f} % of onsets warned ≥ 30 min ahead. Exact-predictor 80 % ranges covered "
+                    f"{100 * rg['30']['coverage']:.1f} % / {100 * rg['60']['coverage']:.1f} % (range guardrails "
+                    f"{'passed' if d['range_gate']['passed'] else 'not met'}).",
+                    ("Not adopted: one declared gate failed, so the serving model is unchanged." if not d["all_gates_passed"]
+                     else "All declared gates passed; adoption still requires serving parity and integration checks."),
+                    "Previously inspected people: internal validation. Absolute errors are not comparable with D-052's; only the "
+                    "matched comparison is."]}
     """D-053; result text stays 'pending' until phase 2 maps its locked, verified summary."""
     bullets = []
     for st in PENDING_STUDIES:
@@ -378,7 +414,14 @@ def results_overview(m: dict) -> dict:
         rows.append(["Five participant folds (D-032)", "CGM-only procedure (Ridge in 4 of 5 folds), not served",
                      f2(sel), f2(per)])
     for st in PENDING_STUDIES:
-        rows.append([f"14 CGMacros people ({st['decision']})", st["what"].split(":")[0], PENDING, PENDING])
+        c = constrained_facts()
+        if c:
+            pr = c["procedures"]
+            rows.append([f"Same folds ({st['decision']})", "Peak-aware constrained fusion selection, not adopted",
+                         f"{pr['S']['30']['mae']:.2f} / {pr['S']['60']['mae']:.2f}",
+                         f"{pr['persistence']['30']['mae']:.2f} / {pr['persistence']['60']['mae']:.2f}"])
+        else:
+            rows.append([f"14 CGMacros people ({st['decision']})", st["what"].split(":")[0], PENDING, PENDING])
     f = foundation_facts()
     if f:
         rows.append(["Same 14 people (D-054)", "Zero-shot foundation model, CGM only, not served",
@@ -395,7 +438,7 @@ def results_overview(m: dict) -> dict:
     note = ("Mean absolute error in mg/dL, averaged equally over participants: an average error, not an accuracy "
             "percentage. Each group is a different model and a different test — do not compare across groups. "
             f"Serving ranges (target 80 %) covered {ivs.loc[30, 'coverage'] * 100:.1f} % / {ivs.loc[60, 'coverage'] * 100:.1f} %: "
-            "under-coverage. Pending rows are filled only from verified, locked summaries.")
+            "under-coverage. Research rows are read from each study's locked summary.")
     return {"kind": "results", "title": "Results at a glance: three kinds of evidence, kept apart", "table": rows,
             "note": note}
 
