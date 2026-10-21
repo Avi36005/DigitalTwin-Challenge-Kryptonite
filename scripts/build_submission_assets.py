@@ -302,24 +302,59 @@ PENDING_STUDIES = [
     {"decision": "D-053", "experiment": "gt-constrained-2026-10-21",
      "what": "Constrained LightGBM fusion: peak-aware selection with the patient correction, each person held out once, "
              "against a freshly refitted serving recipe"},
-    {"decision": "D-054", "experiment": "gt-foundation-2026-10-21",
-     "what": "Zero-shot time-series foundation-model baseline on CGM only (a comparison, not a fusion model)"},
 ]
 PENDING = "pending"
+FOUNDATION = ROOT / "artifacts/research/gt-foundation-2026-10-21/summary.json"
 
 
 def pending_slide() -> dict:
-    """The two sprint studies; result text stays 'pending' until phase 2 maps their verified summaries."""
+    """D-053; result text stays 'pending' until phase 2 maps its locked, verified summary."""
     bullets = []
     for st in PENDING_STUDIES:
         bullets.append(f"{st['decision']} · {st['experiment']} — {st['what']}. Result and release-gate outcome: {PENDING} "
                        "(inserted only from the locked, verified summary).")
-    bullets += ["Both protocols were declared before their own runs. Later studies reused previously inspected participants, "
-                "so their results are internal validation.",
-                "Nothing from these studies reaches the app unless every declared release gate passes and the candidate "
-                "passes serving parity and integration checks; otherwise the serving model is unchanged."]
-    return {"kind": "bullets", "section": SEC_HELDOUT, "title": "Research, 21–22 October: two declared studies",
+    bullets += ["The protocol was declared before its own run. It reuses previously inspected participants, so its result "
+                "is internal validation.",
+                "Nothing from it reaches the app unless every declared release gate passes and the candidate passes serving "
+                "parity and integration checks; otherwise the serving model is unchanged."]
+    return {"kind": "bullets", "section": SEC_HELDOUT, "title": "Research, 21–22 October: constrained LightGBM (D-053)",
             "bullets": bullets}
+
+
+def foundation_facts() -> dict | None:
+    """D-054 zero-shot foundation baseline, read from its saved summary.json; None until it exists."""
+    if not FOUNDATION.exists():
+        return None
+    d = json.loads(FOUNDATION.read_text())
+    h = d["horizons"]
+    rm = d["run_meta"]
+    ci = lambda x: f"{x['mean']:+.2f} [{x['lo']:+.2f}, {x['hi']:+.2f}]"  # noqa: E731
+    return {"rm": rm, "h": h, "ci": ci,
+            "fm": {k: h[k]["FM_vs_persistence"]["macro"]["FM"] for k in ("30", "60")},
+            "per": {k: h[k]["FM_vs_persistence"]["macro"]["persistence"] for k in ("30", "60")}}
+
+
+def foundation_slide() -> dict | None:
+    f = foundation_facts()
+    if not f:
+        return None
+    h, ci, rm = f["h"], f["ci"], f["rm"]
+    vp, vr, f1 = h["60"]["FM_vs_persistence"], h["60"]["FM_vs_R0saved_final"], h["60"]["F1_final_vs_R0refit_final"]
+    return {"kind": "bullets", "section": "RESEARCH · 14 previously inspected people · internal comparison · CGM only · not served",
+            "title": "Research: a zero-shot foundation-model baseline (D-054)",
+            "bullets": [
+                f"What: {rm['checkpoint']} (pinned revision, {rm['parameters'] / 1e6:.1f} M parameters, {rm['license']}), "
+                "zero-shot on CGM only: each forecast origin is its own series of past readings; median forecast fixed in advance. "
+                "Not fine-tuned, not a fusion model, not served. Its public pretraining data may include CGM recordings.",
+                f"Against carrying the last reading forward, on identical origins: {ci(h['30']['FM_vs_persistence']['diff_macro'])} "
+                f"mg/dL at 30 min and {ci(vp['diff_macro'])} at 60 min (macro MAE {f['fm']['60']:.2f} vs {f['per']['60']:.2f}; "
+                f"lower for {vp['diff_macro']['people_better']} of {vp['diff_macro']['people']} people).",
+                f"Against the serving recipe refitted with each person held out (saved from D-052): {ci(vr['diff_macro'])} mg/dL "
+                f"at 60 min ({vr['macro']['FM']:.2f} vs {vr['macro']['R0']:.2f}) — not better, and clearly worse on readings above 180.",
+                f"Declared secondary: the foundation forecast plus a freshly fitted LightGBM residual on the served inputs, "
+                f"{ci(f1['diff_macro'])} mg/dL at 60 min against the same-code refit. Descriptive only; not a release candidate.",
+                "Declared before any participant forecast; the 14 people were inspected in earlier experiments, so this is an "
+                "internal comparison, not independent confirmation."]}
 
 
 def results_overview(m: dict) -> dict:
@@ -340,15 +375,19 @@ def results_overview(m: dict) -> dict:
         pipe = lambda name, mode: next(p for p in tr["pipelines"] if p["pipeline"] == name and p["mode"] == mode)  # noqa: E731
         sel, per = pipe("selected", "final"), pipe("persistence:-", "off")
         f2 = lambda p: f"{p['horizons']['30']['mae']:.2f} / {p['horizons']['60']['mae']:.2f}"  # noqa: E731
-        rows.append(["Five participant folds (D-032)", "CGM-only research procedure (Ridge in 4 of 5 folds), not served",
+        rows.append(["Five participant folds (D-032)", "CGM-only procedure (Ridge in 4 of 5 folds), not served",
                      f2(sel), f2(per)])
     for st in PENDING_STUDIES:
         rows.append([f"14 CGMacros people ({st['decision']})", st["what"].split(":")[0], PENDING, PENDING])
-    rows.append(["§External check — ShanghaiT2DM, 98 people, CGM only, assessed once"])
+    f = foundation_facts()
+    if f:
+        rows.append(["Same 14 people (D-054)", "Zero-shot foundation model, CGM only, not served",
+                     f"{f['fm']['30']:.2f} / {f['fm']['60']:.2f}", f"{f['per']['30']:.2f} / {f['per']['60']:.2f}"])
+    rows.append(["§External check — ShanghaiT2DM, 98 people, CGM only; D-045 was the cohort's second opening"])
     if TWO_HOUR_EXT.exists():
         e = json.loads(TWO_HOUR_EXT.read_text())
         rows.append([f"{e['participants']} people, 15-min CGM (D-045)",
-                     "Separate 15-min LightGBM on CGM only, not the serving fusion model",
+                     "Separate 15-min LightGBM, CGM only, not served",
                      f"{e['mae']['30']:.2f} / {e['mae']['60']:.2f}",
                      f"{e['persistence_mae']['30']:.2f} / {e['persistence_mae']['60']:.2f}"])
     iv = pd.DataFrame(m["intervals"])
@@ -414,8 +453,8 @@ def external_slide() -> dict | None:
         "readings), never trained on. No wearable or dated labs, so this checks the forecasting core only, not the fusion.",
         "What: a separate 15-minute LightGBM on CGM-only features, developed on CGMacros. It is not the serving fusion "
         "model and not the Ridge candidate.",
-        f"30 / 60 minutes (D-032, opened once): {ci(e30)} at 30 min (clear) and {ci(e60)} at 60 min (inconclusive), "
-        "versus carrying the last reading forward."]
+        f"30 / 60 minutes (D-032, the cohort's first opening): {ci(e30)} at 30 min (clear) and {ci(e60)} at 60 min "
+        "(inconclusive), versus carrying the last reading forward."]
     if ext_bullet():
         bullets.append(ext_bullet())
     bullets.append("Nothing was chosen on this cohort; other frozen pipelines were reported but not adopted, because "
@@ -561,7 +600,7 @@ def ext_bullet() -> str | None:
         return None
     e = json.loads(TWO_HOUR_EXT.read_text())
     c = e["minus_persistence"]["120"]
-    return (f"Two hours ahead (D-045, declared before any fit, assessed once): "
+    return (f"Two hours ahead (D-045, declared before any fit; its first 120-minute assessment and the cohort's second opening): "
             f"{e['mae']['120']:.1f} vs persistence {e['persistence_mae']['120']:.1f} mg/dL at 120 min "
             f"({c['mean_diff']:+.2f} [{c['ci95'][0]:+.2f}, {c['ci95'][1]:+.2f}]), better for {c['improved']} of {c['n']} people.")
 
@@ -754,6 +793,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
         *([two_hour_slide()] if two_hour_slide() else []),
         *([reanalysis_slide()] if reanalysis_slide() else []),
         pending_slide(),
+        *([foundation_slide()] if foundation_slide() else []),
         *([external_slide()] if external_slide() else []),
         {"kind": "bullets", "title": "Project outcomes",
          "bullets": ["Built: a working personalized glucose twin — replay API with a backend-owned clock, immutable forecasts, research warnings with outcomes — and a clinician workspace (landing page, Overview, Participants, Replay sessions, Model evidence, Data quality).",
@@ -777,14 +817,14 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      "Medication and insulin use unknown; meal logging time undocumented.",
                      *(["Profile fusion: profile values are constant per person, so with 14 people they can act as an identity code; no benefit was shown on people held out entirely."] if disc else []),
                      "Prediction ranges under-cover; the warning score is uncalibrated and its threshold rule (F1) ignores review workload; 180 mg/dL is a research threshold, not triage.",
-                     "Retrospective replay only: no clinician workflow, outcome or safety study. Foundation-model baseline (D-054): result pending.",
+                     "Retrospective replay only: no clinician workflow, outcome or safety study. The foundation-model baseline was zero-shot only; fine-tuning was not run.",
                      PROTOCOL_NOTE]},
         {"kind": "bullets", "title": "Next steps: evidence needed for Indian patients",
          "bullets": ["Prospective, consented Indian cohort with unblinded CGMs, recorded transmission latency, medications and meal logging times.",
                      "Re-evaluate held-out participants (cold start) and per-site calibration; report subgroup performance.",
                      "AI-READI five-minute CGM and wearable data (access not yet requested; steps listed) for a larger new-person evaluation under the declared protocol gt-nested-2026-10-12-v2.",
                      "Clinician usability study of the review workflow; regulatory and data-protection review (DPDP Act).",
-                     "Optional: compare a fine-tuned time-series foundation model (e.g. Chronos-Bolt) under the same protocol."]},
+                     "Optional: fine-tune a time-series foundation model inside each training boundary and compare it under the same protocol (zero-shot only so far, D-054)."]},
         {"kind": "bullets", "title": "Team, links, reproducibility and licenses",
          "bullets": [f"{team}. {inst}.",
                      f"Code: {repo} — MIT license (code only). Quick start: make setup · make synthetic · make dev.",
@@ -1082,8 +1122,8 @@ def build_architecture_pdf(path: Path, m: dict) -> None:
         "<b>3. Bounded patient update.</b> AdaptationState adds a shrunk, decaying correction learned only from earlier forecasts whose target readings were already available: at least 6 matured outcomes, capped at ±25 mg/dL, reset after a 3-hour gap. Model weights are never refit.",
         "<b>4. Uncertainty and warning.</b> Split-conformal prediction ranges (target coverage 80 %) calibrated for this exact pipeline; warning score = max forecast within 60 min − 180 mg/dL (uncalibrated, not a probability). Warning outcomes use one shared one-to-one onset matcher offline and in replay.",
         "<b>5. Immutable record and review ledger.</b> Forecasts are stored once under uuid5(session, revision, origin, model version); outcomes are revealed only when the replay clock passes their availability. A clinician's review of a warning (with a note) is written to the SQLite audit; the review summary freezes what was known at its replay cutoff.",
-        "<b>Candidates.</b> Research experiments write only their own artifacts and never the model registry; a candidate is served only after every declared release gate, serving parity and integration checks pass, through an explicit promote command with a recorded rollback.",
         "<b>6. Revisions.</b> Seek/reset rebuild the twin from released events only; old cursors return 409; the browser keys caches by (session, revision, clock).",
+        "<b>Candidates.</b> Research experiments write only their own artifacts and never the model registry; a candidate is served only after every declared release gate, serving parity and integration checks pass, through an explicit promote command with a recorded rollback.",
         "<b>State ownership.</b> Canonical store (Parquet + SQLite, local) · replay clock and sessions (API memory) · twin state (per session revision, rebuilt deterministically) · issued forecasts and acknowledgements (SQLite audit) · model artifacts (checksummed registry) · UI preferences (browser).",
         "<b>Posture.</b> CPU only; loopback binding; narrow CORS; no cloud, API keys or LLMs; trusted artifacts verified by SHA-256; no pickles. Research demonstration, not production or a medical device.",
     ]
