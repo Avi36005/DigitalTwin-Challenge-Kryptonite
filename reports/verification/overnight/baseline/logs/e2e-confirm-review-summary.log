@@ -1,0 +1,35 @@
+[WebServer] INFO:     Started server process [83738]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8110 (Press CTRL+C to quit)
+
+Running 1 test using 1 worker
+
+[WebServer] 9:39:09 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 9:39:09 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 9:39:09 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 9:39:09 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 9:39:09 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 9:39:09 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+  ✓  1 [chromium] › e2e/journey.spec.ts:553:3 › review summary › Participant 01: a frozen review summary with its cutoff and model, printing only the report (5.0s)
+
+  1 passed (7.8s)
+$ (cd ~/projects/Digitaltwin/.claude/worktrees/qa/apps/web && npx playwright test --config playwright.config.ts e2e/journey.spec.ts -g frozen review summary with its cutoff --reporter=list,junit --output=<session-scratch>/pw-confirm)

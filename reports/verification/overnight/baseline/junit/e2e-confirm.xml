@@ -1,0 +1,6 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="7.756076">
+<testsuite name="journey.spec.ts" timestamp="2026-10-21T16:09:04.251Z" hostname="chromium" tests="1" failures="0" skipped="0" time="5.042" errors="0">
+<testcase name="review summary › Participant 01: a frozen review summary with its cutoff and model, printing only the report" classname="journey.spec.ts" time="5.042">
+</testcase>
+</testsuite>
+</testsuites>
