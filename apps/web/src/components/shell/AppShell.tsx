@@ -11,7 +11,8 @@ import { useReadiness, useSession } from "@/state/replay";
 import { Button, IconButton, InlineNotice } from "../ui";
 import { HelpDialog, NewReplayDialog, PreferencesDialog, WorkspaceSearch } from "./Dialogs";
 import { ShellContext, type ShellDialog } from "./ShellContext";
-import { NAV, Sidebar } from "./Sidebar";
+import { NAV, Sidebar, statusWord } from "./Sidebar";
+import { replayTime } from "@/lib/time";
 
 export function AppShell() {
   const { prefs } = usePreferences();
@@ -118,10 +119,16 @@ function TopBar({ onMenu, onNew }: { onMenu: () => void; onNew: () => void }) {
         </ol>
       </nav>
       <span className="topbar__spacer" />
-      {mode && (
-        <span className="topbar__mode">
-          <ModeIcon size={15} aria-hidden strokeWidth={1.8} />
-          {modeLabel(mode)}
+      {mode && session.data && (
+        <span className="topbar__state">
+          <span className="topbar__mode">
+            <ModeIcon size={15} aria-hidden strokeWidth={1.8} />
+            {modeLabel(mode)}
+          </span>
+          <span className="topbar__clock" data-status={session.data.status}>
+            <span className="topbar__dot" aria-hidden />
+            {statusWord(session.data.status)} · <span className="num">{replayTime(session.data.clock_at)}</span>
+          </span>
         </span>
       )}
       <span className="topbar__mobile-action">

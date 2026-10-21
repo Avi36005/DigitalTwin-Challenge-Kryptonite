@@ -331,9 +331,11 @@ export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => vo
         </ul>
         <p><strong>Replay controls.</strong> Play/pause advances the server-owned clock; Step moves 5 minutes; the timeline
           seeks to any time (a new revision is built from earlier data only); Reset returns to the start.</p>
-        <p><strong>Reading the forecast.</strong> Black line: observed glucose (breaks mark sensor gaps). Blue points: the
-          latest 30- and 60-minute forecasts, with whiskers for the prediction range (target coverage 80%; measured
-          coverage on the test period was lower and varies by participant). Faint blue circles are earlier forecasts; they
+        <p><strong>Reading the forecast.</strong> Black line: observed glucose (breaks and grey bands mark sensor gaps).
+          Blue points: the latest 30- and 60-minute forecasts, with light-blue whiskers for the prediction range (target
+          coverage 80%; measured coverage on the test period was lower and varies by participant). Grey squares: the
+          population forecast before the patient correction; the dashed grey line from a square to its blue point is the
+          correction. Faint blue circles are earlier forecasts; they
           stay fixed so you can compare them with what was later observed. The amber dashed line is a research threshold
           (180 mg/dL), not a triage rule.</p>
         <p><strong>Warnings.</strong> A warning fires when the highest forecast within 60 minutes reaches the warning trigger
