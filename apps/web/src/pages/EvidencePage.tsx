@@ -83,6 +83,8 @@ export function EvidencePage() {
       )}
       {snapshot && <p className="page-note snapshot-line">{snapshot}.</p>}
       {!publicDemo && <ServingLine selected={chosen} regime={meta ? REGIME[meta.regime] : undefined} />}
+      <EvidenceScope current={meta?.regime} servingId={list.data?.serving_experiment_id ?? null}
+        nestedId={items.find((x) => x.regime === "nested_research" && x.status !== "not_run")?.experiment_id ?? null} onSelect={select} />
       {list.isLoading || (!research && ev.isLoading) || (research && rs.isLoading) ? <Skeleton h={300} /> : research ? (
         rs.isError ? <EmptyState title="Research report unavailable">{(rs.error as Error).message}</EmptyState>
           : rs.data?.status !== "completed" ? <EmptyState title="Research experiment not assessed yet">{rs.data?.status_message}</EmptyState>
@@ -99,6 +101,40 @@ export function EvidencePage() {
       )}
       <SafetyGuardrails />
     </>
+  );
+}
+
+/** The three kinds of evidence kept apart on this page — serving (internal final test), nested internal (held-out
+ *  CGMacros people) and external CGM-only (ShanghaiT2DM) — with the one being shown marked. Descriptions only; every
+ *  number stays in the report sections below. */
+function EvidenceScope({ current, servingId, nestedId, onSelect }: {
+  current?: string; servingId: string | null; nestedId: string | null; onSelect: (id: string) => void;
+}) {
+  if (!servingId && !nestedId) return null;
+  const kinds = [
+    { key: "serving", id: servingId, on: current === "serving_retrospective", title: "Serving model · internal final test",
+      text: "Later recordings of the CGMacros participants the replay model was trained on. Not new people." },
+    { key: "nested", id: nestedId, on: current === "nested_research", title: "Nested internal · held-out people",
+      text: "CGMacros participants held out of training in participant folds. Internal validation, not untouched evidence." },
+    { key: "external", id: nestedId, on: current === "nested_research", title: "External · CGM-only",
+      text: "ShanghaiT2DM, an independent cohort; a separate 15-minute CGM-only model. Shown in the nested view." },
+  ];
+  return (
+    <nav className="ev-scope" aria-label="Kinds of evidence">
+      <ol>
+        {kinds.map((k) => (
+          <li key={k.key} data-current={k.on ? "true" : undefined}>
+            {k.id && !k.on ? (
+              <button type="button" className="ev-scope__title text-btn" onClick={() => onSelect(k.id!)}>{k.title}</button>
+            ) : (
+              <span className="ev-scope__title" aria-current={k.on ? "true" : undefined}>{k.title}
+                {k.on && <span className="visually-hidden"> (shown)</span>}</span>
+            )}
+            <span className="ev-scope__text">{k.text}</span>
+          </li>
+        ))}
+      </ol>
+    </nav>
   );
 }
 
