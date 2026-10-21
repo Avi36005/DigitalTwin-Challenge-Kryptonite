@@ -26,6 +26,7 @@ class Node:
     title: str
     lines: list[str]
     accent: bool = False  # serving model: blue border
+    dashed: bool = False  # research-only candidate: dashed border, never served
 
     @property
     def cx(self) -> float:
@@ -78,8 +79,8 @@ def node_h(n_lines: int) -> float:
 def build_spec(n_profile: int, n_dynamic: int, top: float = 1.30) -> Spec:
     s = Spec()
 
-    def add(key, x, y, w, title, lines, accent=False):
-        s.nodes[key] = Node(key, x, y, w, node_h(len(lines)), title, lines, accent)
+    def add(key, x, y, w, title, lines, accent=False, dashed=False):
+        s.nodes[key] = Node(key, x, y, w, node_h(len(lines)), title, lines, accent, dashed)
         return s.nodes[key]
 
     gap, zl = 0.17, 0.36  # gap between stacked boxes; space for a zone label
@@ -109,12 +110,12 @@ def build_spec(n_profile: int, n_dynamic: int, top: float = 1.30) -> Spec:
     tw = add("twin", c2[0], lane_top, c2[1], "Twin engine (serving model)",
              ["1  causal features, ≤ 180 min history",
               f"2  fusion LightGBM: {n_profile} profile + {n_dynamic} dynamic",
-              "3  patient adaptation (matured errors)",
-              "4  80 % prediction range (conformal)",
-              "5  warning: new episode > 180 mg/dL"], accent=True)
+              "3  bounded patient update (±25 mg/dL)",
+              "4  80 % range · warning > 180 mg/dL",
+              "5  abstain / degraded / stale guards"], accent=True)
     db = add("dashboard", c3[0], lane_top, c3[1], "Clinician dashboard",
-             ["FastAPI /api/v1 → React", "Overview · Participants", "Replay with warnings", "Model evidence",
-              "Data quality"])
+             ["FastAPI /api/v1 → React", "warnings with outcomes", "clinician review + note", "review ledger (SQLite)",
+              "evidence · data quality"])
     row1 = max(n.h for n in (rp, tw, db))
     bottom = max(ex.b, cs.b) + 0.16
     off_top = max(lane_top + row1 + 0.62, bottom - 0.16 - node_h(4) - zl)  # offline lane ends with the sources
@@ -155,13 +156,16 @@ def build_spec(n_profile: int, n_dynamic: int, top: float = 1.30) -> Spec:
     E.append(Edge([(fb.r, mid_bot), (fx.x, mid_bot)]))
     E.append(Edge([(fx.r, mid_bot), (ev.x, mid_bot)]))
     gap_mid = (rp.b + 0.16 + off_top) / 2  # centre of the white band between the lanes
+    cand_lines = ["research only, offline;", "served only if every", "release gate passes"]
+    ch = node_h(len(cand_lines))
+    add("candidate", c1[0], gap_mid - ch / 2, 1.58, "Candidates", cand_lines, dashed=True)
     E.append(Edge([(fx.cx, fx.y), (fx.cx, tw.b)], "registered model, SHA-256", (fx.cx + 0.09, gap_mid)))
     E.append(Edge([(ev.cx, ev.y), (ev.cx, db.b)], "evidence page", (ev.cx + 0.09, gap_mid)))
     dx = fb.r - 0.32
     E.append(Edge([(dx, fb.y), (dx, rp.b)], "same feature + adaptation code", (dx + 0.09, gap_mid),
                   arrow=False, dashed=True))
-    s.legend = ("Solid arrow: data flow   ·   Dashed: identical code offline and online   ·   Blue: serving model   ·   "
-                "CPU only, runs locally, no cloud, no LLM   ·   research prototype, not a medical device")
+    s.legend = ("Solid arrow: data flow   ·   Dashed line: identical code offline and online   ·   Blue: serving model   ·   "
+                "Dashed box: research only, not served   ·   CPU only, local, no cloud, no LLM   ·   not a medical device")
     return s
 
 
@@ -251,8 +255,10 @@ def draw_pptx(slide, spec: Spec) -> None:
         sh.adjustments[0] = 0.05
         sh.fill.solid()
         sh.fill.fore_color.rgb = rgb("#FFFFFF")
-        sh.line.color.rgb = rgb(BLUE if n.accent else INK)
+        sh.line.color.rgb = rgb(BLUE if n.accent else MUTED if n.dashed else INK)
         sh.line.width = Pt(1.75 if n.accent else 1.0)
+        if n.dashed:
+            sh.line.dash_style = MSO_LINE_DASH_STYLE.DASH
         text(n.x + PAD, n.y + PAD, n.w - 2 * PAD, TITLE_H, [n.title], TITLE_PT, True)
         text(n.x + PAD, n.y + PAD + TITLE_H, n.w - 2 * PAD, len(n.lines) * LINE_H, n.lines, LINE_PT,
              spacing=LINE_H * 72)
@@ -298,7 +304,8 @@ def draw_png(path: Path, spec: Spec, title: str | None = None, subtitle: str | N
     for n in spec.nodes.values():
         r = 0.05 * min(n.w, n.h)
         ax.add_patch(FancyBboxPatch((n.x + r, n.y + r), n.w - 2 * r, n.h - 2 * r, boxstyle=f"round,pad={r}",
-                                    fc="white", ec=BLUE if n.accent else INK, lw=1.75 if n.accent else 1.0, zorder=2))
+                                    fc="white", ec=BLUE if n.accent else MUTED if n.dashed else INK,
+                                    lw=1.75 if n.accent else 1.0, ls=(0, (4, 3)) if n.dashed else "-", zorder=2))
         ax.text(n.x + PAD, n.y + PAD, n.title, fontsize=TITLE_PT, fontweight="bold", color=INK, va="top",
                 family=FONT, zorder=3)
         for i, ln in enumerate(n.lines):

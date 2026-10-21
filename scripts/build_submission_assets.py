@@ -291,6 +291,75 @@ def fig_twin_loop() -> Path:
 
 RESEARCH = ROOT / "artifacts/research/gt-nested-2026-10-12-v1/report.json"
 
+# Section labels printed above slide titles, so a reader never mixes the three kinds of evidence.
+SEC_SERVING = "SERVING MODEL · later recordings of the same 14 participants it was trained on — not new people"
+SEC_HELDOUT = "RESEARCH · each participant held out entirely · internal validation · not the serving model"
+SEC_EXTERNAL = "RESEARCH · external cohort, CGM only · not the serving fusion model"
+
+# Studies declared in the 21–22 Oct sprint. Their numbers are inserted only from the locked, verified summary
+# (phase 2); until then every slide and table cell says "pending" — never a number.
+PENDING_STUDIES = [
+    {"decision": "D-053", "experiment": "gt-constrained-2026-10-21",
+     "what": "Constrained LightGBM fusion: peak-aware selection with the patient correction, each person held out once, "
+             "against a freshly refitted serving recipe"},
+    {"decision": "D-054", "experiment": "gt-foundation-2026-10-21",
+     "what": "Zero-shot time-series foundation-model baseline on CGM only (a comparison, not a fusion model)"},
+]
+PENDING = "pending"
+
+
+def pending_slide() -> dict:
+    """The two sprint studies; result text stays 'pending' until phase 2 maps their verified summaries."""
+    bullets = []
+    for st in PENDING_STUDIES:
+        bullets.append(f"{st['decision']} · {st['experiment']} — {st['what']}. Result and release-gate outcome: {PENDING} "
+                       "(inserted only from the locked, verified summary).")
+    bullets += ["Both protocols were declared before their own runs. Later studies reused previously inspected participants, "
+                "so their results are internal validation.",
+                "Nothing from these studies reaches the app unless every declared release gate passes and the candidate "
+                "passes serving parity and integration checks; otherwise the serving model is unchanged."]
+    return {"kind": "bullets", "section": SEC_HELDOUT, "title": "Research, 21–22 October: two declared studies",
+            "bullets": bullets}
+
+
+def results_overview(m: dict) -> dict:
+    """One labelled table, three kinds of evidence kept apart; the slide used in the video's results cutaway."""
+    fr = pd.DataFrame(m["forecast_results"])
+    t = fr[fr["split"] == "test"]
+    sl, sp = serving_ids(m)[:2]
+    pick = lambda lab, pers, h: float(t[(t["label"] == lab) & (t["personalization"] == pers) & (t["horizon"] == h)]["mae"].iloc[0])  # noqa: E731
+    rows = [["Evaluated on", "Model or procedure", "MAE 30 / 60 min", "Persistence 30 / 60"],
+            ["§Serving model — later recordings of the same 14 CGMacros Type 2 people (a test over time, retrospective)"],
+            ["Final 20 % of each recording", "Fusion LightGBM + bounded patient correction (serving)",
+             f"{pick(sl, sp, 30):.2f} / {pick(sl, sp, 60):.2f}",
+             f"{pick('persistence:cgm-only-v1', 'off', 30):.2f} / {pick('persistence:cgm-only-v1', 'off', 60):.2f}"],
+            ["§Participant-held-out research — 14 CGMacros people, each held out once (internal validation)"]]
+    if RESEARCH.exists():
+        r = json.loads(RESEARCH.read_text())
+        tr = r["tracks"]["multimodal_5min"]
+        pipe = lambda name, mode: next(p for p in tr["pipelines"] if p["pipeline"] == name and p["mode"] == mode)  # noqa: E731
+        sel, per = pipe("selected", "final"), pipe("persistence:-", "off")
+        f2 = lambda p: f"{p['horizons']['30']['mae']:.2f} / {p['horizons']['60']['mae']:.2f}"  # noqa: E731
+        rows.append(["Five participant folds (D-032)", "CGM-only research procedure (Ridge in 4 of 5 folds), not served",
+                     f2(sel), f2(per)])
+    for st in PENDING_STUDIES:
+        rows.append([f"14 CGMacros people ({st['decision']})", st["what"].split(":")[0], PENDING, PENDING])
+    rows.append(["§External check — ShanghaiT2DM, 98 people, CGM only, assessed once"])
+    if TWO_HOUR_EXT.exists():
+        e = json.loads(TWO_HOUR_EXT.read_text())
+        rows.append([f"{e['participants']} people, 15-min CGM (D-045)",
+                     "Separate 15-min LightGBM on CGM only, not the serving fusion model",
+                     f"{e['mae']['30']:.2f} / {e['mae']['60']:.2f}",
+                     f"{e['persistence_mae']['30']:.2f} / {e['persistence_mae']['60']:.2f}"])
+    iv = pd.DataFrame(m["intervals"])
+    ivs = iv[(iv["label"] == sl) & (iv["personalization"] == sp) & (iv["split"] == "test")].set_index("horizon")
+    note = ("Mean absolute error in mg/dL, averaged equally over participants: an average error, not an accuracy "
+            "percentage. Each group is a different model and a different test — do not compare across groups. "
+            f"Serving ranges (target 80 %) covered {ivs.loc[30, 'coverage'] * 100:.1f} % / {ivs.loc[60, 'coverage'] * 100:.1f} %: "
+            "under-coverage. Pending rows are filled only from verified, locked summaries.")
+    return {"kind": "results", "title": "Results at a glance: three kinds of evidence, kept apart", "table": rows,
+            "note": note}
+
 
 def research_slide() -> dict | None:
     """One slide on the nested research experiment, from its saved report; omitted when it has not been run."""
@@ -312,23 +381,47 @@ def research_slide() -> dict | None:
     imported = sum(d.get("parsed_participants") or 0 for d in inv["datasets"])
     ci = lambda c: f"{c['mean_diff']:+.2f} [{c['ci95'][0]:+.2f}, {c['ci95'][1]:+.2f}] mg/dL"  # noqa: E731
     f2 = lambda p, h: f"{p['horizons'][h]['mae']:.2f}"  # noqa: E731
-    return {"kind": "bullets", "title": "Research: new people and an independent cohort",
+    return {"kind": "bullets", "section": SEC_HELDOUT, "title": "Research: people held out entirely",
             "bullets": [
                 "Models kept separate: the v2 recipe (LightGBM, dynamic streams only; the demo model when this experiment "
-                "was declared), a Ridge five-minute candidate on CGM-only features, and a separate 15-minute LightGBM as "
-                "the external check.",
-                f"{imported} participants imported; {t['participants']} evaluated internally (five participant folds, each "
-                f"person held out once) and {ext['participants']} evaluated externally (ShanghaiT2DM, China, opened once).",
+                "was declared) and a Ridge five-minute candidate on CGM-only features. Neither is the serving model.",
+                f"{imported} participants imported; {t['participants']} evaluated here (five participant folds, each "
+                f"person held out once, protocol frozen before fitting, D-032).",
                 f"Held-out people, 30 / 60 min: candidate {f2(sel, '30')} / {f2(sel, '60')} vs v2 recipe refit "
                 f"{f2(v2, '30')} / {f2(v2, '60')} vs persistence {f2(per, '30')} / {f2(per, '60')} mg/dL — but worse on large "
                 f"highs ({ci(hg)} at 60 min when the target exceeded 180).",
                 f"Warnings chosen for ≤ 2 false alarms per day: {ws['detected_onsets']}/{ws['true_onsets']} onsets at "
                 f"{ws['false_alarms_per_observed_day']:.2f} false alarms per observed day (v2 recipe: "
                 f"{wv['detected_onsets']}/{wv['true_onsets']} at {wv['false_alarms_per_observed_day']:.2f}).",
-                f"External 15-minute LightGBM vs persistence: {ci(e30)} at 30 min (clear); {ci(e60)} at 60 min (inconclusive).",
                 "Not promoted, and not eligible as the demo model: the Ridge candidate reads CGM only. CGMacros was already "
                 "inspected, so its folds are internal validation; the next protocol also bounds high-glucose error, missed "
                 "onsets and false warnings (declared, not run)."]}
+
+
+def external_slide() -> dict | None:
+    """External CGM-only cohort (D-032 at 30/60 min; D-045 at 120 min), on its own slide; omitted until run."""
+    if not RESEARCH.exists():
+        return None
+    r = json.loads(RESEARCH.read_text())
+    ext = r.get("external") or {}
+    if ext.get("status") != "completed":
+        return None
+    cmp = lambda rows, title, h: next(c for c in rows if c["comparison"] == title and c["horizon"] == h)  # noqa: E731
+    e30, e60 = (cmp(ext["comparisons"], "Selected candidate minus persistence", h) for h in (30, 60))
+    ci = lambda c: f"{c['mean_diff']:+.2f} [{c['ci95'][0]:+.2f}, {c['ci95'][1]:+.2f}] mg/dL"  # noqa: E731
+    bullets = [
+        f"Who: {ext['participants']} adults with Type 2 diabetes in ShanghaiT2DM (China, FreeStyle Libre H, 15-minute "
+        "readings), never trained on. No wearable or dated labs, so this checks the forecasting core only, not the fusion.",
+        "What: a separate 15-minute LightGBM on CGM-only features, developed on CGMacros. It is not the serving fusion "
+        "model and not the Ridge candidate.",
+        f"30 / 60 minutes (D-032, opened once): {ci(e30)} at 30 min (clear) and {ci(e60)} at 60 min (inconclusive), "
+        "versus carrying the last reading forward."]
+    if ext_bullet():
+        bullets.append(ext_bullet())
+    bullets.append("Nothing was chosen on this cohort; other frozen pipelines were reported but not adopted, because "
+                   "choosing on it would turn it into a tuning set.")
+    return {"kind": "bullets", "section": SEC_EXTERNAL, "title": "External check: an independent Type 2 cohort",
+            "bullets": bullets}
 
 
 TWO_HOUR = ROOT / "artifacts/research/gt-2h-2026-10-20/two_hour_summary.json"
@@ -354,7 +447,7 @@ def two_hour_slide() -> dict | None:
                 f"{x['qualified_lead_median']:.0f} min")
     prof = cmp("Profile (EHR-like) inputs: LightGBM dyn-prof-v2 minus dyn-v2", 120)
     sel = cmp("Selected (personalised) minus persistence", 120)
-    return {"kind": "bullets", "title": "Research: warning two hours ahead",
+    return {"kind": "bullets", "section": SEC_HELDOUT, "title": "Research: warning two hours ahead",
             "bullets": [
                 "The brief's example is a spike predicted 2 hours ahead. Declared before any fit (decision D-043): the "
                 f"people-held-out procedure above, same folds, plus a 120-minute horizon. {s['participants']} "
@@ -367,8 +460,7 @@ def two_hour_slide() -> dict | None:
                 f"({'no reliable benefit' if prof['ci95'][0] <= 0 <= prof['ci95'][1] else 'better' if prof['ci95'][1] < 0 else 'worse'}"
                 " on people held out).",
                 "Thresholds chosen on development folds only (≤ 2 false alarms per observed day); each test fold opened once. "
-                "The 14 people were inspected in earlier experiments, so this is internal validation.",
-                *([ext_bullet()] if ext_bullet() else [])]}
+                "The 14 people were inspected in earlier experiments, so this is internal validation."]}
 
 
 WARN_RANGE = ROOT / "artifacts/research/gt-warn-range-2026-10-20/summary.json"
@@ -384,9 +476,10 @@ def reanalysis_slide() -> dict | None:
     p24 = s["profile_prior"]["first_24h"]["120"]["c1_minus_population"]
     cov = lambda b, h: 100 * r[b][str(h)]["coverage_pooled"]  # noqa: E731
     ci = lambda x: f"{x['mean_diff']:+.2f} [{x['ci95'][0]:+.2f}, {x['ci95'][1]:+.2f}]"  # noqa: E731
-    return {"kind": "bullets", "title": "Research: what we fixed, and what we could not",
+    return {"kind": "bullets", "section": SEC_HELDOUT, "title": "Research: what we fixed, and what we could not",
             "bullets": [
-                "Each test below was declared and committed before computing it; the same 14 already-inspected people (internal validation).",
+                "We declared each study before its own run. Later studies reused previously inspected participants, so those "
+                "results are internal validation.",
                 f"Fixed — prediction ranges: calibrating on all development people instead of 2 per fold raised two-hour coverage "
                 f"from {cov('B0_calibration', 120):.1f} % to {cov('B1_pooled', 120):.1f} % (target 80 %; 60 min "
                 f"{cov('B0_calibration', 60):.1f} → {cov('B1_pooled', 60):.1f} %), ranges "
@@ -468,7 +561,7 @@ def ext_bullet() -> str | None:
         return None
     e = json.loads(TWO_HOUR_EXT.read_text())
     c = e["minus_persistence"]["120"]
-    return (f"Independent cohort ({e['participants']} ShanghaiT2DM people, CGM-only 15-minute model, assessed once; D-045): "
+    return (f"Two hours ahead (D-045, declared before any fit, assessed once): "
             f"{e['mae']['120']:.1f} vs persistence {e['persistence_mae']['120']:.1f} mg/dL at 120 min "
             f"({c['mean_diff']:+.2f} [{c['ci95'][0]:+.2f}, {c['ci95'][1]:+.2f}]), better for {c['improved']} of {c['n']} people.")
 
@@ -633,17 +726,18 @@ def slides(m: dict, sub: dict) -> list[dict]:
         {"kind": "image", "title": "Demonstration: evidence behind a forecast", "image": str(UI / "04-forecast-evidence-dialog.png"),
          "caption": "Each forecast is immutable and inspectable: information cutoff, model version, evaluation segment, population forecast vs patient correction, factual explanations."},
         guardrails_slide(),
-        {"kind": "image", "title": "Measured evaluation: forecast accuracy (later days)", "image": str(FIGS / "fig_mae_test.png"),
+        results_overview(m),
+        {"kind": "image", "section": SEC_SERVING, "title": "Measured evaluation: forecast accuracy (later days)", "image": str(FIGS / "fig_mae_test.png"),
          "caption": f"Later recordings of the same {n_pt} participants the model was trained on — not new patients. "
                     f"Serving − persistence: {c('serving minus persistence', 30)} at 30 min, {c('serving minus persistence', 60)} at 60 min. "
                     f"Test origins {seg['test']['origins']:,} (≈ {seg['test']['covered_hours']:.0f} h); forecasts issued for {ss.loc[30, 'coverage'] * 100:.1f} % of origins with a target."},
-        {"kind": "image", "title": "Measured evaluation: does personalization help?", "image": str(FIGS / "fig_paired_differences.png"),
+        {"kind": "image", "section": SEC_SERVING, "title": "Measured evaluation: does personalization help?", "image": str(FIGS / "fig_paired_differences.png"),
          "caption": f"Adaptation ({sname}): {c(f'{sl}: adaptive minus population', 30)} at 30 min, {c(f'{sl}: adaptive minus population', 60)} at 60 min — small; "
                     f"population {mae(sl, 'off', 30):.2f} / {mae(sl, 'off', 60):.2f}, frozen state {mae(sl, 'frozen_state', 30):.2f} / {mae(sl, 'frozen_state', 60):.2f}, adaptive {mae(sl, 'adaptive', 30):.2f} / {mae(sl, 'adaptive', 60):.2f} mg/dL. "
                     f"New-participant cold start: {lo.loc[30, 'lopo_population_mae']:.2f}/{lo.loc[60, 'lopo_population_mae']:.2f} → {lo.loc[30, 'lopo_adaptive_mae']:.2f}/{lo.loc[60, 'lopo_adaptive_mae']:.2f} mg/dL with adaptation."},
-        {"kind": "image", "title": "Measured evaluation: every participant", "image": str(FIGS / "fig_per_participant.png"),
+        {"kind": "image", "section": SEC_SERVING, "title": "Measured evaluation: every participant", "image": str(FIGS / "fig_per_participant.png"),
          "caption": "Per-participant test MAE, persistence vs the serving pipeline. Gains are uneven: large for some participants, none for a few at 60 minutes. Fourteen people cannot establish population-level performance."},
-        {"kind": "bullets", "title": "Measured evaluation: early warning and uncertainty",
+        {"kind": "bullets", "section": SEC_SERVING, "title": "Measured evaluation: early warning and uncertainty",
          "bullets": [f"60-min warning (test, margin threshold {e['threshold']:+.0f} mg/dL chosen on validation by F1): {int(e['detected_onsets'])}/{int(e['true_onsets'])} new onsets detected, precision {e['precision']:.2f}, "
                      f"{int(e['false_alarm_episodes'])} false alarms ("
                      + (f"{e['false_alarms_per_observed_patient_day']:.2f} per observed patient-day; " if corrected else "")
@@ -659,6 +753,8 @@ def slides(m: dict, sub: dict) -> list[dict]:
         *([research_slide()] if research_slide() else []),
         *([two_hour_slide()] if two_hour_slide() else []),
         *([reanalysis_slide()] if reanalysis_slide() else []),
+        pending_slide(),
+        *([external_slide()] if external_slide() else []),
         {"kind": "bullets", "title": "Project outcomes",
          "bullets": ["Built: a working personalized glucose twin — replay API with a backend-owned clock, immutable forecasts, research warnings with outcomes — and a clinician workspace (landing page, Overview, Participants, Replay sessions, Model evidence, Data quality).",
                      "Found and corrected a data-provenance problem: the published 1-minute CGM values are interpolated; only native 5-minute readings are used.",
@@ -681,7 +777,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      "Medication and insulin use unknown; meal logging time undocumented.",
                      *(["Profile fusion: profile values are constant per person, so with 14 people they can act as an identity code; no benefit was shown on people held out entirely."] if disc else []),
                      "Prediction ranges under-cover; the warning score is uncalibrated and its threshold rule (F1) ignores review workload; 180 mg/dL is a research threshold, not triage.",
-                     "Retrospective replay only: no clinician workflow, outcome or safety study. Optional Chronos-Bolt not run.",
+                     "Retrospective replay only: no clinician workflow, outcome or safety study. Foundation-model baseline (D-054): result pending.",
                      PROTOCOL_NOTE]},
         {"kind": "bullets", "title": "Next steps: evidence needed for Indian patients",
          "bullets": ["Prospective, consented Indian cohort with unblinded CGMs, recorded transmission latency, medications and meal logging times.",
@@ -748,7 +844,9 @@ def build_pptx(deck: list[dict], path: Path) -> None:
                 r.font.size, r.font.name = Pt(18), "Arial"
                 r.font.color.rgb = rgb(INK)
             continue
-        textbox(sl, Inches(0.6), Inches(0.35), Inches(12.1), Inches(0.8), s["title"], 30, True)
+        if s.get("section"):
+            textbox(sl, Inches(0.6), Inches(0.14), Inches(12.1), Inches(0.3), s["section"], 11, True, BLUE)
+        textbox(sl, Inches(0.6), Inches(0.42 if s.get("section") else 0.35), Inches(12.1), Inches(0.7), s["title"], 30, True)
         rule(sl, Inches(0.6), Inches(1.08), Inches(12.13), 0.75, LIGHT)
         textbox(sl, Inches(12.3), Inches(7.05), Inches(0.5), Inches(0.3), f"{i}", 11)
         if s["kind"] == "architecture":
@@ -763,7 +861,7 @@ def build_pptx(deck: list[dict], path: Path) -> None:
                 p = tf.paragraphs[0] if j == 0 else tf.add_paragraph()
                 r = p.add_run()
                 r.text = f"•  {b}"
-                r.font.size, r.font.name = Pt(17 if s["kind"] == "bullets" else 15), "Arial"
+                r.font.size, r.font.name = Pt((17 if len(s["bullets"]) <= 6 else 15.5) if s["kind"] == "bullets" else 15), "Arial"
                 r.font.color.rgb = rgb(INK)
                 p.space_after = Pt(10)
             if s["kind"] == "bullets_image":
@@ -796,6 +894,33 @@ def build_pptx(deck: list[dict], path: Path) -> None:
                 pic.left = int((W - pic.width) / 2)
             if s.get("caption"):
                 textbox(sl, Inches(0.6), Inches(6.45), Inches(12.1), Inches(0.9), s["caption"], 13)
+        elif s["kind"] == "results":
+            from pptx.util import Inches as In
+            widths = [In(2.9), In(5.3), In(1.95), In(1.95)]
+            rows = len(s["table"])
+            gt = sl.shapes.add_table(rows, 4, In(0.6), In(1.35), sum(widths, In(0)), In(0.46 * rows)).table
+            for c_i, w in enumerate(widths):
+                gt.columns[c_i].width = w
+            for r_i, row in enumerate(s["table"]):
+                gt.rows[r_i].height = In(0.46)
+                group = row[0].startswith("§")
+                if group:
+                    gt.cell(r_i, 0).merge(gt.cell(r_i, 3))
+                for c_i in range(4):
+                    cell = gt.cell(r_i, c_i)
+                    cell.fill.solid()
+                    cell.fill.fore_color.rgb = rgb("#FFFFFF")
+                    cell.margin_top = cell.margin_bottom = Pt(3)
+                    if group and c_i > 0:
+                        continue
+                    val = row[0][1:] if group else str(row[c_i])
+                    cell.text = val
+                    run = cell.text_frame.paragraphs[0].runs[0]
+                    run.font.size, run.font.name = Pt(13.5), "Arial"
+                    run.font.bold = r_i == 0 or group or (c_i >= 2 and row[1].endswith("(serving)"))
+                    run.font.color.rgb = rgb(BLUE if group else INK)
+                    run.font.italic = val == PENDING
+            textbox(sl, Inches(0.6), Inches(1.35 + 0.46 * rows + 0.6), Inches(12.1), Inches(1.0), s["note"], 14)
         elif s["kind"] == "table":
             rows, cols = len(s["table"]), len(s["table"][0])
             gt = sl.shapes.add_table(rows, cols, Inches(0.6), Inches(1.35), Inches(8.2), Inches(0.36 * rows)).table
@@ -847,6 +972,10 @@ def build_pdf(deck: list[dict], path: Path) -> None:
                 cv.drawString(65, H - 330 - j * 28, line)
             cv.showPage()
             continue
+        if s.get("section"):
+            cv.setFillColor(HexColor(BLUE))
+            cv.setFont("Helvetica-Bold", 11)
+            cv.drawString(43, H - 28, s["section"])
         cv.setFillColor(HexColor(INK))
         cv.setFont("Helvetica-Bold", 28)
         cv.drawString(43, H - 70, s["title"])
@@ -881,6 +1010,24 @@ def build_pdf(deck: list[dict], path: Path) -> None:
                 p = Paragraph(s["caption"], small)
                 _, h = p.wrap(W - 86, 100)
                 p.drawOn(cv, 43, 40 + cap_h - h)
+        elif s["kind"] == "results":
+            data, style = [], [("FONT", (0, 0), (-1, -1), "Helvetica", 11), ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 11),
+                               ("TEXTCOLOR", (0, 0), (-1, -1), HexColor(INK)),
+                               ("LINEBELOW", (0, 0), (-1, -1), 0.5, HexColor(LIGHT))]
+            for r_i, row in enumerate(s["table"]):
+                if row[0].startswith("§"):
+                    data.append([row[0][1:], "", "", ""])
+                    style += [("SPAN", (0, r_i), (-1, r_i)), ("FONT", (0, r_i), (-1, r_i), "Helvetica-Bold", 11),
+                              ("TEXTCOLOR", (0, r_i), (-1, r_i), HexColor(BLUE))]
+                else:
+                    data.append(row)
+            t = Table(data, colWidths=[200, 380, 150, 150])
+            t.setStyle(TableStyle(style))
+            _, h = t.wrap(W - 86, 400)
+            t.drawOn(cv, 43, top - h)
+            p = Paragraph(s["note"], small)
+            _, h2 = p.wrap(W - 86, 200)
+            p.drawOn(cv, 43, top - h - 16 - h2)
         elif s["kind"] == "table":
             t = Table(s["table"], colWidths=[230, 110, 110, 90])
             style = [("FONT", (0, 0), (-1, -1), "Helvetica", 12), ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 12),
@@ -932,9 +1079,10 @@ def build_architecture_pdf(path: Path, m: dict) -> None:
     items = [
         "<b>1. Origin.</b> A native glucose reading becomes available at time t. Features use only records with observed_at ≤ t and available_at ≤ t (glucotwin.features.build_features — the same code offline and online).",
         model_line,
-        "<b>3. Patient adaptation.</b> AdaptationState adds a shrunk, bounded, decaying correction learned only from earlier forecasts whose target readings were already available. Model weights are never refit.",
+        "<b>3. Bounded patient update.</b> AdaptationState adds a shrunk, decaying correction learned only from earlier forecasts whose target readings were already available: at least 6 matured outcomes, capped at ±25 mg/dL, reset after a 3-hour gap. Model weights are never refit.",
         "<b>4. Uncertainty and warning.</b> Split-conformal prediction ranges (target coverage 80 %) calibrated for this exact pipeline; warning score = max forecast within 60 min − 180 mg/dL (uncalibrated, not a probability). Warning outcomes use one shared one-to-one onset matcher offline and in replay.",
-        "<b>5. Immutable record.</b> Forecasts are stored once under uuid5(session, revision, origin, model version); outcomes are revealed only when the replay clock passes their availability.",
+        "<b>5. Immutable record and review ledger.</b> Forecasts are stored once under uuid5(session, revision, origin, model version); outcomes are revealed only when the replay clock passes their availability. A clinician's review of a warning (with a note) is written to the SQLite audit; the review summary freezes what was known at its replay cutoff.",
+        "<b>Candidates.</b> Research experiments write only their own artifacts and never the model registry; a candidate is served only after every declared release gate, serving parity and integration checks pass, through an explicit promote command with a recorded rollback.",
         "<b>6. Revisions.</b> Seek/reset rebuild the twin from released events only; old cursors return 409; the browser keys caches by (session, revision, clock).",
         "<b>State ownership.</b> Canonical store (Parquet + SQLite, local) · replay clock and sessions (API memory) · twin state (per session revision, rebuilt deterministically) · issued forecasts and acknowledgements (SQLite audit) · model artifacts (checksummed registry) · UI preferences (browser).",
         "<b>Posture.</b> CPU only; loopback binding; narrow CORS; no cloud, API keys or LLMs; trusted artifacts verified by SHA-256; no pickles. Research demonstration, not production or a medical device.",
