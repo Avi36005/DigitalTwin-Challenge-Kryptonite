@@ -1,5 +1,27 @@
 # Proposed next experiment
 
+## Bounded next studies after the 22 Oct 2026 finalisation (plan only; nothing declared, fitted or run)
+
+The serving model is unchanged, and D-053's +1.0 mg/dL high-target gate stays as declared. None of these may select a
+setting from D-053's opened assessment predictions, and none may use ShanghaiT2DM to choose settings while still calling
+it an external check. A new run on the same 14 inspected people is internal exploratory evidence, however many fits it
+uses. Each study needs its own protocol committed before any fit.
+
+1. **Range calibration that adapts causally.** Use per-person or trend-conditioned residual quantiles for the exact
+   serving predictor. Only residuals whose outcome the forecast clock has already released may be used: no future
+   residuals, a reset or rebuild after rewind, and issued bands that never change. Report width, overall, per-person
+   and rising/steady/falling coverage, plus cold-start behaviour. The serving 60-minute coverage is 74.0 % overall and
+   51.6 % while glucose is rising ([ranges study](../reports/serving_ranges_study.md)).
+2. **Peaks and rapid rises.** Run a peak-focused learner against matched controls, with selection on development people
+   only and error above 180 mg/dL as a co-primary outcome.
+3. **Warning operating point.** Use a declared rule that bounds false alarms per observed day and time in warning
+   together, and report the share of all onsets warned at least 30 minutes ahead. The current rule gives 48.4 %, at
+   1.49 false alarms per observed day and 11.8 % of time in warning
+   ([warning notice](../reports/warning_utility.md)).
+4. **More eligible people.** Evaluate the full fusion procedure on additional Type 2 people with a profile and wearable
+   data (AI-READI, after its real access and licence steps). The 31 non-Type-2 CGMacros participants are not Type 2
+   evidence. Repeated windows from one person are not independent people.
+
 Successor declared (2026-10-12, not run): `configs/experiments/gt-nested-2026-10-12-v2.yaml` — multi-criteria
 promotion, valid trend windows, public-key folds, AI-READI development data required.
 
