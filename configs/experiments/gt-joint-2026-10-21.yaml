@@ -1,0 +1,60 @@
+# GlucoTwin research protocol gt-joint-2026-10-21 — select the complete personalised procedure (decision D-052).
+#
+# Declared on 2026-10-21 BEFORE any fit of this study. Run only by scripts/joint_study.py; never reads or writes the
+# model registry. D-049 and D-051 are complete and unchanged; this is a new study with its own gate. Motivation,
+# disclosed: in D-051 model settings were chosen on POPULATION-only inner error and the patient correction afterwards;
+# its results (C1 − C0 −0.37 [−0.63, −0.06]; C1 − refitted serving recipe −0.65 [−1.41, +0.07]) were seen on the same 14
+# previously inspected people. Hypothesis: choosing settings and correction together on the FINAL personalised error,
+# and choosing the model family inside each fold, beats the refitted serving recipe. A development-only exploratory pilot
+# (no assessment people) measured CatBoost cost (≤ 7.1 s per fit at depth 8 × 1200) and confirmed that the correction run
+# per horizon equals the joint run.
+experiment_id: gt-joint-2026-10-21
+kind: nested-joint-selection-study
+declared_on: "2026-10-21"
+random_seed: 20261023
+base_experiment: gt-2h-2026-10-20   # frozen table and features, 5 outer participant folds with inner folds and calibration groups
+horizons: [30, 60]
+
+procedures:
+  R0: "refitted serving recipe — dyn-prof-v2, the serving model's frozen per-horizon LightGBM parameters and rounds, correction k 96 / half-life 240"
+  J0: "LightGBM, dyn-prof-v2 (46 features), joint selection"
+  J1: "LightGBM, dyn-prof-v2 + hist-v1 (58 features), joint selection"
+  J2: "CatBoost, dyn-prof-v2 + hist-v1 (58 features), joint selection"
+  comparators: "persistence and the bounded linear trend from the saved assessment predictions of gt-2h-2026-10-20 (same people and origins)"
+
+search_per_family_per_horizon:
+  configurations: 16, deterministic, the same list for J0 and J1 and for both horizons
+  lightgbm: >-
+    #0 = the serving model's parameters and rounds for that horizon (incumbent-like); #1-#15 seeded (random_seed) from
+    objective {l2, l1}, learning_rate 0.02-0.1 (log), num_leaves 7-63, max_depth 3-8, min_child_samples 20-400,
+    lambda_l2 0-20, feature_fraction 0.6-1, bagging_fraction 0.6-1, rounds {300, 600, 1200}; no early stopping
+  catboost: >-
+    #0 = depth 6, learning_rate 0.05, l2_leaf_reg 3, rsm 1, 600 iterations, RMSE; #1-#15 seeded from loss {RMSE, MAE},
+    learning_rate 0.02-0.1 (log), depth 3-8, l2_leaf_reg 1-30, rsm 0.6-1, iterations {300, 600, 1200}; no early stopping
+  compute_ceiling: 120 minutes of CatBoost fitting in total; if exceeded, J2 is reported incomplete and excluded from family selection in the remaining folds (declared now)
+  threads: 4 per fit, one study process
+correction_grid: "off, or shrinkage_k {24, 48, 96, 192} × half-life {120, 240, 720} min (13 policies), the same for every family; chosen per horizon"
+
+selection_inside_each_outer_fold:
+  scores: inner out-of-fold FINAL (personalised) macro per-participant MAE, development people only, correction applied causally from an empty state per person
+  per_family_per_horizon: >-
+    the (configuration, correction) pair with the lowest score; ties within 0.005 mg/dL broken toward correction off,
+    then fewer rounds, then the lower configuration index
+  family: >-
+    the family with the lowest inner 60-minute score; ties within 0.1 mg/dL broken toward J0, then J1, then J2. The
+    selected family's own 30- and 60-minute choices are used. The assessment people never influence any choice.
+  outer: refit the selected (and, for description, every) family's chosen configurations on development + calibration people; score the assessment people once (lock file); apply the chosen correction causally
+  final_candidate: if the gate passes, the same selection is rerun on the FINAL plan's 12 development people and frozen before calibration and release checks
+
+primary_gate:
+  comparison: nested selected procedure (S) minus R0, personalised 60-minute macro per-participant MAE on identical outer origins, paired participant bootstrap 2000 resamples (seed = random_seed)
+  require: [mean difference <= -0.5, 95 % interval entirely below 0, 30-min worsening <= 0.25, 60-min worsening on targets > 180 (participants with >= 50 such origins) <= 1.0, availability drop <= 0.5 points]
+  descriptive: J0, J1, J2 each versus R0 and versus each other; rapid-rise / steady / falling; first 24 h; population-only; per-person differences
+operational_guardrails_vs_R0:
+  warning: 60-minute warning, score max(final 30, final 60) − 180, threshold grid [-30, -20, -10, 0, 10, 20] chosen per outer fold on that fold's inner out-of-fold FINAL predictions of the same procedure by the D-043 workload rule (max recall at <= 2 false alarms per observed day); merge 30 min; repository matcher
+  release_limits: {false_alarms_per_observed_day: "+0.10", time_in_warning_points: "+2.0", warned_30min_all_onsets_points: "-2.0"}
+  ranges: split-conformal 80 % per horizon on the fold's calibration people for the exact selected procedure (refit on development people only, correction applied); coverage and width on the assessment people, per person and by trend
+labels: 14 previously inspected CGMacros Type 2 people — internal validation, not independent confirmation or clinical evidence
+artifacts:
+  root: artifacts/research/gt-joint-2026-10-21
+  report: reports/joint_study.md

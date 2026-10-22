@@ -1,0 +1,230 @@
+# GlucoTwin research protocol gt-constrained-2026-10-21 — peak-aware, constrained personalised selection (decision D-053).
+#
+# Declared on 2026-10-21 (IST evening) BEFORE any formal fit of this study and before any of its outer assessment people
+# were scored. Run only by scripts/constrained_study.py; never reads or writes artifacts/registry.json. D-049 … D-052 are
+# complete and unchanged.
+#
+# MOTIVATION (disclosed; already-seen results on the same people): D-052 (gt-joint-2026-10-21) lowered 60-minute macro
+# MAE versus the refitted serving recipe R0 (21.62 vs 22.50; −0.88 [−1.75, −0.13]) but its 60-minute error on targets
+# above 180 mg/dL worsened by +1.70 (limit +1.0), its warning policy produced 1.79 vs 1.19 false alarms per observed day
+# and 10.4 % vs 5.1 % time in warning, and its range path applied residual quantiles from development-only fits to
+# development+calibration assessment fits (mixed-fit calibration). This study is designed against those failure modes:
+# (1) the high-target endpoint and the warning workload constrain development-time selection; (2) a distinct
+# future-high training-loss weighting hypothesis; (3) one frozen predictor, fitted on outer development people only, is
+# used for BOTH range calibration and assessment. The 14 CGMacros Type 2 people were inspected in D-032 … D-052: results
+# are internal validation, not independent confirmation, and absolute MAE is NOT comparable with D-052 (fewer fitting
+# people here: 9-10 instead of 11-12).
+#
+# PILOT DISCLOSURE (development-only, exploratory, outer-1 development people, no calibration/assessment row touched):
+# LightGBM with early stopping on purged training-people tails + refit: 0.3–0.9 s per inner fit (6 threads), L1 about 2×
+# L2; best iterations 62–738 (tail curves have genuine minima); prequential correction 0.16 s per horizon over 25k rows;
+# CatBoost early-stopped (MAE on tails) + refit 0.6–2.5 s per inner fit (best 45–114). Estimated full nested
+# development: LightGBM 32 configurations ≈ 30 min, CatBoost 16 ≈ 20 min, correction grid ≈ 15 min. Hence both the L1
+# objective (32 LightGBM configurations per horizon) and the optional CatBoost family are INCLUDED (decision frozen here).
+# AMENDMENT BEFORE ANY FORMAL FIT (2026-10-21, after commit 2e2b01a, still before any formal fit or outer result): an
+# independent read-only audit of the drafts found orchestration gaps. Added: verified resume (fold checksums and lock
+# hashes), complete/incomplete validation states, R0 control failure aborts a fold, outer-fit failure fallback rule,
+# durable per-fit ledger with logical vs physical fit counts, wider input fingerprints and the implemented final
+# packaging operation. No selection rule, grid, threshold, gate or portfolio changed.
+experiment_id: gt-constrained-2026-10-21
+decision: D-053
+kind: nested-constrained-selection-study
+declared_on: "2026-10-21"
+random_seed: 20261053
+base_experiment: gt-2h-2026-10-20   # frozen table, features, split (split_hash e3695ca98334797c): 5 outer folds, each with 3 inner folds and 2 calibration people; final plan 12 dev / 2 cal
+track: multimodal_5min              # native 5-minute CGMacros track; targets matched within 2.5 min; eligibility, purge and gap/reset rules of the base protocol
+horizons: [30, 60]
+threads: 6                          # num_threads / thread_count for every fit; one study process. Confirmed with the lead before the formal run: the D-054 foundation job has finished and nothing else heavy runs (10 cores)
+
+roles:
+  development: >-
+    outer development people only (9 or 10 per fold): every model fit, early-stopping tail, hyperparameter/weight/
+    feature/objective/family choice, correction choice, trend-baseline window choice, trend-range scale and warning
+    threshold choice. Inner selection uses the 3 inner folds of the base split (out-of-fold predictions).
+  calibration: >-
+    the fold's 2 calibration people are reserved for range quantiles ONLY; never in any fit, early stopping, selection
+    or threshold choice.
+  assessment: >-
+    the fold's assessment people (3/3/3/3/2) are scored once after all development choices of all folds are saved
+    (assessment lock). Their labels enter only the declared final metrics; past outcomes update a person's correction
+    state only after maturing and becoming available.
+  frozen_predictor: >-
+    per fold and procedure, the predictor is fitted once on development people, frozen, and the SAME fitted object
+    (hash-checked) predicts calibration and assessment people. Every person starts an empty correction state.
+  identity: >-
+    saved per fold/procedure/horizon: fitted-predictor sha256 (serialised model), feature/preprocessor hash, training-
+    participant-set hash, correction-policy hash, rounds; calibration hash = fingerprint of the calibration record.
+    Applying a calibration to a predictor/policy/transform/participant set it was not made for is refused.
+
+references:
+  R0: >-
+    current serving fusion recipe freshly fitted under these roles: LightGBM, dyn-prof-v2 (46 features), the serving
+    model's frozen per-horizon parameters and round counts (30 min: 397, 60 min: 868), objective l2, unweighted, no early
+    stopping, seed random_seed + horizon; correction shrunk-bias k 96 / half-life 240 min.
+  R0-P: >-
+    R0's point forecasts with the warning threshold chosen by THIS study's development-only workload rule (below). Primary
+    operational comparator.
+  R0-serving-threshold: "R0 with the current frozen serving margin −10 mg/dL; reported as a separate operating point only"
+  persistence: "last native reading"
+  linear_trend: >-
+    the existing bounded linear trend (slope window {15, 30} min × damping {0.25, 0.5, 0.75, 1.0}, change bounded at
+    ±120 mg/dL), window/damping chosen per outer fold and horizon on that fold's development people (macro MAE).
+  matched_origins: every procedure is scored on identical issued outer origins; no stored prediction from another fit/seed/mask is used
+
+candidate_A_lightgbm:
+  feature_sets:
+    F0: dyn-prof-v2 (current fusion, 46 features)
+    F1: dyn-prof-v2 + hist-v1 (causal 6/12/24-h glucose history, 12 features; 58 features)
+  weight_policies:
+    W1: "w_i = 1"
+    WP: >-
+      w_i = 1 + I(absolute future glucose target_h > 180 mg/dL) — the ABSOLUTE target, not the delta target the model
+      learns; computed only from the fit's own training rows; normalised to mean 1 within each fitting partition (the
+      early-stopping head and the refit set separately). Never a feature, never used for routing, correction,
+      eligibility, calibration or warnings. Early-stopping and every selection metric are UNWEIGHTED.
+  objectives: [l2 (regression), l1 (regression_l1)]     # pilot-feasible → included: 4 × 2 × 2 × 2 = 32 configurations per horizon
+  leaf_support: >-
+    min_data_in_leaf = ceil(m × training rows / training people), i.e. m person-equivalents of rows, so leaf support
+    follows the small number of people rather than overlapping rows. feature_pre_filter false; a fresh Dataset per fit.
+  templates:
+    T0_incumbent_like: "the serving model's per-horizon learning_rate, num_leaves, max_depth, min_child_samples, lambda_l2, feature_fraction, bagging_fraction (lambda_l1 0)"
+    T1_shallow: {learning_rate: 0.03, num_leaves: 15, max_depth: 4, min_leaf_person_equivalents: 0.10, lambda_l1: 0.0, lambda_l2: 10.0, feature_fraction: 0.8, bagging_fraction: 0.8}
+    T2_wider_regularised: {learning_rate: 0.03, num_leaves: 31, max_depth: 6, min_leaf_person_equivalents: 0.25, lambda_l1: 1.0, lambda_l2: 20.0, feature_fraction: 0.7, bagging_fraction: 0.7}
+    T3_heavy: {learning_rate: 0.02, num_leaves: 7, max_depth: 3, min_leaf_person_equivalents: 0.50, lambda_l1: 5.0, lambda_l2: 50.0, feature_fraction: 0.6, bagging_fraction: 0.6}
+  common: {boosting: gbdt, bagging_freq: 1, deterministic: true, force_row_wise: true, seed: random_seed + horizon, verbosity: -1}
+  order: "configuration index = template (T0..T3) × feature set (F0, F1) × weight (W1, WP) × objective (l2, l1), objective fastest; the same list for both horizons"
+
+candidate_B_catboost:   # optional family: INCLUDED (pilot: full nested development ≈ 20 min, well before 01:00 IST)
+  feature_sets: [F0, F1]
+  weight_policies: [W1, WP]   # same definition and normalisation (sample_weight)
+  objective: RMSE
+  templates:
+    C0: {learning_rate: 0.05, depth: 6, l2_leaf_reg: 3.0, rsm: 1.0}
+    C1: {learning_rate: 0.05, depth: 4, l2_leaf_reg: 10.0, rsm: 0.8}
+    C2: {learning_rate: 0.03, depth: 8, l2_leaf_reg: 10.0, rsm: 0.8, min_data_in_leaf_person_equivalents: 0.10, grow_policy: Depthwise}
+    C3: {learning_rate: 0.03, depth: 5, l2_leaf_reg: 30.0, rsm: 0.6}
+  common: {random_seed: random_seed + horizon, nan_mode: Min, allow_writing_files: false}
+  budget: 16 configurations per horizon (≤ the LightGBM portfolio); fresh fits only (no D-052 model reused)
+
+stopping_and_rounds:
+  inner_fit: >-
+    for each inner split: (a) early-stopping pass trained on the inner-training people's HEAD rows and validated on
+    their purged TAIL rows (tail = last 20 % of each person's elapsed span; head = origins at least 142.5 min before the
+    tail) — LightGBM: macro per-participant MAE on the tail, patience 200, max 3000 rounds; CatBoost: MAE on the tail
+    (od_type Iter, od_wait 200, max 3000); (b) refit on ALL rows of the inner-training people with that best iteration;
+    (c) predict the inner held-out people. Inner held-out, calibration and assessment people never supply stopping rounds.
+  outer_fit: "fixed rounds = median of the 3 inner best iterations of that configuration/horizon (an integer for 3 values); fit on all outer development rows; every best iteration and the count used are saved"
+  dart: not used
+  r0: "no early stopping: frozen serving rounds"
+
+correction_grid: "off, or shrunk-bias k {24, 48, 96, 192} × half-life {120, 240, 720} min (13 policies), same for both families, chosen per horizon; cap 25 mg/dL, min residuals 6, reset gap 180 min, target wait 120 min, match tolerance 2.5 min (base protocol)"
+
+inner_selection:   # per outer fold, development people only
+  scores: >-
+    inner out-of-fold FINAL (personalised; each person from an empty state) macro per-participant MAE over issued
+    development origins with a finite target; future-high MAE = macro MAE over origins with target_h > 180 among people
+    with ≥ 50 such origins (if fewer than 2 people qualify: ≥ 20; if still none, the high-target filter fails);
+    availability = share of issued development origins with a finite forecast. R0 inner = the R0 recipe fitted the same
+    way on the inner splits with its own correction.
+  candidate: "(family, configuration, correction policy) per horizon"
+  failure: "any failed fit for a configuration in this fold makes every candidate of that configuration infeasible (no scoring on surviving people)"
+  control_failure: "a failed or partial (any missing development forecast) R0 inner fit aborts the fold and the run as incomplete; no candidate is ever qualified against a failed control"
+  outer_failure: >-
+    if an outer fit of a selected S member fails, S for that fold is R0 (both horizons) with the R0-P threshold and R0's
+    1/day operating point; the development selection and the effective assessed procedure are both saved and reported.
+    A failed R0 outer fit aborts the run as incomplete.
+  filter_60: [no failure, availability drop vs R0 ≤ 0.5 points, inner 60-min gain vs R0 ≥ 0.5 mg/dL, high-target 60-min MAE − R0 ≤ +1.0 mg/dL]
+  filter_30: [no failure, availability drop vs R0 ≤ 0.5 points, inner 30-min MAE − R0 ≤ +0.25 mg/dL, high-target 30-min MAE − R0 ≤ +1.0 mg/dL]
+  retention: >-
+    per family and horizon, each configuration contributes its best feasible correction policy (lowest MAE; ties within
+    0.005 mg/dL → simplicity key); then the 3 configurations with the lowest MAE (ties within 0.005 → simplicity key).
+  simplicity_key: "feature set F0 before F1, weight W1 before WP, objective l2 before l1, lower template index, correction off before on, then smaller k, then shorter half-life"
+  pairs: >-
+    per family: (30-min shortlist) × (60-min shortlist) ≤ 9 pairs; when a family has a 60-min shortlist but no feasible
+    30-min alternative, its 30-min member is R0's 30-min procedure. No 60-min shortlist → no pair from that family.
+  fallback: "no pair with a feasible warning policy (below) → the fold's selected procedure S is R0 with the R0-P threshold (explicit fallback)"
+  retained_predictions: the exact inner prediction arrays of each retained candidate are kept with its record (same id)
+
+warning_policy:   # chosen on inner out-of-fold FINAL predictions of development people only
+  definition: >-
+    60-minute new-high (> 180 mg/dL) warning; score = max(final 30, final 60) − 180 mg/dL (max of available horizons);
+    episodes merged within 30 min; the repository's one-to-one matcher and episode definition; censored outcomes are
+    unresolved, never false alarms or negatives.
+  threshold_grid: [-30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30]
+  metrics: >-
+    share30 = onsets with a qualified lead ≥ 30 min / ALL eligible onsets; false alarms per observed patient-day =
+    false-alarm episodes / gap-respecting exposure of issued origins (each origin covers min(next issued origin − t,
+    5 min)); time in warning = exposure of firing eligible origins / exposure of eligible issued origins with a resolved
+    label (same gap-respecting step, computed on the eligible set). Nonempty = at least one assessable warning episode.
+  r0p_rule: "maximise share30 subject to nonempty, FA/day ≤ 1.5 and time in warning ≤ 12 %; ties → lower FA/day, lower time in warning, higher threshold. None feasible → R0-P uses the serving margin −10 for that fold (recorded fallback)"
+  alternative_rule: "same absolute ceilings AND FA/day ≤ R0-P + 0.10, time in warning ≤ R0-P + 2 points, share30 ≥ R0-P − 2 points (R0-P's inner values in the same fold); per pair the best threshold by the R0-P rule"
+  pair_selection: >-
+    among pairs (both families) with a feasible threshold: keep share30 ≥ best − 1 point; then FA/day ≤ min + 0.05;
+    then time in warning ≤ min + 0.5 points; then lowest inner 60-min MAE, lowest inner 30-min MAE, LightGBM before
+    CatBoost, simplicity key of the 60-min then the 30-min member.
+  secondary_operating_point: "for R0 and S: the same rule with FA/day ≤ 1.0 (≈ 1 false alarm/day reference), chosen on development; reported only"
+  no_warning_policy: "reported explicitly; zero recall is not success"
+
+ranges:
+  primary: >-
+    global split-conformal 80 % per horizon: the finite-sample quantile (rank ceil((n+1)·0.8), n ≥ 50) of absolute
+    FINAL residuals of the frozen fold predictor + its correction on the fold's calibration people; applied to the
+    fold's assessment people after the identity check. Unavailable when n < 50 (reported, not imputed).
+  secondary_trend_scaled: >-
+    scale s(b) per past-slope bin b of slope_15 (falling < −1, steady [−1, 1], rising (1, 2], rapid > 2 mg/dL/min) =
+    mean |inner OOF final residual| in b / overall mean, learned on DEVELOPMENT inner OOF residuals of the same
+    procedure; bins with < 200 residuals or < 3 people, and origins with an unknown slope, use 1.0; s clipped to [0.5, 2.5]; calibration quantile
+    of |r| / s(b) on the calibration people; half-width = q · s(b). Reported beside the primary, never chosen on assessment.
+  guardrails_selected_vs_R0: >-
+    (a) identity check passes and every band is finite where the quantile exists; (b) pooled assessment coverage of the
+    primary range in [75 %, 85 %] at 30 and 60 min; (c) per-person minimum coverage ≥ 55 %; (d) rapid-rise (> 2 mg/dL/min,
+    ≥ 200 origins and ≥ 3 people) 60-min coverage ≥ R0's − 5 points; (e) mean width ≤ 1.15 × R0's at each horizon.
+    Thresholds set from development-era evidence (D-050/D-052 already-seen coverages 74–80 %, rapid-rise ≈ 47–52 %).
+  strata_reported: "pooled, per person, rapid-rise > 2, rising > 1 (D-050 definition), steady, falling, first 24 h"
+
+primary_gate:   # S minus R0, outer assessment, identical issued origins (common finite mask of all procedures)
+  mean_diff_60: "≤ −0.5 mg/dL macro per-participant MAE (inclusive)"
+  ci95_60: "paired participant bootstrap (2000 resamples, seed random_seed + horizon) upper bound < 0 (strict; touching 0 fails)"
+  worsening_30: "≤ +0.25 mg/dL (inclusive)"
+  high_worsening_60: "≤ +1.0 mg/dL (inclusive), targets > 180 among people with ≥ 50 such outer origins; undefined → fails"
+  availability_drop: "≤ 0.5 points at each horizon (inclusive); unavailable origins reported, never dropped from the denominator"
+operational_gate:   # S vs R0-P, pooled over outer assessment people
+  fa_per_day: "≤ R0-P + 0.10 (inclusive)"
+  time_in_warning: "≤ R0-P + 2.0 points (inclusive)"
+  share30: "≥ R0-P − 2.0 points (inclusive)"
+  undefined: "no onsets, no assessable warning or a missing value → gate not passed"
+range_gate: "the range guardrails above (all must hold)"
+all_gates: "primary AND operational AND range; anything undefined fails. No gate is changed after assessment."
+
+reporting: >-
+  matched table (R0, R0-P, S, persistence, linear trend) at 30/60 min: macro and pooled MAE, high-target MAE and signed
+  bias, rapid-rise/steady/falling, first 24 h, availability, per-person differences; warning onsets/detected/missed,
+  share15/30/60, FA/day, time in warning, episode durations, precision, lead distribution; ranges pooled/per person/strata.
+bootstrap_unit: participant (2000 resamples)
+fit_accounting: "every fit attempt (success or failure) is appended and fsynced to fits.jsonl as it completes; logical fits (one configuration fit) and physical fits (early-stopping pass + refit = 2) are counted separately per run segment"
+fingerprints: >-
+  protocol sha256; code (runner, retrain_study, history, adapt, warnings, calibration, metrics, alerts, adaptation);
+  inputs (serving recipe manifest read by retrain_study.recipe(), cached table parquet + key, base split, base and
+  retrain protocols); resolved R0 recipe fingerprint (stored in run_manifest.json); split hash; table cache key.
+locks_and_resume: >-
+  development choices of every fold are saved (development/<fold>.json + inner predictions) before any outer fit;
+  development_complete.json then assessment_opened.json (protocol, code and data hashes) are written before the first
+  outer fit; each finished fold's outer results are checkpointed; resume continues only with identical protocol/code/
+  data hashes, never re-chooses a saved fold and never deletes a lock. A bug invalidating evaluation marks the run invalid.
+  Each fold is published atomically (arrays, JSON, then a checksum sidecar); resume and assessment verify every saved
+  fold pair and both locks first and refuse a missing or changed file. `validate` reports complete-valid (exit 0),
+  intact-incomplete (exit 2; 0 with --checkpoint) or invalid (exit 1).
+final_packaging:   # only if ALL gates pass; frozen now, never chosen from assessment scores
+  partition: "FINAL plan of gt-2h-2026-10-20: 12 development people (inner 4/4/4) and its 2 calibration people"
+  procedure: >-
+    rerun the identical development selection on the FINAL plan's development people (seed unchanged), fit the selected
+    predictor once on those 12 people with the median inner rounds, calibrate ranges on the 2 calibration people with
+    that same frozen predictor, threshold from inner development; package model dir + checksum + calibration identity
+    under artifacts/research/gt-constrained-2026-10-21/candidate/ (registry untouched) via
+    `scripts/constrained_study.py package`, which refuses unless every gate passed and the hashes match the evaluated
+    run; the package loader verifies file checksums and each horizon's calibration identity. If the FINAL selection
+    falls back to R0 nothing is packaged.
+labels: 14 previously inspected CGMacros Type 2 people — internal validation, not independent confirmation or clinical evidence
+artifacts:
+  root: artifacts/research/gt-constrained-2026-10-21
+  report: reports/constrained_study.md

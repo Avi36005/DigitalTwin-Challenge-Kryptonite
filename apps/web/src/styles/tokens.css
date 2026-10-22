@@ -59,14 +59,15 @@
 
   --gt-shadow-pop: 0 12px 32px rgba(17, 24, 39, 0.12), 0 2px 6px rgba(17, 24, 39, 0.06);
 
-  --gt-sidebar-w: 240px;
+  --gt-sidebar-w: 224px;
   --gt-sidebar-rail: 64px;
   --gt-topbar-h: 56px;
   --gt-main-max: 1400px;
   --gt-inspector-w: 300px;
 
   --gt-ease: cubic-bezier(0.2, 0, 0, 1);
-  --gt-dur: 140ms;
+  --gt-dur: 140ms;               /* controls: hover, press, toggles (120–180 ms) */
+  --gt-dur-panel: 200ms;         /* drawers, dialogs and modest entrances (180–240 ms) */
 }
 
 [data-density="compact"] {
@@ -92,8 +93,10 @@
 @media (prefers-reduced-motion: reduce) {
   :root {
     --gt-dur: 0ms;
+    --gt-dur-panel: 0ms;
   }
 }
 [data-motion="reduce"] {
   --gt-dur: 0ms;
+  --gt-dur-panel: 0ms;
 }

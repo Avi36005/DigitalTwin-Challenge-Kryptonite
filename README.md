@@ -8,25 +8,32 @@ high-glucose episode, while showing a clinician exactly what was known at each m
 baseline profile (EHR-like demographics and screening labs) and the glucose and wearable streams together. Every result
 below was measured on recorded CGM data from real people; none comes from simulated patients.
 
-*Hypothetical example (an illustration, not a deployment):* a diabetes educator in Mumbai follows adults with Type 2
-diabetes who wear CGMs between quarterly visits, and opens one person's replay to see the forecasts, any warning and the
-data behind it ([use case](#5-healthcare-use-case)).
+**Who it is for.** A clinician or diabetes educator reviewing adults with Type 2 diabetes who **already wear a CGM**
+between visits. *Illustrative scenario (not a deployment):* before a quarterly review, an educator in Mumbai opens one
+person's replay to see the 30- and 60-minute forecasts, any warning, the data each forecast was allowed to use and,
+later, whether the forecast was right ([use case](#5-healthcare-use-case)). No clinic, partner or pilot is involved, no
+Indian participants were evaluated, and no workload saving or patient benefit is claimed.
 
 ## Results at a glance
 
-Each row names the model and the setting it was evaluated in; they are different models and different tests. Mean
-absolute error (MAE) is in mg/dL, averaged equally over participants: an average error, not an accuracy percentage.
+Three kinds of evidence, kept apart: each group is a different test, and rows in different groups must not be
+compared. Mean absolute error (MAE) in mg/dL, averaged equally over participants (macro), against persistence (the
+last reading carried forward) on the same forecast origins: an average error, not an accuracy percentage.
 
-| Result | Model | Evaluated on |
-|---|---|---|
-| MAE **12.96 / 20.26** at 30 / 60 min (persistence 14.84 / 23.23) | **Demo model**: fusion LightGBM with patient adaptation | Later recordings of the **same 14 CGMacros people it was trained on**; a test over time, not on new patients (retrospective, [details](#7-ai-and-ml-model-details)) |
-| **61 of 64** new high-glucose onsets warned; **40 false alarms, 1.49 per observed patient-day**; median forecast lead 30 min; the warning is active at 11.8 % of eligible times, not an always-on alarm ([time in warning](reports/warning_time_share.md)) | **Demo model**, 60-minute warning | Same as the row above |
-| Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage (the research procedure, calibrated on people held out, covered 80.1 % / 78.8 %; [§7](#7-ai-and-ml-model-details)) | **Demo model** | Same as the row above |
-| MAE **13.88 / 22.30** (persistence 15.34 / 24.47) | Research candidate procedure (Ridge on CGM only, chosen in 4 of 5 folds), **not** the demo model | 14 CGMacros people, **each held out entirely** once (nested experiment) |
-| MAE **11.15 / 20.11** (persistence 12.14 / 20.44; the 60-minute difference is inconclusive) | A separate 15-minute LightGBM, **not** the demo model | **98 ShanghaiT2DM people**, an independent cohort, evaluated once |
-| **Two hours ahead:** MAE **30.6** at 120 min (persistence 35.9; better for 14 of 14 people); 2-hour warning: **315 of 329** onsets at **1.62** false alarms per observed day, median forecast lead 15 min (IQR 5–65); ranges covered 76.5 % (target 80 %) | Research procedure (rule's choice per fold, CGM-only Ridge or LightGBM), **not** the demo model | 14 CGMacros people, **each held out entirely** once; declared before any fit on 20 Oct ([two-hour benchmark](reports/two_hour_benchmark.md), D-043) |
-| **Two hours ahead, independent cohort:** MAE **29.55** at 120 min (persistence 31.68; −2.12 [−2.67, −1.53] mg/dL, better for **78 of 98** people); 10.90 / 19.31 at 30 / 60 min (persistence 12.14 / 20.44); ranges covered 87 % | A 15-minute LightGBM on CGM only, re-fitted with a 120-minute horizon (`gt-2h-ext-2026-10-20`; a separate fit from the row above), **not** the demo model | **98 ShanghaiT2DM people**, assessed once; no 120-minute result had been computed there before (declared before any fit, [external two-hour check](reports/two_hour_external.md), D-045) |
-| **Ranges fixed in the research procedure:** calibrating on all development people instead of 2 per fold brought two-hour coverage from 76.5 % to **79.8 %** (target 80 %; 60 min 78.2 → 79.5 %), ranges 7 mg/dL wider. Tried and **not** shown: earlier two-hour warnings (+0.9 points warned ≥ 30 min ahead, [−5.5, +6.6]) and the health record as a starting correction (−0.53 [−1.57, +0.58] mg/dL at 120 min) | Saved predictions of the two-hour research procedure re-analysed (`gt-warn-range-2026-10-20`), **not** the demo model | Same 14 people held out entirely, already inspected: internal validation; declared and committed before any arm was computed ([report](reports/warning_range_experiment.md), D-046) |
+| Evaluated on | Result (MAE in mg/dL) | Model or procedure | Notes |
+|---|---|---|---|
+| **Serving model — later recordings of the 14 known CGMacros people** | | | |
+| Final 20 % of each recording (a test over time, retrospective) | MAE **12.96 / 20.26** at 30 / 60 min (persistence 14.84 / 23.23) | **Fusion LightGBM + bounded patient correction** — the demo model | **61 of 64** new high-glucose onsets warned; **40 false alarms, 1.49 per observed patient-day**; median forecast lead 30 min; the warning is active at 11.8 % of eligible times. Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage (the research procedure, calibrated on people held out, covered 80.1 % / 78.8 %) |
+| **Participant-held-out research — the 14 CGMacros people, each held out once (internal validation)** | | | |
+| Five participant folds, D-032 | MAE **13.88 / 22.30** (persistence 15.34 / 24.47) | Research candidate procedure (Ridge on CGM only, chosen in 4 of 5 folds), **not served** | Worse than the v2 recipe on readings above 180 |
+| Same folds, D-043 | **Two hours ahead:** MAE **30.6** at 120 min (persistence 35.9; better for 14 of 14 people) | Two-hour research procedure, **not served** | 2-hour warning: **315 of 329** onsets at **1.62** false alarms per observed day, median forecast lead 15 min (IQR 5–65); ranges covered 76.5 % (target 80 %). Pooled calibration (D-046) brought two-hour coverage from 76.5 % to **79.8 %** (target 80 %; 60 min 78.2 → 79.5 %), ranges 7 mg/dL wider — not applied to the demo model |
+| Same folds, D-053 | MAE 13.89 / 22.00 at 30 / 60 min (persistence 15.34 / 24.47) | Peak-aware constrained fusion selection, **not adopted** | Against the serving recipe refitted in the same folds (23.20): −1.19 [−2.09, −0.39] at 60 min, but error above 180 rose 1.07 against a +1.0 limit, so the primary gate was not met |
+| Same 14 people, all origins, D-054 | MAE 14.55 / 22.92 at 30 / 60 min (persistence 15.34 / 24.47) | Zero-shot foundation model (Chronos-Bolt tiny), CGM only, **not served** | Not better than the serving recipe refitted per fold (60 min 22.50); not fine-tuned |
+| **External check — 98 ShanghaiT2DM people, CGM only, never trained on** | | | |
+| D-032: the cohort's first opening | MAE **11.15 / 20.11** (persistence 12.14 / 20.44; the 60-minute difference is inconclusive) | Separate 15-minute LightGBM on CGM only, **not the serving fusion model** | No wearable or labs: it tests the forecasting core, not the fusion |
+| D-045: its first 120-minute assessment, the cohort's second opening | **Two hours ahead, independent cohort:** MAE **29.55** at 120 min (persistence 31.68; −2.12 [−2.67, −1.53] mg/dL, better for **78 of 98** people); 10.90 / 19.31 at 30 / 60 min (persistence 12.14 / 20.44); ranges covered 87 % | The same 15-minute procedure re-fitted with a 120-minute horizon, **not the serving fusion model** | Nothing was chosen on this cohort |
+
+Details, intervals and every negative result: [§7](#7-ai-and-ml-model-details).
 
 Scores depend on the dataset, prediction task and evaluation protocol; performance on simulated patients does not
 establish performance on real patients.
@@ -283,7 +290,8 @@ warning threshold derived for the selected model, differ:
 * Correction history: v1 (`gt-primary-2026-10-11-v1`, declared before fitting) gave 13.32 / 21.20 mg/dL with 26 false
   alarms; its activity features counted up to 65 minutes in a 60-minute window. v2 (13.15 / 20.81) fixed that. v1 and v2
   artifacts and reports are preserved ([`reports/archive/`](reports/archive/)).
-* Not run: the optional Chronos-Bolt foundation-model track.
+* Foundation models: the optional Chronos track was not run in this experiment; a separate zero-shot baseline was run
+  later as research (D-054, below).
 
 ### What the profile fusion does and does not show
 
@@ -398,6 +406,38 @@ difference is −0.65 [−1.41, +0.07], 8 of 14 — not established. The declare
 not adopted and the demo model is unchanged. These 14 people were inspected in earlier experiments and the hypothesis
 followed earlier results: internal evidence, not independent confirmation ([report](reports/tune_study.md)).
 
+**Joint selection: better on average, worse on peaks — not adopted** (`gt-joint-2026-10-21`, D-052, declared before
+any fit; 1,570 fresh fits, LightGBM and CatBoost). Inside each held-out fold, model settings and patient correction were
+chosen together on the personalised error and the model family chosen on development people only. Result on the 14
+people each held out once: personalised 60-minute error 21.62 mg/dL for the selected procedure vs 22.50 for the refitted serving recipe (S − R0 −0.88 [−1.75, −0.13]); primary gate not met; release guardrails not met; candidate 80 % range covered 78.4 % at 60 min. The average gain cleared its size and interval bars and 30-minute error fell
+0.50 mg/dL, but 60-minute error on readings above 180 mg/dL rose 1.70 mg/dL (limit 1.0); the 60-minute warning caught
+more onsets early (34 % of all onsets ≥ 30 min ahead vs 19 %) at 0.60 more false alarms per observed day and 5.4 points
+more time in warning, beyond the declared limits. So the demo model is unchanged; previously inspected people, internal
+validation ([report](reports/joint_study.md)).
+
+**A zero-shot foundation model: better than persistence, not better than our recipe** (`gt-foundation-2026-10-21`,
+D-054, declared before any participant forecast). The public `amazon/chronos-bolt-tiny` checkpoint (pinned revision,
+Apache-2.0) forecast from each origin's past CGM readings alone, with no fine-tuning and no profile or wearable input.
+On identical origins of the same 14 people its 60-minute error was 22.92 mg/dL against 24.47 for persistence (−1.54
+[−1.81, −1.30], lower for 14 of 14) and 22.50 for the serving recipe refitted with each person held out (+0.42 [−0.70,
++1.47]: not better), and it was clearly worse on readings above 180. A declared secondary — the foundation forecast plus
+a fresh LightGBM residual on the served inputs — scored −0.46 [−0.72, −0.21] against the same-code refit: descriptive
+only, below the −0.5 bar used for D-052, and not a release candidate. Its pretraining data may include public CGM
+recordings. Internal comparison on previously inspected people ([report](reports/foundation_baseline.md)).
+
+**Peak-aware constrained selection: a near miss, not adopted** (`gt-constrained-2026-10-21`, D-053, protocol
+declared before any formal fit; 1,490 fresh fits, LightGBM and CatBoost). Inside each held-out fold, model settings, a
+training weight on future readings above 180 mg/dL and the patient correction were chosen on development people only,
+and 60-minute candidates that worsened errors above 180 were filtered out. On the 14 people each held out once: D-053
+personalised 60-minute error 22.00 mg/dL for the selected procedure vs 23.20 for the serving recipe refitted in the same
+folds (S − R0 −1.19 [−2.09, −0.39], lower for 11 of 14); 30-minute change −0.50; error on readings above 180 changed by
++1.07 mg/dL against a declared limit of +1.0, so the primary gate was not met. The warning guardrails passed against the
+refitted recipe at its own development-chosen threshold (1.15 vs 1.20 false alarms per observed day; 21.9 % vs 16.4 % of
+onsets warned at least 30 minutes ahead), and the exact predictor's 80 % ranges covered 79.4 % / 77.3 % at 30 / 60 min,
+passing the range guardrails. Because one declared gate failed, nothing was adopted and the demo model is unchanged. These
+people were inspected in earlier studies, so this is internal validation; absolute errors are not comparable with D-052's
+(fewer fitting people per fold), only the matched comparison is ([report](reports/constrained_study.md)).
+
 **Serving ranges: a candidate, not switched** (`gt-ranges-2026-10-21`, D-050, declared before any candidate was
 computed; point forecasts unchanged). A range per glucose trend did not pass its pre-test rule, so the single range per
 horizon is kept. Calibrated on the validation and calibration segments together instead of the calibration segment
@@ -417,8 +457,9 @@ Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · 
 * The challenge page requires a **minimum 20-minute video** (rechecked 14 Oct 2026); target 20:30 so neither the
   rendered file nor YouTube's displayed duration falls below 20:00. The actual rendered and YouTube-displayed durations
   will be recorded here after upload.
-* Recording plan with chapter timestamps: [`docs/demo_script.md`](docs/demo_script.md); replay sequence verified
-  against the running app: [`reports/demo_sequence.md`](reports/demo_sequence.md).
+* Script with scene timings, clicks, expected on-screen values and a recording checklist:
+  [`docs/demo_script.md`](docs/demo_script.md) ([PDF](docs/submission/GlucoTwin_Demo_Script.pdf)); replay sequence
+  verified against the running app: [`reports/demo_sequence.md`](reports/demo_sequence.md).
 
 ## 9. Open-source license
 
@@ -609,7 +650,8 @@ Grouped index with one line per document: **[`docs/README.md`](docs/README.md)**
   [Time in warning](reports/warning_time_share.md) · [Cold-start profile](reports/cold_start_profile.md) ·
   [Warnings, ranges and profile re-analysis](reports/warning_range_experiment.md) · [Model blend (negative)](reports/blend_experiment.md) · [Retraining study (negative)](reports/retrain_study.md) · [Serving parity](reports/serving_parity.md) ·
   [Serving ranges study](reports/serving_ranges_study.md) · [Warning notice](reports/warning_utility.md) ·
-  [Tuned retraining](reports/tune_study.md) ·
+  [Tuned retraining](reports/tune_study.md) · [Joint selection](reports/joint_study.md) ·
+  [Constrained selection](reports/constrained_study.md) · [Foundation baseline](reports/foundation_baseline.md) · [Data opportunity check](reports/data_opportunity_2026-10-21.md) ·
   [Error by glucose trend](reports/error_by_trend.md) · [Evidence manifest](reports/evidence_manifest.md) · [Review summary check](reports/review_summary_check.md) · [Judge guide](docs/judge_guide.md) · [Screenshots](reports/ui/README.md)
 * **Submission:** [Checklist](docs/submission_checklist.md) · [Access audit](docs/submission_access_audit.md) ·
   [Team details](docs/team_details.md) · [Demo script](docs/demo_script.md) ·

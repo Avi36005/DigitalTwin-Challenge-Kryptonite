@@ -1,0 +1,52 @@
+
+> @glucotwin/web@0.1.0 test
+> vitest run --reporter=default --reporter=junit --outputFile.junit=~/projects/Digitaltwin/.claude/worktrees/qa/reports/verification/overnight/integrated/junit/vitest.xml
+
+
+ RUN  v5.0.3 ~/projects/Digitaltwin/.claude/worktrees/qa/apps/web
+
+ ✓ src/lib/explain.test.ts (6 tests) 4ms
+ ✓ src/lib/evidence.test.ts (10 tests) 8ms
+ ✓ src/lib/queue.test.ts (12 tests) 5ms
+ ✓ src/components/review/snapshot.test.ts (10 tests) 10ms
+ ✓ src/components/twin/Panels.test.tsx (24 tests) 248ms
+ ✓ src/components/review/ReviewSummary.test.tsx (5 tests) 351ms
+ ✓ src/lib/outcome.test.ts (5 tests) 5ms
+ ✓ src/pages/ReviewQueuePage.test.tsx (9 tests) 391ms
+stderr | src/state/replay.test.tsx > revision-keyed caches > rejects a late response that belongs to an older revision of the session
+An update to Probe inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/state/deployment.test.tsx (12 tests) 306ms
+stderr | src/state/replay.test.tsx > replay controls > recovers visibly from a failed control command and allows retry
+The current testing environment is not configured to support act(...)
+
+ ✓ src/state/replay.test.tsx (3 tests) 246ms
+ ✓ src/components/evidence/ResearchAfterDemo.test.tsx (5 tests) 213ms
+ ✓ src/lib/trendAccuracy.test.ts (3 tests) 5ms
+ ✓ src/components/twin/WarningReview.test.tsx (9 tests) 871ms
+ ✓ src/components/twin/TwinExplanation.test.tsx (3 tests) 89ms
+ ✓ src/lib/chart.test.ts (5 tests) 2ms
+ ✓ src/lib/routes.test.tsx (7 tests) 384ms
+ ✓ src/lib/researchSummaries.test.ts (2 tests) 2ms
+ ✓ src/lib/snapshot.test.ts (3 tests) 1ms
+
+ Test Files  18 passed (18)
+      Tests  133 passed (133)
+   Start at  03:33:46
+   Duration  1.93s (environment 51%, tests 22%, import 10%, transform 10%, setup 7%, worker 1%)
+
+Environment  jsdom was created 18 times · 7.18s total, 51% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+JUNIT report written to ~/projects/Digitaltwin/.claude/worktrees/qa/reports/verification/overnight/integrated/junit/vitest.xml
+$ (cd ~/projects/Digitaltwin/.claude/worktrees/qa/apps/web && npm test -- --reporter=default --reporter=junit --outputFile.junit=~/projects/Digitaltwin/.claude/worktrees/qa/reports/verification/overnight/integrated/junit/vitest.xml)

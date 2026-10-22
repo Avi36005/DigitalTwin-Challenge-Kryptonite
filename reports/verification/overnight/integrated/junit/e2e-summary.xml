@@ -1,0 +1,10 @@
+<testsuites id="" name="" tests="3" failures="0" skipped="0" errors="0" time="19.620427">
+<testsuite name="review-summary-export.spec.ts" timestamp="2026-10-21T22:06:00.075Z" hostname="chromium" tests="3" failures="0" skipped="0" time="18.043" errors="0">
+<testcase name="Participant 01, Day 9 20:38: a pending warning with a long review note; the copy stays frozen" classname="review-summary-export.spec.ts" time="7.032">
+</testcase>
+<testcase name="Participant 12: stale glucose before the gap closes, then abstention" classname="review-summary-export.spec.ts" time="9.641">
+</testcase>
+<testcase name="synthetic participant with a missing health-record value" classname="review-summary-export.spec.ts" time="1.37">
+</testcase>
+</testsuite>
+</testsuites>

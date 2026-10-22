@@ -47,8 +47,21 @@
 @media print {
   body > *:not(.review-print-root) { display: none !important; }
   .review-print-root { display: block !important; padding: 0; }
-  .review-print-root .review-doc { font-size: 10.5pt; color: #000; }
-  .review-print-root .review-doc__sec,
+  .review-print-root .review-doc { font-size: 10.5pt; line-height: 1.45; color: #000; orphans: 3; widows: 3; }
+  .review-print-root .review-doc__title { font-size: 15pt; letter-spacing: -0.01em; }
+  .review-print-root .review-doc__kicker,
+  .review-print-root .review-doc__meta dt,
+  .review-print-root .review-doc__note,
+  .review-print-root .review-doc__tag,
+  .review-print-root .review-doc__table th { color: #333; }
+  .review-print-root .review-doc__sec h4 { font-size: 11pt; break-after: avoid; page-break-after: avoid; }
+  .review-print-root .review-doc__head { break-after: avoid; }
+  .review-print-root .review-doc__table thead { display: table-header-group; }
+  .review-print-root .review-doc__table th,
+  .review-print-root .review-doc__table td { border-bottom-color: #bbb; }
+  .review-print-root .review-doc__foot { font-size: 8.5pt; color: #444; }
+  /* sections may break across pages (a long warning list would otherwise leave page 1 half empty); single warnings,
+     guardrails, table rows and section headings stay whole */
   .review-print-root .review-doc__warnings li,
   .review-print-root .review-doc__guards li,
   .review-print-root .review-doc__table tr { break-inside: avoid; }

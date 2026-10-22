@@ -11,6 +11,9 @@
    "artifact": "artifacts/registry.json",
    "report": "README.md §7",
    "split_hash": "—",
+   "artifact_sha256": {
+    "artifacts/registry.json": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -32,6 +35,9 @@
    "artifact": "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json",
    "report": "reports/evaluation_report.md",
    "split_hash": "—",
+   "artifact_sha256": {
+    "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -71,6 +77,9 @@
    "artifact": "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json",
    "report": "reports/evaluation_report.md",
    "split_hash": "—",
+   "artifact_sha256": {
+    "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -116,6 +125,9 @@
    "artifact": "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet (via scripts/warning_time_share.py)",
    "report": "reports/warning_time_share.md",
    "split_hash": "—",
+   "artifact_sha256": {
+    "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet": "1a5a7164fd8d17f36a4248a5a9f30f2dfee53b30b010ca62fab30df8c77b1778"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -137,6 +149,10 @@
    "artifact": "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json; artifacts/research/gt-nested-2026-10-12-v1/report.json",
    "report": "reports/evaluation_report.md; reports/nested_benchmark_report.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9",
+    "artifacts/research/gt-nested-2026-10-12-v1/report.json": "368c28117b15d8092b555cf31176aabdd9d8f3bc3bf5137097ef1ce6fec6466b"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -176,6 +192,9 @@
    "artifact": "artifacts/research/gt-nested-2026-10-12-v1/report.json",
    "report": "reports/nested_benchmark_report.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-nested-2026-10-12-v1/report.json": "368c28117b15d8092b555cf31176aabdd9d8f3bc3bf5137097ef1ce6fec6466b"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -221,6 +240,9 @@
    "artifact": "artifacts/research/gt-nested-2026-10-12-v1/report.json",
    "report": "reports/nested_benchmark_report.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-nested-2026-10-12-v1/report.json": "368c28117b15d8092b555cf31176aabdd9d8f3bc3bf5137097ef1ce6fec6466b"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -266,6 +288,9 @@
    "artifact": "artifacts/research/gt-nested-2026-10-12-v1/report.json",
    "report": "reports/nested_benchmark_report.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-nested-2026-10-12-v1/report.json": "368c28117b15d8092b555cf31176aabdd9d8f3bc3bf5137097ef1ce6fec6466b"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -293,6 +318,9 @@
    "artifact": "artifacts/research/gt-2h-2026-10-20/two_hour_summary.json",
    "report": "reports/two_hour_benchmark.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-2h-2026-10-20/two_hour_summary.json": "5d09f6be55284246f450ae2093a700162aa9c0a6cbfcf3fbd3d7f65191fdc8ed"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -356,6 +384,9 @@
    "artifact": "artifacts/research/gt-2h-ext-2026-10-20/two_hour_external_summary.json",
    "report": "reports/two_hour_external.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-2h-ext-2026-10-20/two_hour_external_summary.json": "58a1ba2570f9fe0026d918d914a11fc508b5083d03ce357bcecfe500220633ee"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -413,6 +444,9 @@
    "artifact": "artifacts/research/gt-2h-clf-2026-10-20/summary.json",
    "report": "reports/two_hour_classifier.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-2h-clf-2026-10-20/summary.json": "6953c8edf48886d49461beae2929cd111af4eea44e40e03615a383d9f5e81a52"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -452,6 +486,9 @@
    "artifact": "artifacts/research/gt-warn-range-2026-10-20/summary.json",
    "report": "reports/warning_range_experiment.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-warn-range-2026-10-20/summary.json": "cd3ea85aaca21f3765a2e9b12d0be3118c1c19e7a788b6d5d6809ccf03c421bb"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -497,6 +534,9 @@
    "artifact": "artifacts/research/gt-warn-range-2026-10-20/summary.json",
    "report": "reports/warning_range_experiment.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-warn-range-2026-10-20/summary.json": "cd3ea85aaca21f3765a2e9b12d0be3118c1c19e7a788b6d5d6809ccf03c421bb"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -530,6 +570,9 @@
    "artifact": "artifacts/research/gt-warn-range-2026-10-20/summary.json",
    "report": "reports/warning_range_experiment.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-warn-range-2026-10-20/summary.json": "cd3ea85aaca21f3765a2e9b12d0be3118c1c19e7a788b6d5d6809ccf03c421bb"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -557,6 +600,9 @@
    "artifact": "reports/dataset_inventory.json",
    "report": "reports/dataset_expansion_audit.md",
    "split_hash": "—",
+   "artifact_sha256": {
+    "reports/dataset_inventory.json": "b5f5be6fc38ef245a4dd8bc133d1f87f46c746c36517c02b58fff7d77ae90b88"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -590,6 +636,9 @@
    "artifact": "artifacts/research/gt-ranges-2026-10-21/summary.json",
    "report": "reports/serving_ranges_study.md",
    "split_hash": "—",
+   "artifact_sha256": {
+    "artifacts/research/gt-ranges-2026-10-21/summary.json": "181b8c28e242361beeda778b2f9baa4b7a1091cf66e2e14b7a178682de8df7fd"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -623,6 +672,9 @@
    "artifact": "artifacts/research/gt-tune-2026-10-21/summary.json",
    "report": "reports/tune_study.md",
    "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-tune-2026-10-21/summary.json": "fa860b4c52b4ddbf583de4bfc3ce57e24ca2a10aaee5aaffbd25c71ff2969bd7"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -658,6 +710,242 @@
    ]
   },
   {
+   "id": "joint-d052-forecast",
+   "claim": "Joint model + correction selection vs the refitted serving recipe (D-052)",
+   "model": "nested selected procedure S (family J0/J1/J2 chosen inside each fold) vs refitted serving recipe R0; research candidate, not serving",
+   "population": "14 CGMacros Type 2 people, each held out once (previously inspected)",
+   "horizon": "60 min",
+   "type": "participant-held-out internal (research candidate)",
+   "protocol": "configs/experiments/gt-joint-2026-10-21.yaml",
+   "artifact": "artifacts/research/gt-joint-2026-10-21/summary.json",
+   "report": "reports/joint_study.md",
+   "pending_readme": true,
+   "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-joint-2026-10-21/summary.json": "0feafab67e20ce254f0c6e89e6f6d6a8b3a66d0019d28d2786e03ffc75312bdb"
+   },
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "S 60-min personalised MAE",
+     "artifact": "21.62",
+     "readme": "21.62",
+     "result": "matches"
+    },
+    {
+     "label": "R0 60-min personalised MAE (refitted serving recipe)",
+     "artifact": "22.50",
+     "readme": "22.50",
+     "result": "matches"
+    },
+    {
+     "label": "S − R0 at 60 min (participant bootstrap)",
+     "artifact": "−0.88 [−1.75, −0.13]",
+     "readme": "−0.88 [−1.75, −0.13]",
+     "result": "matches"
+    },
+    {
+     "label": "primary gate",
+     "artifact": "not met",
+     "readme": "not met",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "joint-d052-operational",
+   "claim": "D-052 candidate: warning release guardrails and 80 % range coverage",
+   "model": "nested selected procedure S, thresholds chosen on inner folds, ranges on calibration people; research candidate",
+   "population": "14 CGMacros Type 2 people, each held out once (previously inspected)",
+   "horizon": "60 min",
+   "type": "participant-held-out internal (research candidate)",
+   "protocol": "configs/experiments/gt-joint-2026-10-21.yaml",
+   "artifact": "artifacts/research/gt-joint-2026-10-21/summary.json",
+   "report": "reports/joint_study.md",
+   "pending_readme": true,
+   "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-joint-2026-10-21/summary.json": "0feafab67e20ce254f0c6e89e6f6d6a8b3a66d0019d28d2786e03ffc75312bdb"
+   },
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "release guardrails vs R0",
+     "artifact": "not met",
+     "readme": "not met",
+     "result": "matches"
+    },
+    {
+     "label": "candidate 80 % range coverage, 60 min",
+     "artifact": "78.4",
+     "readme": "78.4",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "constrained-d053",
+   "claim": "Peak-aware constrained selection vs the refitted serving recipe: primary gate not met, not adopted (D-053)",
+   "model": "nested selected procedure S (LightGBM/CatBoost, future-high weight, correction chosen inside each fold) vs R0 refitted in the same folds; research, not serving",
+   "population": "14 CGMacros Type 2 people, each held out once (previously inspected)",
+   "horizon": "30, 60 min",
+   "type": "participant-held-out internal (research candidate)",
+   "protocol": "configs/experiments/gt-constrained-2026-10-21.yaml",
+   "artifact": "artifacts/research/gt-constrained-2026-10-21/summary.json",
+   "report": "reports/constrained_study.md",
+   "split_hash": "e3695ca98334",
+   "artifact_sha256": {
+    "artifacts/research/gt-constrained-2026-10-21/summary.json": "d5385c8859b58494541d775b8846e422ad8de48c69b520365ec325f594cf7e14"
+   },
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "S 60-min personalised MAE",
+     "artifact": "22.00",
+     "readme": "22.00",
+     "result": "matches"
+    },
+    {
+     "label": "R0 60-min personalised MAE (refitted in the same folds)",
+     "artifact": "23.20",
+     "readme": "23.20",
+     "result": "matches"
+    },
+    {
+     "label": "S − R0 at 60 min (participant bootstrap)",
+     "artifact": "−1.19 [−2.09, −0.39]",
+     "readme": "−1.19 [−2.09, −0.39]",
+     "result": "matches"
+    },
+    {
+     "label": "people better at 60 min",
+     "artifact": "11",
+     "readme": "11",
+     "result": "matches"
+    },
+    {
+     "label": "30-min change",
+     "artifact": "−0.50",
+     "readme": "−0.50",
+     "result": "matches"
+    },
+    {
+     "label": "high-target change at 60 min",
+     "artifact": "+1.07",
+     "readme": "+1.07",
+     "result": "matches"
+    },
+    {
+     "label": "primary gate",
+     "artifact": "not met",
+     "readme": "not met",
+     "result": "matches"
+    },
+    {
+     "label": "false alarms per observed day, S",
+     "artifact": "1.15",
+     "readme": "1.15",
+     "result": "matches"
+    },
+    {
+     "label": "false alarms per observed day, R0-P",
+     "artifact": "1.20",
+     "readme": "1.20",
+     "result": "matches"
+    },
+    {
+     "label": "onsets warned ≥ 30 min ahead, S",
+     "artifact": "21.9",
+     "readme": "21.9",
+     "result": "matches"
+    },
+    {
+     "label": "onsets warned ≥ 30 min ahead, R0-P",
+     "artifact": "16.4",
+     "readme": "16.4",
+     "result": "matches"
+    },
+    {
+     "label": "operational gate",
+     "artifact": "passed",
+     "readme": "passed",
+     "result": "matches"
+    },
+    {
+     "label": "range coverage 30 min",
+     "artifact": "79.4",
+     "readme": "79.4",
+     "result": "matches"
+    },
+    {
+     "label": "range coverage 60 min",
+     "artifact": "77.3",
+     "readme": "77.3",
+     "result": "matches"
+    }
+   ]
+  },
+  {
+   "id": "foundation-d054",
+   "claim": "Zero-shot foundation baseline (CGM only) vs persistence and the refitted recipe (D-054)",
+   "model": "amazon/chronos-bolt-tiny zero-shot median (pinned revision), not fine-tuned, not served; F1 residual descriptive",
+   "population": "14 CGMacros Type 2 people, all issued origins (previously inspected)",
+   "horizon": "60 min",
+   "type": "internal comparison (research baseline)",
+   "protocol": "configs/experiments/gt-foundation-2026-10-21.yaml",
+   "artifact": "artifacts/research/gt-foundation-2026-10-21/summary.json",
+   "report": "reports/foundation_baseline.md",
+   "split_hash": "—",
+   "artifact_sha256": {
+    "artifacts/research/gt-foundation-2026-10-21/summary.json": "ebf2a2e6cb4bc2dcba531d23fdad6fad71f4e849933ee9537690bb6f939cf4e7"
+   },
+   "status": "matches artifact",
+   "checks": [
+    {
+     "label": "foundation 60-min MAE",
+     "artifact": "22.92",
+     "readme": "22.92",
+     "result": "matches"
+    },
+    {
+     "label": "persistence 60-min MAE (identical origins)",
+     "artifact": "24.47",
+     "readme": "24.47",
+     "result": "matches"
+    },
+    {
+     "label": "foundation − persistence",
+     "artifact": "−1.54 [−1.81, −1.30]",
+     "readme": "−1.54 [−1.81, −1.30]",
+     "result": "matches"
+    },
+    {
+     "label": "people better than persistence",
+     "artifact": "14",
+     "readme": "14",
+     "result": "matches"
+    },
+    {
+     "label": "refitted serving recipe 60-min MAE (saved D-052 R0)",
+     "artifact": "22.50",
+     "readme": "22.50",
+     "result": "matches"
+    },
+    {
+     "label": "foundation − refitted recipe",
+     "artifact": "+0.42 [−0.70, +1.47]",
+     "readme": "+0.42 [−0.70, +1.47]",
+     "result": "matches"
+    },
+    {
+     "label": "F1 residual − same-code refit (descriptive)",
+     "artifact": "−0.46 [−0.72, −0.21]",
+     "readme": "−0.46 [−0.72, −0.21]",
+     "result": "matches"
+    }
+   ]
+  },
+  {
    "id": "parity",
    "claim": "App replay reproduced all 15,440 saved test forecasts within 0.05 mg/dL",
    "model": "demo model online (TwinEngine) vs offline",
@@ -668,6 +956,9 @@
    "artifact": "reports/serving_parity.json",
    "report": "reports/serving_parity.md",
    "split_hash": "—",
+   "artifact_sha256": {
+    "reports/serving_parity.json": "d43b660ed9cc0189f9f5b34b6e997ce700339ddea80c1a60657519b06ea49664"
+   },
    "status": "matches artifact",
    "checks": [
     {
@@ -695,6 +986,9 @@
    "artifact": "artifacts/registry.json",
    "report": "README.md (Public demonstration)",
    "split_hash": "—",
+   "artifact_sha256": {
+    "artifacts/registry.json": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c"
+   },
    "status": "matches artifact",
    "checks": [
     {

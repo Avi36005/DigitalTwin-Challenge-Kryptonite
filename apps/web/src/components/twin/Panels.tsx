@@ -5,8 +5,10 @@ import {
   BellRing,
   CircleCheck,
   CircleDashed,
+  CircleX,
   Gauge,
   Info,
+  TimerOff,
   TriangleAlert,
 } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
@@ -131,7 +133,7 @@ export function GlucoseSummary({ session, events, latest, twin, loading, eventsL
               <p className="summary__value num">{fmtGlucose(last.values.value as number)}<span className="summary__unit">mg/dL</span></p>
               <p className="summary__meta">
                 Observed <span className="num">{replayTime(last.observed_at)}</span>
-                {stale ? <> · <StatusLabel tone="attention">Stale · {durationLabel(age)} old</StatusLabel></>
+                {stale ? <> · <StatusLabel tone="attention" icon={TimerOff}>Stale · {durationLabel(age)} old</StatusLabel></>
                   : <> · {durationLabel(age)} old</>}
               </p>
               {trend && TrendIcon && (
@@ -153,7 +155,8 @@ export function GlucoseSummary({ session, events, latest, twin, loading, eventsL
         ))}
       </div>
       {why && why.kind !== "loading" && (
-        <InlineNotice tone={why.kind === "stale" ? "attention" : "neutral"} icon={why.kind === "model" ? TriangleAlert : Info} role="status">
+        <InlineNotice tone={why.kind === "stale" ? "attention" : "neutral"} role="status"
+          icon={why.kind === "model" ? TriangleAlert : why.kind === "stale" ? TimerOff : why.kind === "abstained" ? CircleDashed : Info}>
           <strong>{why.title}</strong> — {why.detail} <span className="muted">Unavailable is not the same as low risk.</span>
         </InlineNotice>
       )}
@@ -178,8 +181,8 @@ function ForecastItem({ h, f, latest, loading }: { h: number; f: Forecast | null
           </p>
           <p className="summary__meta">
             For <span className="num">{replayTime(e.target_at)}</span> · issued <span className="num">{replayTime(f.as_of, { day: false })}</span>
-            {latest?.availability === "stale" && <> · <StatusLabel tone="attention">Stale</StatusLabel></>}
-            {f.quality.status === "degraded" && <> · <StatusLabel tone="attention">Degraded data</StatusLabel></>}
+            {latest?.availability === "stale" && <> · <StatusLabel tone="attention" icon={TimerOff}>Stale</StatusLabel></>}
+            {f.quality.status === "degraded" && <> · <StatusLabel tone="attention" icon={TriangleAlert}>Degraded data</StatusLabel></>}
           </p>
         </>
       ) : (
@@ -572,7 +575,8 @@ function Outcome({ a }: { a: Alert }) {
   if (o.status === "onset_observed") {
     const episode = o.episode_start_to_onset_minutes ?? o.lead_time_minutes;
     return (
-      <span className="warn__outcome">
+      <span className="warn__outcome warn__outcome--onset cue">
+        <CircleCheck size={14} aria-hidden strokeWidth={2} />
         Onset {o.onset_at ? replayTime(o.onset_at, { day: false }) : ""}
         {o.qualified_lead_minutes != null ? <> · forecast lead {Math.round(o.qualified_lead_minutes)} min</> : null}
         {episode != null && (o.qualified_lead_minutes == null || Math.round(episode) !== Math.round(o.qualified_lead_minutes))
@@ -580,8 +584,12 @@ function Outcome({ a }: { a: Alert }) {
       </span>
     );
   }
-  if (o.status === "no_onset_observed") return <span className="warn__outcome">No onset (false alarm)</span>;
-  if (o.status === "unknown") return <span className="warn__outcome warn__outcome--muted">Outcome unknown (gap)</span>;
+  if (o.status === "no_onset_observed") {
+    return <span className="warn__outcome warn__outcome--false cue"><CircleX size={14} aria-hidden strokeWidth={2} />No onset (false alarm)</span>;
+  }
+  if (o.status === "unknown") {
+    return <span className="warn__outcome warn__outcome--muted cue"><TimerOff size={14} aria-hidden strokeWidth={2} />Outcome unknown (gap)</span>;
+  }
   return <StatusLabel tone="attention">Outcome pending</StatusLabel>;
 }
 

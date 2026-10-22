@@ -193,7 +193,9 @@ also credit one onset to two warnings; the offline metrics were not affected by 
 * The warning score is uncalibrated, and its threshold rule ignores review workload.
 * The research event threshold is not a triage rule.
 * The test segment had already been inspected before the corrected run and before the fusion constraint.
-* The optional Chronos-Bolt research track was not run.
+* No foundation model was part of this experiment. A separate zero-shot Chronos-Bolt-tiny baseline on CGM only was run
+  later as research (D-054): better than persistence, not better than the serving recipe refitted per fold, not
+  fine-tuned and not served ([report](../reports/foundation_baseline.md)).
 
 ## Ethics and licensing
 
@@ -282,3 +284,9 @@ each person scored once (30 seeded trials per horizon, each sampling 300, 600 or
 refitted serving recipe −0.65 [−1.41, +0.07], 8 of 14 (not established); below the declared −0.5 bar, so not adopted ([report](../reports/tune_study.md)). Ranges (D-050): the served global
 range is kept; calibrated on validation + calibration it covered 77.9 % / 78.7 % on the inspected test segment,
 reported as a candidate only ([report](../reports/serving_ranges_study.md)).
+
+**Joint selection — `gt-joint-2026-10-21` (D-052, not serving).** Settings and correction chosen together on the
+personalised error, family (LightGBM current features / + history / CatBoost + history) chosen inside each fold:
+60-min MAE 21.62 vs 22.50 for the refitted serving recipe (−0.88 [−1.75, −0.13]); 30 min −0.50; but error on targets
+above 180 mg/dL +1.70 (limit 1.0) and more false alarms (+0.60/day) and time in warning (+5.4 pt) — gates not met, not
+adopted ([report](../reports/joint_study.md)).

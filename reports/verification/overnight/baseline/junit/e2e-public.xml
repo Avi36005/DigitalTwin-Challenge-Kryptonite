@@ -1,0 +1,12 @@
+<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="7.875979">
+<testsuite name="public-demo.spec.ts" timestamp="2026-10-21T16:07:26.894Z" hostname="chromium" tests="4" failures="0" skipped="0" time="3.657" errors="0">
+<testcase name="a fresh visitor sees the public synthetic demonstration, labelled as such" classname="public-demo.spec.ts" time="0.228">
+</testcase>
+<testcase name="replay, forecasts and warnings work, and a refresh keeps the replay" classname="public-demo.spec.ts" time="1.939">
+</testcase>
+<testcase name="two simultaneous visitors cannot see or control each other&apos;s replays" classname="public-demo.spec.ts" time="1.036">
+</testcase>
+<testcase name="evidence pages and their in-app links load" classname="public-demo.spec.ts" time="0.454">
+</testcase>
+</testsuite>
+</testsuites>

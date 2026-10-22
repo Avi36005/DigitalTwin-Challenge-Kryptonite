@@ -1,0 +1,22 @@
+ M reports/ui/01-twin-workspace-synthetic.png
+ M reports/ui/02-missing-and-stale-data.png
+ M reports/ui/03-forecast-with-interval-recorded.png
+ M reports/ui/04-forecast-evidence-dialog.png
+ M reports/ui/08-recording-1920-warning-pending.png
+ M reports/ui/09-recording-1920-recorded-gap-stale.png
+ M reports/ui/12-overview.png
+ M reports/ui/20-review-queue.png
+ M reports/ui/25-forecast-outcome.png
+ M reports/ui/journey/01-inputs-read-by-the-model.png
+ M reports/ui/journey/02-forecast-components.png
+ M reports/ui/journey/03-forecast-outcome.png
+ M reports/ui/journey/04-warnings-hit-and-false-alarm.png
+ M reports/ui/journey/05-frozen-review-summary.png
+ M reports/ui/journey/06-gap-abstention.png
+ M reports/ui/journey/06b-gap-recovery.png
+ M reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf
+?? reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf
+?? reports/ui/summary_check/p12-day9-1050-stale.pdf
+?? reports/ui/summary_check/p12-day9-1145-abstained.pdf
+?? reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf
+?? reports/verification/
