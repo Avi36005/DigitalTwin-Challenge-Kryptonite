@@ -2962,6 +2962,7 @@ fieldset.field {
 .outcome-state[data-state="partial"] svg {
   color: var(--gt-attention-mark);
 }
-.outcome-state[data-state="unknown"] svg {
+.outcome-state[data-state="unknown"] svg,
+.outcome-state[data-state="mixed"] svg {
   color: var(--gt-text-3);
 }

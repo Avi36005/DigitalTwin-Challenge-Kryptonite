@@ -115,22 +115,32 @@ export function ForecastDetail({ f, patient, report, open, onClose, publicDemo =
   );
 }
 
-/** One line above the per-horizon outcomes: pending, partly observed, resolved or unknown, judged at the replay clock. */
+/**
+ * One line above the per-horizon outcomes, judged at the replay clock. "Partly observed" needs at least one observed
+ * horizon; with none observed the line stays neutral and names any target that has no reading (a sensor gap).
+ */
 function OutcomeState({ f, events, clock }: { f: Forecast; events: ObservationEvent[]; clock: number }) {
   const all = f.estimates.map((e) => ({ e, o: horizonOutcome(e, events, clock) }));
   const pending = all.filter((x) => x.o.state === "pending");
   const unknown = all.filter((x) => x.o.state === "unknown");
   const observed = all.filter((x) => x.o.state === "observed");
-  const due = (xs: typeof all) => xs.map((x) => `${x.e.horizon_minutes} min, due ${replayTime(x.e.target_at, { day: false })}`).join("; ");
-  const [state, Icon, title, text] = pending.length === all.length
-    ? ["pending", Clock, "Pending", `No outcome is observed yet at this replay time (${due(pending)}).`] as const
-    : pending.length > 0
-      ? ["partial", Clock, "Partly observed", `${observed.length} of ${all.length} horizons observed; still pending: ${due(pending)}.`] as const
-      : unknown.length === all.length
-        ? ["unknown", TimerOff, "Outcome unknown", "No reading near either target time (sensor gap)."] as const
-        : ["resolved", CircleCheck, "Observed", unknown.length
-          ? `${observed.length} of ${all.length} horizons observed; no reading near the other target time.`
-          : "Every horizon has an observed reading at this replay time."] as const;
+  const at = (x: (typeof all)[number]) => replayTime(x.e.target_at, { day: false });
+  const due = (xs: typeof all) => xs.map((x) => `${x.e.horizon_minutes} min, due ${at(x)}`).join("; ");
+  const gap = unknown.length === 0 ? ""
+    : ` No reading near the ${unknown.map((x) => `${x.e.horizon_minutes}-minute target (${at(x)})`).join(" or ")}, so ${unknown.length === 1 ? "that outcome is" : "those outcomes are"} unknown.`;
+  const [state, Icon, title, text] = all.length === 0
+    ? ["unknown", TimerOff, "No outcome", "This forecast has no horizon estimates to compare with a reading."] as const
+    : pending.length === all.length
+      ? ["pending", Clock, "Pending", `No outcome is observed yet at this replay time (${due(pending)}).`] as const
+      : pending.length > 0 && observed.length > 0
+        ? ["partial", Clock, "Partly observed", `${observed.length} of ${all.length} horizons observed; still pending: ${due(pending)}.${gap}`] as const
+        : pending.length > 0
+          ? ["pending", Clock, "Pending", `No outcome is observed yet at this replay time.${gap} Still pending: ${due(pending)}.`] as const
+          : unknown.length === all.length
+            ? ["unknown", TimerOff, "Outcome unknown", `No reading near ${all.length === 1 ? "the target time" : "any target time"} (sensor gap).`] as const
+            : unknown.length > 0
+              ? ["mixed", TimerOff, "Some outcomes observed", `${observed.length} of ${all.length} horizons observed.${gap}`] as const
+              : ["resolved", CircleCheck, "Observed", "Every horizon has an observed reading at this replay time."] as const;
   return (
     <p className="outcome-state" data-state={state}>
       <Icon size={15} aria-hidden strokeWidth={2} />
