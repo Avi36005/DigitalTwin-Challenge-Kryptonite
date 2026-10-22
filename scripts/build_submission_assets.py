@@ -310,6 +310,19 @@ FOUNDATION = ROOT / "artifacts/research/gt-foundation-2026-10-21/summary.json"
 CONSTRAINED = ROOT / "artifacts/research/gt-constrained-2026-10-21/summary.json"
 
 
+def demo_notice30() -> str | None:
+    """Share of ALL onsets the demo warning gave at least 30 min notice, read from reports/warning_utility.md (made from
+    saved forecasts by scripts/warning_utility.py); None if that report or its demo row is missing."""
+    p = ROOT / "reports" / "warning_utility.md"
+    if not p.exists():
+        return None
+    rows = [r for r in p.read_text().splitlines() if r.startswith("| Warning |") or r.startswith("| Demo model")]
+    if len(rows) != 2:
+        return None
+    head, demo = ([c.strip() for c in r.strip("|").split("|")] for r in rows)
+    return demo[head.index("≥ 30 min")] if "≥ 30 min" in head else None
+
+
 def constrained_facts() -> dict | None:
     """D-053, read from its locked summary.json; None until it exists."""
     if not CONSTRAINED.exists():
@@ -824,7 +837,8 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      f"{int(e['false_alarm_episodes'])} false alarms ("
                      + (f"{e['false_alarms_per_observed_patient_day']:.2f} per observed patient-day; " if corrected else "")
                      + f"{e['false_alarms_per_patient_day']:.2f} per eligible day)"
-                     + (f"; forecast lead median {e['qualified_lead_median']:.0f} min (episode start {e['lead_time_median']:.0f} min)." if corrected else f", median lead {e['lead_time_median']:.0f} min."),
+                     + (f"; forecast lead median {e['qualified_lead_median']:.0f} min among detected onsets (episode start {e['lead_time_median']:.0f} min)." if corrected else f", median lead {e['lead_time_median']:.0f} min.")
+                     + (f" Detection is not notice: {demo_notice30()} of all onsets were warned at least 30 min ahead." if demo_notice30() else ""),
                      f"Same procedure on persistence (fires at glucose ≥ {180 + ep['threshold']:.0f}): {int(ep['detected_onsets'])}/{int(ep['true_onsets'])} detected, {int(ep['false_alarm_episodes'])} false alarms ("
                      + (f"{ep['false_alarms_per_observed_patient_day']:.2f} per observed patient-day; " if corrected else "")
                      + f"{ep['false_alarms_per_patient_day']:.2f} per eligible day).",
@@ -846,6 +860,7 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      f"Personalization: small gains ({c(f'{sl}: adaptive minus population', 30).split(' [')[0]} and {c(f'{sl}: adaptive minus population', 60).split(' [')[0]}). "
                      f"Warnings: {int(e['detected_onsets'])}/{int(e['true_onsets'])} onsets detected with {int(e['false_alarm_episodes'])} false alarms"
                      + (f" ({e['false_alarms_per_observed_patient_day']:.2f} per observed patient-day)" if corrected else "")
+                     + (f"; {demo_notice30()} of all onsets warned at least 30 min ahead" if demo_notice30() else "")
                      + " — the F1 threshold rule ignores review workload.",
                      (f"Corrected after an independent review (activity-window defect, online warning double-credit; {corrects} preserved), then re-run with the fusion "
                       f"constraint ({m['experiment_id']}); the dynamic-only model of {base} stays registered for rollback." if disc and base else
@@ -874,7 +889,9 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      f"Demo video (at least {sub['video']['minimum_duration'].split(':')[0]} minutes): {video}. Architecture: docs/submission/GlucoTwin_Architecture.pdf.",
                      "Data: CGMacros 1.0.0, Gutierrez-Osuna, Kerr, Mortazavi, Das (2025), PhysioNet, doi:10.13026/3z8q-x658, CC BY-NC-SA 4.0; "
                      "ShanghaiT2DM, Zhao, Zhu, Wang, Rao (2022), figshare, doi:10.6084/m9.figshare.21600933.v5, CC BY 4.0.",
-                     f"All results: experiment {m['experiment_id']}, artifacts/experiments/…/metrics.json; reports/evaluation_report.md."]},
+                     f"Serving results: experiment {m['experiment_id']}, reports/evaluation_report.md. Research (not served): "
+                     "README §7, docs/judge_guide.md, reports/constrained_study.md, reports/foundation_baseline.md, reports/two_hour_external.md. "
+                     "Every selected claim: reports/evidence_manifest.md."]},
     ]
 
 

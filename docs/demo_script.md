@@ -36,7 +36,7 @@ regenerated, recheck the slide numbers in the table below.
 | 05:30–06:15 | Slide | 4 · Architecture of what was just shown | Slide 7 |
 | 06:15–10:00 | **App** | 5 · Pinned forecast and its outcome · 6 · Warnings with outcomes and a review · 7 · A real sensor gap: stale, abstain, recover | Participant 01 21:38; Participant 12 |
 | 10:00–10:45 | Slide | 8 · Results, each with its model, cohort and comparator | Slide 14 |
-| 10:45–14:15 | **App** | 9 · Model evidence · 10 · Replay consistency: rewind and parity · 11 · The newest research inside the app | Model evidence, Participant 12 |
+| 10:45–14:15 | **App** | 9 · Model evidence · 10 · Replay consistency: rewind and parity · 11 · Research studies and their evidence | Model evidence, Participant 12 |
 | 14:15–15:00 | Slides | 12 · Closing: strengths, limits, next validation step | Slides 26, 27 |
 | 15:00–20:30 | **App-led** | 13 · Synthetic edge cases · 14 · A false alarm and the review queue · 15 · Hard regime: rising glucose · 16 · Research cutaway · 17 · Reproduce it, close | Synthetic C/E, Participant 01, Review queue, slides 19–24, 28 |
 
@@ -263,20 +263,22 @@ the disclosures notice; the guardrail list with the file that enforces each.
 > saved experiment: all 15,440 test forecasts matched within 0.05 milligrams per decilitre. What you see in the app is
 > what we measured.”
 
-**Transition:** “Finally, the newest research — and what we did with it.”
+**Transition:** “Finally, the research behind the model — and what we did with it.”
 **Fallback:** if the recent-replay link is gone, start Participant 12 again and seek to 10:27.
 
-## Scene 11 — The newest research inside the app (13:00–14:15) · App
+## Scene 11 — Research studies and their evidence (13:00–14:15) · App
 
 **Route:** **Model evidence** → research view (*Research after the demo model*,
 [screenshot](../reports/ui/21-research-after-demo-model.png)).
 **Clicks:** scroll the research list; point at each experiment's tag (*Shown*, *Not shown*, *Negative result*).
 **Expected on screen:** each experiment with who it was evaluated on, when it was opened, and a tag per finding.
-The two newest studies (D-053, D-054) are not in this in-app list; they are on slides 22–23 and in the README, so the
-last sentences below are said over this screen, then shown on slide 22 in Scene 16.
+The two newest studies (D-053, D-054) are not in this in-app list; they are on slides 22–23 and in the README. Say
+the first sentence as written: it names where they are. The last sentences are said over this screen and shown again on
+slides 22–23 in Scene 16.
 
-> “Every attempt to improve the model is listed here, read from its saved files, with who it was evaluated on and a tag
-> for each finding: shown, not shown, or a negative result. We declared each study before its own run. Later studies
+> “This screen shows our earlier research studies and their evidence, read from their saved files, with who each was
+> evaluated on and a tag for each finding: shown, not shown, or a negative result. Our two newest studies are documented
+> in the README and on slides 22 and 23. We declared each study before its own run. Later studies
 > reused previously inspected participants, so those results are internal validation. Our joint-selection study lowered
 > the average sixty-minute error but made peaks above 180 worse and raised false alarms, so it failed our own gates. The
 > zero-shot foundation model beat persistence on every one of the fourteen people, but not our refitted recipe. And our
