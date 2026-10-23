@@ -13,13 +13,16 @@ const API = process.env.SHOTS_API!;
 const DIR = process.env.SHOTS_DIR ?? "../../reports/ui/overnight/latest";
 
 const VIEWPORTS = [
+  { tag: "1920", width: 1920, height: 1080, full: false },
   { tag: "1440", width: 1440, height: 900, full: true },
   { tag: "1280", width: 1280, height: 800, full: false },
   { tag: "tablet", width: 820, height: 1180, full: false },
   { tag: "phone", width: 390, height: 844, full: false },
+  // 1280×800 at 200 % browser zoom lays out as 640×400 CSS pixels
+  { tag: "zoom200", width: 640, height: 400, full: false },
 ];
 const STATES = ["01-landing", "02-review-queue", "03-workspace-p01", "04-forecast-components", "05a-forecast-detail-pending",
-  "05b-forecast-detail-outcome", "06-warnings", "07-review-summary", "08a-p12-gap-abstention", "08b-p12-recovery",
+  "05b-forecast-detail-outcome", "05c-forecast-detail-mixed", "06-warnings", "07-review-summary", "08a-p12-gap-abstention", "08b-p12-recovery",
   "09-evidence", "09b-evidence-guardrails", "10-overview"];
 const FULL = ["01-landing-full", "03-workspace-p01-full", "09-evidence-full"];
 
@@ -154,6 +157,25 @@ for (const vp of VIEWPORTS) {
       await shot("07-review-summary");
       await page.keyboard.press("Escape");
       await expect(dialog).toBeHidden();
+    });
+
+    await step("detail-mixed", async () => {
+      // Participant 12's sensor gap: at 11:05 the last forecast's 30-min target has no reading and its 60-min target is pending
+      await seek(page, s12, "2000-01-11T11:05:00Z");
+      await page.goto(`/app?session=${s12}`);
+      await expect(page.getByRole("group", { name: "Replay controls" })).toBeVisible();
+      await settle(page);
+      await page.getByRole("button", { name: "View forecast details" }).click();
+      const drawer = page.getByRole("dialog", { name: "Forecast details" });
+      const outcome = drawer.getByRole("region", { name: "Outcome" });
+      await expect(outcome.locator(".outcome-state")).toContainText(/^Pending · No outcome is observed yet at this replay time\. No reading near the 30-minute target/);
+      await expect(outcome).not.toContainText(/Partly observed|0 of 2/);
+      await outcome.evaluate((el) => el.scrollIntoView({ block: "start" }));
+      await page.waitForTimeout(300);
+      await shot("05c-forecast-detail-mixed");
+      await page.keyboard.press("Escape");
+      await expect(drawer).toBeHidden();
+      await seek(page, s12, "2000-01-11T11:47:00Z");
     });
 
     await step("gap", async () => {

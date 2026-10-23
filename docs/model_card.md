@@ -189,13 +189,22 @@ also credit one onset to two warnings; the offline metrics were not affected by 
 * With 14 people the profile can act as an identity code; no benefit for unseen patients has been shown.
 * Blinded research CGMs, replayed with an assumed zero latency; native timestamps known only to the minute.
 * Unknown medication use; meal-logging time not documented.
-* Prediction ranges under-cover their target.
+* Prediction ranges under-cover their target: 74.2 % / 74.0 % at 30 / 60 min against a nominal 80 %, 51.4 %–87.6 %
+  per person at 60 min, and only 51.6 % at 60 min when glucose was rising
+  ([ranges study](../reports/serving_ranges_study.md)).
+* Detection is not advance notice: 61 of 64 onsets were warned, but only 48.4 % of **all** onsets were warned at least
+  30 minutes ahead (median qualified lead 30 min among detected onsets), at 1.49 false alarms per observed patient-day
+  and 11.8 % of eligible time in warning ([warning notice](../reports/warning_utility.md)).
 * The warning score is uncalibrated, and its threshold rule ignores review workload.
 * The research event threshold is not a triage rule.
 * The test segment had already been inspected before the corrected run and before the fusion constraint.
 * No foundation model was part of this experiment. A separate zero-shot Chronos-Bolt-tiny baseline on CGM only was run
   later as research (D-054): better than persistence, not better than the serving recipe refitted per fold, not
   fine-tuned and not served ([report](../reports/foundation_baseline.md)).
+* A peak-aware selection study (D-053, declared before its fits) lowered 60-minute error against the refitted serving
+  recipe (−1.19 [−2.09, −0.39] mg/dL, 11 of 14 people) but raised error above 180 mg/dL by 1.07 against a declared
+  limit of +1.0, so it was not adopted and this model is unchanged ([report](../reports/constrained_study.md)). It reused
+  previously inspected people: internal evidence, not independent confirmation.
 
 ## Ethics and licensing
 

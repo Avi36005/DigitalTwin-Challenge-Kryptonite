@@ -1,0 +1,938 @@
+{
+ "ledger_format": "glucotwin-verification-ledger-1",
+ "created": {
+  "utc": "2026-10-22T14:57:27+00:00",
+  "ist": "2026-10-22 20:27:27 IST"
+ },
+ "snapshots": [
+  {
+   "label": "before",
+   "at": {
+    "utc": "2026-10-22T14:57:27+00:00",
+    "ist": "2026-10-22 20:27:27 IST"
+   },
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": null,
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "versions": {
+    "python": "3.12.12",
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "fastapi": "0.143.0",
+    "pytest": "9.1.1",
+    "ruff": "0.17.0",
+    "catboost": "1.2.10",
+    "pyarrow": "26.0.0",
+    "uv": "uv 0.9.14 (05814f9cd 2025-12-01)",
+    "node": "v26.7.0",
+    "npm": "11.19.0",
+    "@playwright/test": "1.64.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3",
+    "vite": "8.3.4",
+    "react": "19.3.0"
+   },
+   "artifacts": {
+    "artifact_root": "~/projects/Digitaltwin",
+    "registry": {
+     "path": "artifacts/registry.json",
+     "sha256": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c",
+     "serving": {
+      "dataset_replay": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+      "synthetic_demo": "synthetic-demo.lightgbm.dyn-v2.v1"
+     }
+    },
+    "serving_model_dir": {
+     "path": "artifacts/models/lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+     "tree_sha256": "250369294d3d648159e05d9d519d6c06035ff24ec0abe19ba958efef2ca5946c",
+     "files": {
+      "h30.lgb.txt": "44ca6d30dc5b915a1920fcee4c3be26f9d5df446c917b1465d446a178cc7f940",
+      "h60.lgb.txt": "a30954a3ccd2e14a4103680da886251f8a722a105671daf55fc4230189aca56c",
+      "manifest.json": "004bd7216c3ebccda02e5d5631eee57afba1e262b479ef88e288a77ad588b76e",
+      "serving.json": "aeb86b96da6cd94a05df7e6d0ac782ffd012393a81ae7e08a2dcc0ba6b6dfc6c"
+     }
+    },
+    "files": {
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9",
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet": "1a5a7164fd8d17f36a4248a5a9f30f2dfee53b30b010ca62fab30df8c77b1778",
+     "reports/serving_parity.json": "d43b660ed9cc0189f9f5b34b6e997ce700339ddea80c1a60657519b06ea49664",
+     "reports/serving_parity.md": "e0aac810c169c8a92b131599a407888207dce98d7cb63c89603df78000b673fb"
+    }
+   }
+  },
+  {
+   "label": "after",
+   "at": {
+    "utc": "2026-10-22T15:02:11+00:00",
+    "ist": "2026-10-22 20:32:11 IST"
+   },
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md",
+     "docs/submission_access_audit.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406",
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "e117dcbd0b22a487ceddfdb9856c723b50556d77ca6dcbdd010e73dc352f7e5a",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "3f55ebd21e0ea445c13c930e74a96e2a6dc0a372b7523494675a65dc1005f982",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "17885dc5f75b6fc8940b39ed2e8550a237d2503a9a11bdc9b5331a638fcdee3e",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "be22787ddabcd992e50e5347a89a1ba06442c659d1b3080e75d84033c06326dd"
+    },
+    "uncommitted_diff_sha256": "773ee3315c87444604c0c506aa1b912488160313b818d1dc4319a87a514f8225",
+    "untracked_sha256": "8c9649518f2b20b9b298d5d11423b462dcdb10e4d711bc236ca8c341e923d32e"
+   },
+   "versions": {
+    "python": "3.12.12",
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "fastapi": "0.143.0",
+    "pytest": "9.1.1",
+    "ruff": "0.17.0",
+    "catboost": "1.2.10",
+    "pyarrow": "26.0.0",
+    "uv": "uv 0.9.14 (05814f9cd 2025-12-01)",
+    "node": "v26.7.0",
+    "npm": "11.19.0",
+    "@playwright/test": "1.64.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3",
+    "vite": "8.3.4",
+    "react": "19.3.0"
+   },
+   "artifacts": {
+    "artifact_root": "~/projects/Digitaltwin",
+    "registry": {
+     "path": "artifacts/registry.json",
+     "sha256": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c",
+     "serving": {
+      "dataset_replay": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+      "synthetic_demo": "synthetic-demo.lightgbm.dyn-v2.v1"
+     }
+    },
+    "serving_model_dir": {
+     "path": "artifacts/models/lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+     "tree_sha256": "250369294d3d648159e05d9d519d6c06035ff24ec0abe19ba958efef2ca5946c",
+     "files": {
+      "h30.lgb.txt": "44ca6d30dc5b915a1920fcee4c3be26f9d5df446c917b1465d446a178cc7f940",
+      "h60.lgb.txt": "a30954a3ccd2e14a4103680da886251f8a722a105671daf55fc4230189aca56c",
+      "manifest.json": "004bd7216c3ebccda02e5d5631eee57afba1e262b479ef88e288a77ad588b76e",
+      "serving.json": "aeb86b96da6cd94a05df7e6d0ac782ffd012393a81ae7e08a2dcc0ba6b6dfc6c"
+     }
+    },
+    "files": {
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9",
+     "artifacts/experiments/gt-primary-2026-10-13-fusion/predictions.parquet": "1a5a7164fd8d17f36a4248a5a9f30f2dfee53b30b010ca62fab30df8c77b1778",
+     "reports/serving_parity.json": "d43b660ed9cc0189f9f5b34b6e997ce700339ddea80c1a60657519b06ea49664",
+     "reports/serving_parity.md": "e0aac810c169c8a92b131599a407888207dce98d7cb63c89603df78000b673fb"
+    }
+   }
+  }
+ ],
+ "entries": [
+  {
+   "suite": "backend pytest (complete)",
+   "command": "uv run pytest -q --junitxml=~/projects/Digitaltwin/reports/verification/final_2026-10-22_145326Z/junit/pytest.xml",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-22T14:57:27+00:00",
+    "ist": "2026-10-22 20:27:27 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T14:58:59+00:00",
+    "ist": "2026-10-22 20:28:59 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 223,
+    "passed": 221,
+    "failed": 0,
+    "skipped": 2,
+    "skip_reasons": {
+     "could not import 'torch': No module named 'torch'": 1,
+     "compared once, from the fusion side": 1
+    },
+    "failed_cases": []
+   },
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/pytest.log",
+   "junit": "reports/verification/final_2026-10-22_145326Z/junit/pytest.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": null,
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "note": null
+  },
+  {
+   "suite": "python lint (ruff; untracked private audit folder excluded)",
+   "command": "uv run ruff check --extend-exclude reports/overnight_codex .",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-22T14:58:59+00:00",
+    "ist": "2026-10-22 20:28:59 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T14:58:59+00:00",
+    "ist": "2026-10-22 20:28:59 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "log",
+    "errors": 0
+   },
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/ruff.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": "a898a4fb0e60e8c27b84c96f8250a5f6384017ac83b4b83ab4c45df7c72b47c4",
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "note": null
+  },
+  {
+   "suite": "frontend typecheck",
+   "command": "npm run typecheck",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-22T14:58:59+00:00",
+    "ist": "2026-10-22 20:28:59 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T14:59:02+00:00",
+    "ist": "2026-10-22 20:29:02 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/typecheck.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": "a898a4fb0e60e8c27b84c96f8250a5f6384017ac83b4b83ab4c45df7c72b47c4",
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "note": null
+  },
+  {
+   "suite": "frontend unit (vitest)",
+   "command": "npm test -- --reporter=default --reporter=junit --outputFile.junit=~/projects/Digitaltwin/reports/verification/final_2026-10-22_145326Z/junit/vitest.xml",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-22T14:59:02+00:00",
+    "ist": "2026-10-22 20:29:02 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T14:59:04+00:00",
+    "ist": "2026-10-22 20:29:04 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 141,
+    "passed": 141,
+    "failed": 0,
+    "skipped": 0,
+    "skip_reasons": {},
+    "failed_cases": []
+   },
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/vitest.log",
+   "junit": "reports/verification/final_2026-10-22_145326Z/junit/vitest.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": "a898a4fb0e60e8c27b84c96f8250a5f6384017ac83b4b83ab4c45df7c72b47c4",
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "note": null
+  },
+  {
+   "suite": "frontend production build",
+   "command": "npm run build",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-22T14:59:04+00:00",
+    "ist": "2026-10-22 20:29:04 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T14:59:07+00:00",
+    "ist": "2026-10-22 20:29:07 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/build.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": "a898a4fb0e60e8c27b84c96f8250a5f6384017ac83b4b83ab4c45df7c72b47c4",
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "note": null
+  },
+  {
+   "suite": "e2e normal + recorded judge journeys",
+   "command": "npm run e2e -- --workers=1 --reporter=list,junit --output=<session-scratch>/final/pw/e2e",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-22T14:59:07+00:00",
+    "ist": "2026-10-22 20:29:07 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T15:01:03+00:00",
+    "ist": "2026-10-22 20:31:03 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 29,
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "skip_reasons": {},
+    "failed_cases": []
+   },
+   "env_overrides": {
+    "PLAYWRIGHT_JUNIT_OUTPUT_NAME": "~/projects/Digitaltwin/reports/verification/final_2026-10-22_145326Z/junit/e2e.xml",
+    "E2E_API_PORT": "8062",
+    "E2E_WEB_PORT": "5232",
+    "E2E_VAR_DIR": "<session-scratch>/final/var-e2e",
+    "PUBLIC_BASE_URL": "<unset>"
+   },
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/e2e.log",
+   "junit": "reports/verification/final_2026-10-22_145326Z/junit/e2e.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": "a898a4fb0e60e8c27b84c96f8250a5f6384017ac83b4b83ab4c45df7c72b47c4",
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "note": null
+  },
+  {
+   "suite": "e2e public mode (local, synthetic)",
+   "command": "npx playwright test --config playwright.public.config.ts --workers=1 --reporter=list,junit --output=<session-scratch>/final/pw/public",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-22T15:01:03+00:00",
+    "ist": "2026-10-22 20:31:03 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T15:01:12+00:00",
+    "ist": "2026-10-22 20:31:12 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "skip_reasons": {},
+    "failed_cases": []
+   },
+   "env_overrides": {
+    "PLAYWRIGHT_JUNIT_OUTPUT_NAME": "~/projects/Digitaltwin/reports/verification/final_2026-10-22_145326Z/junit/e2e-public.xml",
+    "E2E_PUBLIC_PORT": "8063",
+    "E2E_PUBLIC_VAR_DIR": "<session-scratch>/final/var-public",
+    "PUBLIC_BASE_URL": "<unset>"
+   },
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/e2e-public.log",
+   "junit": "reports/verification/final_2026-10-22_145326Z/junit/e2e-public.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06b-gap-recovery.png"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": "806cf96aa05a46b2fd1bef5e9e66dd23514903ac31cda1aeba17ad421eed7273",
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "note": null
+  },
+  {
+   "suite": "e2e summary/export",
+   "command": "npx playwright test --config playwright.summary.config.ts --workers=1 --reporter=list,junit --output=<session-scratch>/final/pw/summary",
+   "cwd": "apps/web",
+   "start": {
+    "utc": "2026-10-22T15:01:12+00:00",
+    "ist": "2026-10-22 20:31:12 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T15:01:32+00:00",
+    "ist": "2026-10-22 20:31:32 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": {
+    "source": "junit",
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "skip_reasons": {},
+    "failed_cases": []
+   },
+   "env_overrides": {
+    "PLAYWRIGHT_JUNIT_OUTPUT_NAME": "~/projects/Digitaltwin/reports/verification/final_2026-10-22_145326Z/junit/e2e-summary.xml",
+    "E2E_SUMMARY_API_PORT": "8064",
+    "E2E_SUMMARY_WEB_PORT": "5234",
+    "E2E_SUMMARY_VAR_DIR": "<session-scratch>/final/var-summary",
+    "PUBLIC_BASE_URL": "<unset>"
+   },
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/e2e-summary.log",
+   "junit": "reports/verification/final_2026-10-22_145326Z/junit/e2e-summary.xml",
+   "junit_written": true,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06b-gap-recovery.png"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406"
+    },
+    "uncommitted_diff_sha256": "9871fe1316afad4936f3b0f9dfaa1c36f700003fa4be1f6631d6b75ec3f779e1",
+    "untracked_sha256": "2864dd3305c0203d8c75d07e101e62630cc9d38e958aa7ae262bf412fb2800c2"
+   },
+   "note": null
+  },
+  {
+   "suite": "selected-claim consistency (evidence manifest)",
+   "command": "uv run python scripts/evidence_manifest.py",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-22T15:01:32+00:00",
+    "ist": "2026-10-22 20:31:32 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T15:01:33+00:00",
+    "ist": "2026-10-22 20:31:33 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/evidence_manifest.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406",
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "e117dcbd0b22a487ceddfdb9856c723b50556d77ca6dcbdd010e73dc352f7e5a",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "3f55ebd21e0ea445c13c930e74a96e2a6dc0a372b7523494675a65dc1005f982",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "17885dc5f75b6fc8940b39ed2e8550a237d2503a9a11bdc9b5331a638fcdee3e",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "be22787ddabcd992e50e5347a89a1ba06442c659d1b3080e75d84033c06326dd"
+    },
+    "uncommitted_diff_sha256": "9431f03882f198db4399449a7c1f5117d560677f9fbc6533611fed9741ac3c65",
+    "untracked_sha256": "8c9649518f2b20b9b298d5d11423b462dcdb10e4d711bc236ca8c341e923d32e"
+   },
+   "note": null
+  },
+  {
+   "suite": "README/submission consistency",
+   "command": "uv run python scripts/check_submission.py",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-22T15:01:33+00:00",
+    "ist": "2026-10-22 20:31:33 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T15:01:35+00:00",
+    "ist": "2026-10-22 20:31:35 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/check_submission.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406",
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "e117dcbd0b22a487ceddfdb9856c723b50556d77ca6dcbdd010e73dc352f7e5a",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "3f55ebd21e0ea445c13c930e74a96e2a6dc0a372b7523494675a65dc1005f982",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "17885dc5f75b6fc8940b39ed2e8550a237d2503a9a11bdc9b5331a638fcdee3e",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "be22787ddabcd992e50e5347a89a1ba06442c659d1b3080e75d84033c06326dd"
+    },
+    "uncommitted_diff_sha256": "9431f03882f198db4399449a7c1f5117d560677f9fbc6533611fed9741ac3c65",
+    "untracked_sha256": "8c9649518f2b20b9b298d5d11423b462dcdb10e4d711bc236ca8c341e923d32e"
+   },
+   "note": null
+  },
+  {
+   "suite": "D-053 runner validate (read-only, saved artifacts)",
+   "command": "uv run python scripts/constrained_study.py validate",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-22T15:01:35+00:00",
+    "ist": "2026-10-22 20:31:35 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T15:01:36+00:00",
+    "ist": "2026-10-22 20:31:36 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/constrained_validate.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md",
+     "docs/submission_access_audit.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406",
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "e117dcbd0b22a487ceddfdb9856c723b50556d77ca6dcbdd010e73dc352f7e5a",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "3f55ebd21e0ea445c13c930e74a96e2a6dc0a372b7523494675a65dc1005f982",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "17885dc5f75b6fc8940b39ed2e8550a237d2503a9a11bdc9b5331a638fcdee3e",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "be22787ddabcd992e50e5347a89a1ba06442c659d1b3080e75d84033c06326dd"
+    },
+    "uncommitted_diff_sha256": "773ee3315c87444604c0c506aa1b912488160313b818d1dc4319a87a514f8225",
+    "untracked_sha256": "8c9649518f2b20b9b298d5d11423b462dcdb10e4d711bc236ca8c341e923d32e"
+   },
+   "note": null
+  },
+  {
+   "suite": "serving parity: registered incumbent, new output path",
+   "command": "uv run python scripts/serving_parity.py --output ~/projects/Digitaltwin/reports/verification/final_2026-10-22_145326Z/parity/serving_parity.json --detail-output <session-scratch>/final/parity/serving_parity_detail.json",
+   "cwd": ".",
+   "start": {
+    "utc": "2026-10-22T15:01:36+00:00",
+    "ist": "2026-10-22 20:31:36 IST"
+   },
+   "end": {
+    "utc": "2026-10-22T15:02:11+00:00",
+    "ist": "2026-10-22 20:32:11 IST"
+   },
+   "exit_code": 0,
+   "status": "passed",
+   "counts": null,
+   "env_overrides": {},
+   "log": "reports/verification/final_2026-10-22_145326Z/logs/parity.log",
+   "junit": null,
+   "junit_written": false,
+   "stale_junit_removed": false,
+   "revision": {
+    "commit": "f073a10f02508f35145b8182bbae13127f7a479e",
+    "tree": "b6c19107078a0437664509305b8cbef761638fec",
+    "branch": "public-demo",
+    "worktree": "~/projects/Digitaltwin",
+    "dirty": true,
+    "dirty_files": [
+     "docs/next_experiment.md",
+     "docs/submission_access_audit.md",
+     "reports/ui/01-twin-workspace-synthetic.png",
+     "reports/ui/02-missing-and-stale-data.png",
+     "reports/ui/03-forecast-with-interval-recorded.png",
+     "reports/ui/04-forecast-evidence-dialog.png",
+     "reports/ui/06-data-quality.png",
+     "reports/ui/08-recording-1920-warning-pending.png",
+     "reports/ui/12-overview.png",
+     "reports/ui/20-review-queue.png",
+     "reports/ui/22-public-demo-workspace.png",
+     "reports/ui/25-forecast-outcome.png",
+     "reports/ui/journey/03-forecast-outcome.png",
+     "reports/ui/journey/05-frozen-review-summary.png",
+     "reports/ui/journey/06b-gap-recovery.png",
+     "reports/ui/summary_check/p01-day9-2038-pending-long-note.pdf"
+    ],
+    "untracked_files": {
+     ".claude/codex_sprint_ownership.md": "e52813d6c21fdbbdb9954d44f94d9eb709e0a034a11de2ba4dccbdcf05517951",
+     "reports/overnight_codex/evidence_audit.md": "41cddff6e6dc5f757fbcd4a38a97c0b8b55bd26dbaee78ba8cd61e4e166569f1",
+     "reports/overnight_codex/patches/verification_ledger_proposed.patch": "5836d49379d86a3cc4f2059f0245d52814dcc9329e452edf85fafce68f91e29a",
+     "reports/overnight_codex/preservation_snapshot.json": "06ff5f47a49c8c4252a88a6edfd8a1eaaf263b8943b33aa933b3e31731c76f3f",
+     "reports/overnight_codex/qa_audit.md": "837ebc9902ab6c7d6dd3a1b2309ec1d9a68276333dc793fabe323d2acd440894",
+     "reports/overnight_codex/qa_ledger_findings.json": "b06d277d7b65856a9a0d1ca0aada51c9e9cd551d61d383715e0332ca031ceb6c",
+     "reports/overnight_codex/qa_tooling_tests.json": "6c3cbbb2936335ac5a289f519374c12c3fa209f0073bc08f9be517235ecfab80",
+     "reports/overnight_codex/qa_tooling_tests.log": "3817260cc1420f191e30ab7b7a0b24bd97633c13927e57fbb803bb0f77ce27f3",
+     "reports/overnight_codex/qa_tooling_tests.xml": "492f80c9d9c316621eaf1552bbb5091b23bc64b3ce89c9cab4cdb13bc4cfd86c",
+     "reports/overnight_codex/reproduce_ledger_findings.py": "8063a943372fea79f678bb62282cf2da5f2198984f75a7b018f88b6b59b36996",
+     "reports/overnight_codex/research_audit.md": "c9ab7d5ffed5b8d3b931e27fc915de9d72db1297f6e06af3e1b002449512ad93",
+     "reports/overnight_codex/research_audit_probes.py": "c05d6f339438442463264439275a953d64712c751b9e4bf2f27b27ad7fd66e0b",
+     "reports/overnight_codex/ui_review_for_claude.md": "620d6d77c0d9e2995ffa6853a866caff04fe934d7810731820d7c0aec5d44406",
+     "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf": "e117dcbd0b22a487ceddfdb9856c723b50556d77ca6dcbdd010e73dc352f7e5a",
+     "reports/ui/summary_check/p12-day9-1050-stale.pdf": "3f55ebd21e0ea445c13c930e74a96e2a6dc0a372b7523494675a65dc1005f982",
+     "reports/ui/summary_check/p12-day9-1145-abstained.pdf": "17885dc5f75b6fc8940b39ed2e8550a237d2503a9a11bdc9b5331a638fcdee3e",
+     "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf": "be22787ddabcd992e50e5347a89a1ba06442c659d1b3080e75d84033c06326dd"
+    },
+    "uncommitted_diff_sha256": "773ee3315c87444604c0c506aa1b912488160313b818d1dc4319a87a514f8225",
+    "untracked_sha256": "8c9649518f2b20b9b298d5d11423b462dcdb10e4d711bc236ca8c341e923d32e"
+   },
+   "note": null
+  }
+ ]
+}

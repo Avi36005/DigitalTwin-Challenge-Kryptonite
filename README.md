@@ -23,7 +23,7 @@ last reading carried forward) on the same forecast origins: an average error, no
 | Evaluated on | Result (MAE in mg/dL) | Model or procedure | Notes |
 |---|---|---|---|
 | **Serving model — later recordings of the 14 known CGMacros people** | | | |
-| Final 20 % of each recording (a test over time, retrospective) | MAE **12.96 / 20.26** at 30 / 60 min (persistence 14.84 / 23.23) | **Fusion LightGBM + bounded patient correction** — the demo model | **61 of 64** new high-glucose onsets warned; **40 false alarms, 1.49 per observed patient-day**; median forecast lead 30 min; the warning is active at 11.8 % of eligible times. Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage (the research procedure, calibrated on people held out, covered 80.1 % / 78.8 %) |
+| Final 20 % of each recording (a test over time, retrospective) | MAE **12.96 / 20.26** at 30 / 60 min (persistence 14.84 / 23.23) | **Fusion LightGBM + bounded patient correction** — the demo model | **61 of 64** new high-glucose onsets warned; **40 false alarms, 1.49 per observed patient-day**; median forecast lead 30 min among detected onsets, and [48.4 % of all onsets](reports/warning_utility.md) warned at least 30 min ahead; the warning is active at 11.8 % of eligible times. Prediction ranges (target 80 %) covered **74.2 % / 74.0 %**: under-coverage (the research procedure, calibrated on people held out, covered 80.1 % / 78.8 %) |
 | **Participant-held-out research — the 14 CGMacros people, each held out once (internal validation)** | | | |
 | Five participant folds, D-032 | MAE **13.88 / 22.30** (persistence 15.34 / 24.47) | Research candidate procedure (Ridge on CGM only, chosen in 4 of 5 folds), **not served** | Worse than the v2 recipe on readings above 180 |
 | Same folds, D-043 | **Two hours ahead:** MAE **30.6** at 120 min (persistence 35.9; better for 14 of 14 people) | Two-hour research procedure, **not served** | 2-hour warning: **315 of 329** onsets at **1.62** false alarms per observed day, median forecast lead 15 min (IQR 5–65); ranges covered 76.5 % (target 80 %). Pooled calibration (D-046) brought two-hour coverage from 76.5 % to **79.8 %** (target 80 %; 60 min 78.2 → 79.5 %), ranges 7 mg/dL wider — not applied to the demo model |
@@ -77,7 +77,7 @@ Built into the code and covered by tests, not just stated:
 
 ## Submission checklist (Unstop form)
 
-The twelve mandatory items, where each is answered below, and its status on **20 October 2026**. Status is updated
+The twelve mandatory items, where each is answered below, and its status on **23 October 2026**. Status is updated
 only when the evidence exists; details and owners: [`docs/submission_checklist.md`](docs/submission_checklist.md).
 
 | # | Form item | Section | Status |
@@ -160,7 +160,8 @@ not been established (§7).
 * **Research after the demo model** (Model evidence → research view, [screenshot](reports/ui/21-research-after-demo-model.png)):
   the four 20 October experiments (D-043, D-045, D-044, D-046), each with who it was evaluated on, when it was opened,
   and a "Shown", "Not shown" or "Negative result" tag per finding, read from `GET /api/v1/research-summaries`. None is
-  the demo model; a fresh copy without the datasets says "Not run on this installation".
+  the demo model; a fresh copy without the datasets says "Not run on this installation". The later studies (D-048 to
+  D-054, §7) are reported in their own reports and the [judge guide](docs/judge_guide.md), not in this list.
 * **Who:** a clinician or diabetes educator reviewing a small cohort of adults with Type 2 diabetes who wear CGMs and
   activity trackers between visits; a second user is a reviewer inspecting the evidence.
 * **Question answered:** “Which monitored patient's glucose pattern merits review, and what observations support that
@@ -409,7 +410,9 @@ followed earlier results: internal evidence, not independent confirmation ([repo
 **Joint selection: better on average, worse on peaks — not adopted** (`gt-joint-2026-10-21`, D-052, declared before
 any fit; 1,570 fresh fits, LightGBM and CatBoost). Inside each held-out fold, model settings and patient correction were
 chosen together on the personalised error and the model family chosen on development people only. Result on the 14
-people each held out once: personalised 60-minute error 21.62 mg/dL for the selected procedure vs 22.50 for the refitted serving recipe (S − R0 −0.88 [−1.75, −0.13]); primary gate not met; release guardrails not met; candidate 80 % range covered 78.4 % at 60 min. The average gain cleared its size and interval bars and 30-minute error fell
+people each held out once: personalised 60-minute error 21.62 mg/dL for the selected procedure vs 22.50 for the
+refitted serving recipe (S − R0 −0.88 [−1.75, −0.13]); primary gate not met; release guardrails not met; candidate 80 %
+range covered 78.4 % at 60 min. The average gain cleared its size and interval bars and 30-minute error fell
 0.50 mg/dL, but 60-minute error on readings above 180 mg/dL rose 1.70 mg/dL (limit 1.0); the 60-minute warning caught
 more onsets early (34 % of all onsets ≥ 30 min ahead vs 19 %) at 0.60 more false alarms per observed day and 5.4 points
 more time in warning, beyond the declared limits. So the demo model is unchanged; previously inspected people, internal
@@ -445,7 +448,6 @@ alone, that range covered 77.9 % / 78.7 % at 30 / 60 min on the final test segme
 served ranges (target 80 %), for ranges 5–7 mg/dL wider. That test segment was inspected earlier and is the only
 evidence for it, so the served ranges stay as they are; the candidate is research only
 ([report](reports/serving_ranges_study.md)).
-
 
 Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · corrections:
 [`reports/repair_report.md`](reports/repair_report.md) · model card:
@@ -492,7 +494,7 @@ artifact by [`scripts/build_submission_assets.py`](scripts/build_submission_asse
 ## 12. Accessible files and links
 
 All submission links above are relative paths to files tracked in this repository; none points to a private drive,
-authenticated notebook or local-only file. Last local check: **20 October 2026** — every README link target and every link in the team folder index exists, is
+authenticated notebook or local-only file. Last local check: **23 October 2026** — all 128 README and team-folder links and images pass: each target exists, is
 tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** public repository visibility,
 signed-out access and the YouTube link, because the repository has not been published and the video has not been
 uploaded. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
@@ -597,8 +599,15 @@ uv run python scripts/check_submission.py  # README links, anchors, tracked file
 scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an empty directory: setup, tests, e2e, Shanghai path
 ```
 
-Latest results: [`reports/verification.md`](reports/verification.md) · integration audit:
-[`reports/integration_audit.md`](reports/integration_audit.md).
+**Final verification (22 October 2026, commit `f073a10`):** backend pytest 221 passed (2 skipped: the optional torch
+test and one fusion-side comparison) · ruff clean · frontend typecheck and build pass · Vitest 141 passed · Playwright
+29 journeys + 4 public-mode + 3 summary/export, all passed · evidence manifest 23 of 23 README claims match their
+artifacts · online replay reproduced 15,440 of 15,440 saved test forecasts within 0.05 mg/dL. Commands, logs and
+JUnit files: [`reports/verification/final_2026-10-22_145326Z/LEDGER.md`](reports/verification/final_2026-10-22_145326Z/LEDGER.md).
+
+Full history: [`reports/verification.md`](reports/verification.md) · integration audit:
+[`reports/integration_audit.md`](reports/integration_audit.md) · claim-by-claim check:
+[`reports/evidence_manifest.md`](reports/evidence_manifest.md).
 
 ## Repository layout
 
@@ -623,7 +632,7 @@ Latest results: [`reports/verification.md`](reports/verification.md) · integrat
 │   ├── experiments/          v1; fusion-constrained gt-primary-2026-10-13-fusion (serving model); nested v1/v2; two-hour gt-2h-*
 │   └── submission.yaml       team, links and video metadata for the submission assets
 ├── docs/                     product, system, model/data and submission documents — index: docs/README.md
-│   └── submission/           presentation (PDF, PPTX) and architecture diagram (PDF)
+│   └── submission/           presentation (PDF, PPTX), architecture diagram, demo script (PDF), recording checklist
 ├── reports/                  generated reports, figures and UI screenshots (+ archived v1 and v2 reports)
 ├── scripts/                  submission assets, demo-sequence recorder, landing preview, submission link check
 ├── tests/                    backend tests (leakage, splits, adaptation, warnings, replay, API, research)
