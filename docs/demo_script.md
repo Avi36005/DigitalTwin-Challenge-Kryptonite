@@ -6,9 +6,12 @@
 a script, not a recording: nothing has been recorded or uploaded. Only a timed rehearsal with real clicks and the rendered
 file establish the duration; record both durations in `configs/submission.yaml` and README §8 after upload.
 
-**How to read this file.** Each scene gives the screen and route, the exact clicks, the replay times, the values the
-screen is expected to show, the words to say (in quotation blocks — read only these aloud), a transition sentence and a
-fallback. Everything else is a stage direction.
+**How to read this file.** Start with the **run sheet** (one line per scene: time, screen, clicks, the metric to show
+and its source) and the **metric card** (every number said aloud, with the file it comes from). Then each scene gives
+the screen and route, the exact clicks, the replay times, the values the screen is expected to show, the **metrics to
+show** with their source, the words to say (in quotation blocks — read only these aloud), a transition sentence and a
+fallback. Everything else is a stage direction. The PDF copy, `docs/submission/GlucoTwin_Demo_Script.pdf`, is generated
+from this file by `scripts/build_submission_assets.py`.
 
 **Where the values come from.** Every on-screen value below was recorded from the running app: the patient-review
 journey by the browser test [`apps/web/e2e/judge-journey.spec.ts`](../apps/web/e2e/judge-journey.spec.ts) (screenshots
@@ -44,10 +47,64 @@ App time in the first fifteen minutes: 3:30 + 3:45 + 3:30 = **10:45 of 15:00 (ab
 video past the 20-minute minimum with app-led material. YouTube chapters: paste the scene start times above into the
 description after the timed rehearsal confirms them.
 
-**Timing is an estimate, not a measurement.** The spoken lines total about 2,230 words (counted from this file on
-21 Oct 2026; the D-053 sentences added on 22 Oct add about 120): about 130 words a minute on the slides and slower in the app, where
-clicks and pauses take the rest of each slot. No timed rehearsal has been recorded yet; it, and the rendered file, set
-the real scene times.
+**Timing is an estimate, not a measurement.** The spoken lines total about 2,270 words (counted from this
+file on 23 Oct 2026): about 130 words a minute on the slides and slower in the app, where clicks and pauses take the
+rest of each slot. No timed rehearsal has been recorded yet; it, and the rendered file, set the real scene times.
+
+## Run sheet — screen by screen
+
+One line per scene. *Metric to show* is what must be visible (or pointed at) while the line is spoken; *Source* is the
+saved file the number comes from. † = serving-model value recorded from the app.
+
+| # | Time | Screen / route | Clicks | Metric to show | Source |
+|---|---|---|---|---|---|
+| 1 | 00:00–02:00 | Slides 1–4 | Advance at each *[Slide n]* | Problem: forecast 30 / 60 min; episode = new run above 180 mg/dL for ≥ 15 min | `configs/experiments/gt-primary-2026-10-13-fusion.yaml` |
+| 2 | 02:00–03:30 | `/` → **Open workspace** → **Open recorded demo** (Participant 01, final test period) | Drag to **Day 9 · 20:38**; scroll to *Inputs at issue time* | 8 health-record values read; wearable summaries used; glucose 165 rising † | App screen; `reports/ui/journey/01-inputs-read-by-the-model.png` |
+| 3 | 03:30–05:30 | Same replay | Point at forecast table, correction, range, trend, guardrails | Population 192 / 195 → correction −3.0 / −6.7 → final 189 / 188 †; range target 80 %, measured **74.2 % / 74.0 %**; rising trend 60-min error **35.3 vs 19.5** steady, range held **46 %** | `metrics.json` (intervals, test, adaptive); `reports/error_by_trend.md` |
+| 4 | 05:30–06:15 | Slide 7 | — | Architecture: adapter → replay clock → twin engine → dashboard | `docs/architecture.md` |
+| 5 | 06:15–07:15 | Same replay | **View forecast details** → **Esc** → **Step 1 h** → **View forecast details** | Outcome: 30 min error +0.0, 60 min error +19.1 (population +25.8) † | App screen; `reports/ui/journey/03-forecast-outcome.png` |
+| 6 | 07:15–08:45 | **Warnings**, **Review summary** | **Mark as reviewed** + note → **Save review** → **Review summary** → **Step 5 min** | **61 of 64** onsets warned; **1.49** false alarms per observed patient-day (40 false alarms); **48.4 %** of all onsets warned ≥ 30 min ahead | `metrics.json` (events, test, adaptive, −10); `reports/warning_utility.md` |
+| 7 | 08:45–10:00 | **New replay** → Participant 12 | Seek 10:27 → 10:52 → 11:32 → 11:47 → **Step 5 min** ×4 | *Stale*, *Not available*, “Unavailable is not the same as low risk”, *Degraded data* | App screen; `reports/ui/journey/06-gap-abstention.png` |
+| 8 | 10:00–10:45 | Slide 14 | — | **12.96 / 20.26** vs **14.84 / 23.23**; held out **13.88 / 22.30** vs **15.34 / 24.47**; Shanghai **10.90 / 19.31** vs **12.14 / 20.44** | `metrics.json`; `reports/nested_benchmark_report.md`; `reports/evidence_manifest.md` |
+| 9 | 10:45–12:00 | `/app/evidence` | Scroll summary → disclosures → **All safety guardrails** | ≈ **644 h**, **64** onsets; MAE 13.0 / 20.3 vs 14.8 / 23.2; four selection disclosures | `metrics.json` (cohort.test) |
+| 10 | 12:00–13:00 | Participant 12 replay | Seek **back** to Day 9 · 10:27 | New revision; **15,440 / 15,440** forecasts matched within 0.05 mg/dL | `reports/serving_parity.md` |
+| 11 | 13:00–14:15 | `/app/evidence` → research view | Scroll; point at *Shown / Not shown / Negative result* | D-053: −**1.19** at 60 min, **11 of 14** people, high-target +**1.07** > 1.0 limit → not adopted | `reports/constrained_study.md` |
+| 12 | 14:15–15:00 | Slides 26, 27 | — | Limits: 14 people, one US site, ranges under-cover, > 1 false alarm per observed day | `docs/model_card.md` |
+| 13 | 15:00–16:15 | **New replay** → Synthetic E, then Synthetic C | **Step 5 min**; seek 09:30 → 10:00 | Abstention reason; late-logged meal (**synthetic**, fictional) | `configs/synthetic.yaml` |
+| 14 | 16:15–17:15 | Participant 01 → `/app/review-queue` | Seek 09:24 → **Step 1 h** ×2 → **Review queue** → **Open** | A false alarm kept and labelled; queue order of work, not risk | App screen; `reports/ui/20-review-queue.png` |
+| 15 | 17:15–18:15 | Participant 01 Day 9 · 20:38 → `/app/data-quality` | Point at *Accuracy at this trend* | **35.3** vs **19.5** mg/dL (validation); peaks under-forecast (−16.9 at 60 min above 180) | `reports/error_by_trend.md` |
+| 16 | 18:15–19:15 | Slides 19–24 | — | 2 h: **30.6 vs 35.9**, median lead 15 min; D-053 1.07 vs 1.0; D-054 **22.92** vs **24.47** and **22.50**; Shanghai external | `reports/two_hour_benchmark.md`; `reports/warning_utility.md`; `reports/foundation_baseline.md`; `reports/two_hour_external.md` |
+| 17 | 19:15–20:30 | README → slide 28 | *Run it locally*, *Verification*; hold slide 28 for 5 s | Tests and parity; MIT licence; dataset licences | `reports/verification.md` |
+
+**Total planned: 20:30** (17 scenes; minimum 20:00). App on screen in the first fifteen minutes: 10:45 (about 72 %).
+
+## Metric card — every number said aloud, and where it comes from
+
+Keep this page beside the camera. If the screen shows a different value, **say the screen's value**, not this one.
+
+| Number | Meaning | Evaluated on | Source |
+|---|---|---|---|
+| 12.96 / 20.26 mg/dL | Serving-model MAE at 30 / 60 min | Later recordings of the same 14 people (final test segment, retrospective) | `artifacts/experiments/gt-primary-2026-10-13-fusion/metrics.json` |
+| 14.84 / 23.23 mg/dL | Persistence (last reading carried forward), same test | Same | same file |
+| 74.2 % / 74.0 % | Served 80 % ranges: measured coverage at 30 / 60 min | Same | same file (`intervals`); `reports/serving_ranges_study.md` |
+| 51.4 %–87.6 % | Per-person 60-min range coverage | Same | `reports/serving_ranges_study.md` |
+| 61 of 64 | New high-glucose onsets warned (60-min warning, margin −10) | Same | same file (`events`) |
+| 1.49 (40) | False alarms per observed patient-day (episodes) | Same | same file (`events`) |
+| 30 min | Median forecast lead among detected onsets | Same | `reports/warning_utility.md` |
+| 48.4 % | Share of **all** onsets warned ≥ 30 min ahead | Same | `reports/warning_utility.md` |
+| 11.8 % | Share of eligible time with a warning active | Same | `reports/warning_time_share.md` |
+| ≈ 644 h · 64 onsets | Size of the final test segment | Same | same file (`cohort.by_segment.test`) |
+| 35.3 vs 19.5 mg/dL · 46 % | 60-min error rising > 2 mg/dL/min vs steady; range held while rising | Validation segment | `reports/error_by_trend.md` |
+| 15,440 / 15,440 | App replay forecasts equal to the saved experiment within 0.05 mg/dL | Final test segment | `reports/serving_parity.md` |
+| 13.88 / 22.30 vs 15.34 / 24.47 | CGM-only research procedure vs persistence, each person held out | 14 people held out once (internal validation) | `reports/nested_benchmark_report.md` |
+| 10.90 / 19.31 vs 12.14 / 20.44 | Separate CGM-only model vs persistence | 98 ShanghaiT2DM people (external cohort) | `reports/nested_benchmark_report.md`; `reports/two_hour_external.md` |
+| 30.6 vs 35.9 mg/dL · 15 min | Two-hour error vs persistence; median warning lead | 14 people held out once | `reports/two_hour_benchmark.md`; `reports/warning_utility.md` |
+| −1.19 · 11 of 14 · +1.07 (limit 1.0) | D-053 peak-aware study: 60-min gain, people improved, high-target change | 14 people held out once | `reports/constrained_study.md` |
+| 22.00 vs 23.20 | D-053 60-min MAE vs refitted serving recipe | Same | `reports/constrained_study.md` |
+| 22.92 vs 24.47 and 22.50 | D-054 zero-shot foundation model vs persistence and the refitted recipe | 14 previously inspected people, CGM only | `reports/foundation_baseline.md` |
+
+Words to use: “later recordings of the same fourteen people” (never “unseen” or “new patients”); “retrospective”;
+“research, not serving”; “synthetic” for every synthetic participant. No comparisons with other teams.
 
 ## Recording setup (before 00:00)
 
@@ -86,6 +143,7 @@ the real scene times.
 > were available. A population model forecasts; a bounded correction learned from this person's own past errors adjusts
 > it; every outcome updates that correction. A statistical twin, not a physiological simulator. Let me show you one.”
 
+**Metrics to show:** none yet — the task definition (30 / 60 min; new episode above 180 mg/dL ≥ 15 min).
 **Transition (on slide 4):** switch to the browser.
 **Fallback:** if the slide window misbehaves, say the slide text from this script over the landing page.
 
@@ -112,6 +170,7 @@ marked *context only*; wearable five-minute summaries *available and used*.
 > heart-rate and activity summaries from the last hour were available and used. And every record carries two times —
 > when it was measured and when it became available — so nothing arrives early.”
 
+**Metrics to show:** the inputs panel — 8 health-record values read, context-only fields labelled (app screen).
 **Transition:** “So what did the twin forecast from these inputs?”
 **Fallback:** if **Open recorded demo** is missing, use **New replay** → *Recorded-data replay* → Participant 01 →
 *Final test period*. If recorded data is not installed, say so and switch to Scene 13's synthetic participants.
@@ -139,6 +198,7 @@ warning issued at 20:30, outcome pending.
 > On the right, the guardrails that applied to this forecast: enough recent history, a fresh reading, complete inputs.
 > And at 20:30 the twin issued a research warning. Its outcome is still pending — we cannot know it yet.”
 
+**Metrics to show:** range target 80 % vs measured 74.2 % / 74.0 % (`metrics.json`); 35.3 vs 19.5 and 46 % (`reports/error_by_trend.md`).
 **Transition:** “Before we follow that warning, here is the path we just walked through.”
 **Fallback:** if the explanation panel is collapsed, click its header; if values differ, read the screen.
 
@@ -150,6 +210,7 @@ warning issued at 20:30, outcome pending.
 > a review goes to a local ledger. The offline build shares the same code. The dashed box is research: candidates reach
 > the app only if every declared release gate passes.”
 
+**Metrics to show:** none — the architecture diagram (`docs/architecture.md`).
 **Transition:** back to the browser: “Now let's see whether that forecast was right.”
 **Fallback:** none needed; if the slide window fails, describe the diagram over the replay.
 
@@ -167,6 +228,7 @@ observed 169 at 21:35, error +19.1 (population +25.8, correction 6.7 closer).
 > 169 — nineteen too high — but the population model alone was almost twenty-six too high, so the correction moved it 6.7
 > closer. One case says nothing about how often that happens; the evidence page answers that.”
 
+**Metrics to show:** the *Outcome* block — observed value, error, population error (app screen †).
 **Transition:** “And the warning from 20:30?”
 **Fallback:** if the drawer opens on a newer forecast, select the 20:35 forecast from *Saved forecasts*.
 
@@ -184,13 +246,15 @@ time), the note; after the step the copy is unchanged and says the replay has mo
 > “The 20:30 warning now has its outcome: a sustained episode began at 20:45 — fifteen minutes of forecast lead. Earlier
 > that day, warnings at 09:15 and 11:25 ended without an episode. They are false alarms, and the list says so. We show
 > them on purpose: across the test period this rule caught 61 of 64 new episodes, at 1.49 false alarms per observed
-> patient-day.
+> patient-day. Catching an episode is not the same as early notice: only 48.4 percent of all episodes were warned at
+> least thirty minutes ahead.
 >
 > The educator records that she reviewed the warning, with a note. The review summary freezes what was known: the
 > participant, the session and its revision, the model version, the replay cutoff at 21:38 — kept apart from the
 > wall-clock time of the review — and the note. When the replay moves on to 21:43, this copy does not change; it only
 > says the replay has moved since.”
 
+**Metrics to show:** 61 of 64 · 1.49 per observed patient-day · 48.4 % ≥ 30 min ahead (`metrics.json`, `reports/warning_utility.md`; also on slide 18).
 **Transition:** “Real data also has holes. Here is a real one.”
 **Fallback:** if **Save review** is disabled, check that the note field has text; if the summary fails to open, show the
 reviewed badge on the warning instead.
@@ -214,6 +278,7 @@ mg/dL at 60 min, range 53–105 †, labelled *Degraded data*.
 > available*, with the reason, and the screen says that unavailable is not the same as low risk. A few readings later it
 > forecasts again, labelled *Degraded data* with its reason. Recovery is shown as it is, not as a clean success.”
 
+**Metrics to show:** none — states only (*Stale*, *Not available*, *Degraded data*).
 **Transition (to slide 14):** “So how good is it — and on whom was each number measured?”
 **Fallback:** if seeking lands a minute off, step 5 minutes until the stated time; narrate the screen.
 
@@ -226,6 +291,7 @@ mg/dL at 60 min, range 53–105 †, labelled *Degraded data*.
 > from Shanghai, a separate CGM-only model: 10.90 and 19.31, against 12.14 and 20.44. Different models, different
 > tests.”
 
+**Metrics to show:** slide 14 — three rows, each with its cohort label (`reports/evidence_manifest.md`).
 **Transition:** back to the browser: “All of this is inside the app, read from the saved files.”
 
 ## Scene 9 — Model evidence (10:45–12:00) · App
@@ -247,6 +313,7 @@ the disclosures notice; the guardrail list with the file that enforces each.
 > warnings that always show their outcome, ranges with measured coverage, no clinical claims, and locked evaluations
 > that cannot be quietly re-run.”
 
+**Metrics to show:** the serving model name; ≈ 644 h, 64 onsets; 13.0 / 20.3 vs 14.8 / 23.2 (`metrics.json`).
 **Transition:** “Two of those guardrails are easy to say and hard to prove. Let me prove them.”
 **Fallback:** if a section is collapsed, expand it; numbers on screen govern.
 
@@ -263,6 +330,7 @@ the disclosures notice; the guardrail list with the file that enforces each.
 > saved experiment: all 15,440 test forecasts matched within 0.05 milligrams per decilitre. What you see in the app is
 > what we measured.”
 
+**Metrics to show:** 15,440 / 15,440 within 0.05 mg/dL (`reports/serving_parity.md`).
 **Transition:** “Finally, the research behind the model — and what we did with it.”
 **Fallback:** if the recent-replay link is gone, start Participant 12 again and seek to 10:27.
 
@@ -287,6 +355,7 @@ slides 22–23 in Scene 16.
 > the warning and range checks — but error above 180 rose by 1.07, past our limit of 1.0. One gate failed, so we did
 > not adopt it. The model you have been watching is unchanged.”
 
+**Metrics to show:** −1.19 · 11 of 14 · +1.07 vs limit 1.0 (`reports/constrained_study.md`).
 **Transition (to slide 26):** “So where does that leave us?”
 **Fallback:** if the research view is unavailable on this installation, it says “Not run on this installation”; switch
 to slide 21 and read the same findings.
@@ -301,6 +370,7 @@ to slide 21 and read the same findings.
 > *[Slide 27]* Next: a consented Indian cohort with real-time sensors, medications and meal times; evaluation on new
 > people and sites; a warning budget agreed with clinicians; and a usability and data-protection review.”
 
+**Metrics to show:** slide 26 limits — 14 people, one US site, ranges 74 % against 80 %, 1.49 false alarms per observed day (`docs/model_card.md`, `metrics.json`).
 **Transition:** “In the remaining minutes, a few more cases from the app.”
 
 ---
@@ -319,6 +389,7 @@ up*. C: at 09:30 no breakfast record; at 10:00 breakfast eaten 08:27, logged abo
 > invisible to the twin; at 10:00 it appears, with both times. The twin can only use what was known at the time — and
 > that is why our main model does not use meals at all: in the real dataset the logging time is undocumented.”
 
+**Metrics to show:** none — label every participant here as **synthetic** (fictional; `configs/synthetic.yaml`).
 **Fallback:** if the synthetic model is missing, run `make synthetic` before recording; skip to Scene 14.
 
 ## Scene 14 — Extension: a false alarm and the review queue (16:15–17:15) · App
@@ -336,6 +407,7 @@ at the rows; **Open** one.
 > The review queue lists every replay with unreviewed warnings first. It is an order of work, not a risk ranking, and
 > its counts stop at each replay's own clock, so nothing after that moment leaks into the list.”
 
+**Metrics to show:** the 09:15 warning labelled *No onset (false alarm)* (app screen †).
 **Fallback:** if the queue is empty on a fresh install, say so and show the screenshot linked above.
 
 ## Scene 15 — Extension: the hard regime, rising glucose (17:15–18:15) · App
@@ -351,6 +423,7 @@ quality: sources, model-input limits, coverage.
 > The data-quality page then separates three things a reviewer should not confuse: this replay's data, the dataset's
 > coverage, and the limits of what the model can read.”
 
+**Metrics to show:** 35.3 vs 19.5 mg/dL, 46 % range held while rising; −16.9 mg/dL mean error above 180 at 60 min (`reports/error_by_trend.md`, validation segment).
 **Fallback:** if the trend block is absent for this forecast, step 5 minutes to a rising reading.
 
 ## Scene 16 — Extension: research cutaway (18:15–19:15) · slides 19–24
@@ -373,6 +446,7 @@ quality: sources, model-input limits, coverage.
 > thirty minutes and at two hours. That cohort has now been opened twice, for different horizons, and nothing was chosen
 > on it.”
 
+**Metrics to show:** 30.6 vs 35.9 and 15 min (`reports/two_hour_benchmark.md`, `reports/warning_utility.md`); 1.07 vs 1.0 (`reports/constrained_study.md`); 22.92 vs 24.47 and 22.50 (`reports/foundation_baseline.md`); Shanghai (`reports/two_hour_external.md`).
 **Fallback:** if short of time, read only slides 20, 23 and 24.
 
 ## Scene 17 — Extension: reproduce it, and close (19:15–20:30) · README, slide 28
@@ -386,6 +460,8 @@ quality: sources, model-input limits, coverage.
 >
 > *[Slide 28]* We are Team Kryptonite from VESIT. GlucoTwin does not tell anyone what to do. It shows what may happen
 > next, records who looked, and then shows whether it was right. Forecast. Review. Verify. Thank you for watching.”
+
+**Metrics to show:** test counts and parity from `reports/verification.md`; licences on slide 28.
 
 Hold slide 28 for five seconds of silence before stopping the recording, so trimming cannot drop the video below 20:00.
 
