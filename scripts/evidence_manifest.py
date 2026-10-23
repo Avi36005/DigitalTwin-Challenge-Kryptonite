@@ -289,17 +289,23 @@ def c_scale() -> list[Check]:
             ("evaluated externally", str(a["shanghai_t2dm"]), r"evaluated internally and (\d+) evaluated externally\.\*\*")]
 
 
-def c_serving_identity() -> list[Check]:
+def recorded_serving() -> str:
+    # a fresh clone after `make synthetic` has a registry with only the synthetic entry
     reg = need(ART / "registry.json")
-    return [("serving model (recorded data)", reg["serving"]["dataset_replay"],
+    if "dataset_replay" not in reg.get("serving", {}):
+        raise Missing("artifacts/registry.json (recorded-data serving entry; run `make experiment`)")
+    return reg["serving"]["dataset_replay"]
+
+
+def c_serving_identity() -> list[Check]:
+    return [("serving model (recorded data)", recorded_serving(),
              r"\*\*LightGBM `dyn-prof-v2` \+ patient adaptation\*\* \(`([^`]+)`\)")]
 
 
 def c_parity() -> list[Check]:
     p = need(ROOT / "reports" / "serving_parity.json")
-    reg = need(ART / "registry.json")
     ok = (p["outcome"] == "pass" and p["over_tolerance"] == 0 and p["missing_online"] == 0
-          and p["model_version"] == reg["serving"]["dataset_replay"])
+          and p["model_version"] == recorded_serving())
     return [("forecasts compared (saved parity run, outcome pass for the serving model)",
              f"{p['compared']:,}" if ok else f"outcome {p['outcome']}", r"reproduced all ([\d,]+) saved test forecasts"),
             ("tolerance (mg/dL)", f"{p['tolerance_mg_dl']:g}", r"saved test forecasts within ([\d.]+) mg/dL")]
