@@ -503,7 +503,7 @@ with the study ledger, gate calculations and verification scope; method note in
 
 All submission files are relative paths to files tracked in this repository; the only external links are the unlisted
 YouTube video and the Google Sheets copy of the research workbook, both of which opened without signing in on
-24 October 2026. Last local check: **24 October 2026** — all 138 README and team-folder links and images pass: each
+24 October 2026. Last local check: **24 October 2026** — all 139 README and team-folder links and images pass: each
 target exists, is tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** signed-out access
 to the repository itself, which is checked once it is public. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
 
