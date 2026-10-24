@@ -89,10 +89,10 @@ only when the evidence exists; details and owners: [`docs/submission_checklist.m
 | 5 | Healthcare use case | [Healthcare use case](#5-healthcare-use-case) | Ready |
 | 6 | Technical stack | [Technical stack](#6-technical-stack) | Ready |
 | 7 | AI/ML model or framework details | [AI and ML model details](#7-ai-and-ml-model-details) | Ready |
-| 8 | Demo video (unlisted YouTube, minimum 20 min) | [Demo video](#8-demo-video) | **Missing — not yet recorded or uploaded** |
+| 8 | Demo video (unlisted YouTube) | [Demo video](#8-demo-video) | Ready — [https://youtu.be/SPaCWZINta0](https://youtu.be/SPaCWZINta0) (19:21) |
 | 9 | Open-source license details | [Open-source license](#9-open-source-license) | Ready (holder to be confirmed by the team) |
 | 10 | Architecture diagram (PDF/PPT) | [Architecture diagram](#10-architecture-diagram) | Ready |
-| 11 | Presentation with details and outcomes (PDF/PPT) | [Presentation](#11-presentation) | Ready (video link added after upload) |
+| 11 | Presentation with details and outcomes (PDF/PPT) | [Presentation](#11-presentation) | Ready |
 | 12 | Files and links accessible without extra permissions | [Accessible files and links](#12-accessible-files-and-links) | **Unverified — repository not yet public** |
 
 ## 1. Team details
@@ -455,10 +455,10 @@ Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · 
 
 ## 8. Demo video
 
-* **Unlisted YouTube link: not yet available** — the recording has not been made or uploaded.
-* The challenge page requires a **minimum 20-minute video** (rechecked 14 Oct 2026); target 20:30 so neither the
-  rendered file nor YouTube's displayed duration falls below 20:00. The actual rendered and YouTube-displayed durations
-  will be recorded here after upload.
+* **Unlisted YouTube video: [https://youtu.be/SPaCWZINta0](https://youtu.be/SPaCWZINta0)** — 19:21 as displayed by YouTube (checked 24 Oct 2026).
+* The submission form asks for a 15–20 minute demo video; the challenge page states a 20-minute minimum.
+* The video was recorded with the earlier 28-slide deck; the [current deck](docs/submission/GlucoTwin_Presentation.pdf)
+  has the same content in 15 slides (old slide 14 → 11, 23 → 12, 26 → 14, 28 → 15).
 * Script with scene timings, clicks, expected on-screen values and a recording checklist:
   [`docs/demo_script.md`](docs/demo_script.md) ([PDF](docs/submission/GlucoTwin_Demo_Script.pdf)); replay sequence
   verified against the running app: [`reports/demo_sequence.md`](reports/demo_sequence.md).

@@ -1,6 +1,6 @@
 # Research workbook check
 
-Checked 2026-10-24T08:15:02+00:00 at repository HEAD `8c75de7` (working tree may differ). Workbook `docs/submission/GlucoTwin_Research_Workbook.xlsx` sha256 `ed2b8bfcded3ef5fe81759b679b7d8667a09c3dbc18f73a312d2c84bed25e3db`. Engine: LibreOffice headless (xlsx → xlsx recalculation) + openpyxl read.
+Checked 2026-10-24T08:26:54+00:00 at repository HEAD `07a7eac` (working tree may differ). Workbook `docs/submission/GlucoTwin_Research_Workbook.xlsx` sha256 `79af8d29661dac3349b278f571cb1092c334c604522a9fcb79ffdb722cc27b21`. Engine: LibreOffice headless (xlsx → xlsx recalculation) + openpyxl read.
 
 **27 passed, 0 failed.**
 
@@ -32,6 +32,6 @@ Checked 2026-10-24T08:15:02+00:00 at repository HEAD `8c75de7` (working tree may
 | ClaimIndex is the first sheet | pass | ["ClaimIndex", "Sources", "Cohorts", "Forecasts", "WarningRanges", "Studies", "Gates", "Verification", "Guardrails", "About"] |
 | no home paths, e-mail addresses or participant identifiers (xlsx + JSON) | pass | [] |
 | perturbation: dependent formulas follow source cells; 'unavailable' propagates as text, not 0 | pass | {"changed": {"cs.pg.high_worsening_60": 0.99, "fus.serv.mae30": 13.5, "fus.ev.false_alarm_episodes": "unavailable"}, "before": {"gate_hi": "FAIL", "primary": "FAILED", "forecast_diff_30": -1.88031245229031, "c_fc01": "matches", "fa_rate": 1.49222797927461}, "after": {"gate_hi": "PASS", "primary": "PASSED", "forecast_diff_30": -1.33660093847569, "c_fc01": "MISMATCH", "c5311_value": 0.99, "fa_rate": |
-| delivered workbook untouched by the checks | pass | "ed2b8bfcded3ef5fe81759b679b7d8667a09c3dbc18f73a312d2c84bed25e3db" |
+| delivered workbook untouched by the checks | pass | "79af8d29661dac3349b278f571cb1092c334c604522a9fcb79ffdb722cc27b21" |
 
 Regenerate: `uv run --group docs python scripts/check_research_workbook.py`. The delivered workbook is never modified; recalculation and the perturbation test run on copies in a temporary directory.

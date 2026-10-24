@@ -1,8 +1,8 @@
 {
- "checked_at": "2026-10-24T08:15:02+00:00",
- "repository_head": "8c75de7",
+ "checked_at": "2026-10-24T08:26:54+00:00",
+ "repository_head": "07a7eac",
  "workbook": "docs/submission/GlucoTwin_Research_Workbook.xlsx",
- "workbook_sha256": "ed2b8bfcded3ef5fe81759b679b7d8667a09c3dbc18f73a312d2c84bed25e3db",
+ "workbook_sha256": "79af8d29661dac3349b278f571cb1092c334c604522a9fcb79ffdb722cc27b21",
  "engine": "LibreOffice headless (xlsx → xlsx recalculation) + openpyxl read",
  "passed": 27,
  "failed": 0,
@@ -284,7 +284,7 @@
   {
    "check": "delivered workbook untouched by the checks",
    "result": "pass",
-   "detail": "ed2b8bfcded3ef5fe81759b679b7d8667a09c3dbc18f73a312d2c84bed25e3db"
+   "detail": "79af8d29661dac3349b278f571cb1092c334c604522a9fcb79ffdb722cc27b21"
   }
  ]
 }

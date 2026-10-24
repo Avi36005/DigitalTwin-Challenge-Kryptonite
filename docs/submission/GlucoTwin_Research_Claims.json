@@ -1,7 +1,7 @@
 {
  "generated_by": "scripts/build_research_workbook.py",
- "generated_at": "2026-10-24T08:11:35+00:00",
- "repository_head": "8c75de7",
+ "generated_at": "2026-10-24T08:26:49+00:00",
+ "repository_head": "07a7eac",
  "scope": "Aggregate claims and source values only; no participant rows. Serving test = later recordings of the same 14 people.",
  "status_counts": {
   "supported": 200,
@@ -4637,8 +4637,8 @@
    "id": "submission",
    "path": "configs/submission.yaml",
    "what": "Team and submission metadata",
-   "date": "2026-10-20T17:56:54+05:30",
-   "sha256": "19d79e63a6fd10536c54e3465e4662f5faa716cca2c2812e5f0c9c6dc42a66a3",
+   "date": "2026-10-24T13:50:59+05:30",
+   "sha256": "c8604c07a5b4b23736a54d9b6d5a6572a3747c412766d9515f0f8658c49a6bd1",
    "identity": "submission metadata",
    "status": "public in repo (tracked)"
   },
@@ -4754,8 +4754,8 @@
    "id": "readme",
    "path": "README.md",
    "what": "README (claims as stated)",
-   "date": "2026-10-23T22:01:06+05:30",
-   "sha256": "bf3f1eae022a34547a2d97e8bb9657ebcd16d67c15071e0eb0365242a1934e9c",
+   "date": "2026-10-24T13:55:22+05:30",
+   "sha256": "18bf065ff9a320c383f822d9252e53ceec967e3cfed9b1a454ac65daa4edf7e0",
    "identity": "documentation",
    "status": "public in repo (tracked)"
   }
