@@ -11,7 +11,6 @@ not in this repository.
 | Members | Avinash Gehi (leader) · Hardik Hinduja | Supplied 11 Oct 2026 |
 | College / incubator | Vivekanand Education Society's Institute of Technology (VESIT), Mumbai | Supplied 17 Oct 2026 |
 | Programme and year of study | — | Optional; not supplied |
-| Public contact for the jury | Through the Unstop submission | — |
 | Repository URL | — | Added after the team publishes the repository |
 | Demo video (unlisted YouTube, minimum 20 min) | — | Added after recording and upload |
 | Roles | — | Optional; not supplied |

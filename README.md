@@ -77,7 +77,7 @@ Built into the code and covered by tests, not just stated:
 
 ## Submission checklist (Unstop form)
 
-The twelve mandatory items, where each is answered below, and its status on **23 October 2026**. Status is updated
+The twelve mandatory items, where each is answered below, and its status on **24 October 2026**. Status is updated
 only when the evidence exists; details and owners: [`docs/submission_checklist.md`](docs/submission_checklist.md).
 
 | # | Form item | Section | Status |
@@ -93,7 +93,7 @@ only when the evidence exists; details and owners: [`docs/submission_checklist.m
 | 9 | Open-source license details | [Open-source license](#9-open-source-license) | Ready (holder to be confirmed by the team) |
 | 10 | Architecture diagram (PDF/PPT) | [Architecture diagram](#10-architecture-diagram) | Ready |
 | 11 | Presentation with details and outcomes (PDF/PPT) | [Presentation](#11-presentation) | Ready |
-| 12 | Files and links accessible without extra permissions | [Accessible files and links](#12-accessible-files-and-links) | **Unverified — repository not yet public** |
+| 12 | Files and links accessible without extra permissions | [Accessible files and links](#12-accessible-files-and-links) | Ready — repository public, checked signed out on 24 Oct 2026 |
 
 ## 1. Team details
 
@@ -102,7 +102,6 @@ only when the evidence exists; details and owners: [`docs/submission_checklist.m
 | Team name | **Kryptonite** |
 | Team leader | Avinash Gehi |
 | Members | Avinash Gehi (leader) · Hardik Hinduja |
-| Contact | Through the Unstop submission (the leader's contact details are entered on the form, not published here) |
 
 More: [`docs/team_details.md`](docs/team_details.md). Team folder (the challenge's `Team Name_College Name` rule):
 [`Kryptonite_VESIT/`](Kryptonite_VESIT/README.md), an index of the submission files.
@@ -504,8 +503,8 @@ with the study ledger, gate calculations and verification scope; method note in
 All submission files are relative paths to files tracked in this repository; the only external links are the unlisted
 YouTube video and the Google Sheets copy of the research workbook, both of which opened without signing in on
 24 October 2026. Last local check: **24 October 2026** — all 139 README and team-folder links and images pass: each
-target exists, is tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** signed-out access
-to the repository itself, which is checked once it is public. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
+target exists, is tracked by Git and opens (PDF pages and PPTX slides counted). Signed out, the public repository,
+README, LICENSE, presentation, architecture and script PDFs, workbook and team folder all opened (24 October 2026). Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
 
 **[Judge guide (5 minutes)](docs/judge_guide.md)**: each part of the brief, how to verify it and what we do not claim.
 
