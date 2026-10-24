@@ -12,11 +12,11 @@ once in the repository, at the path the README links.
 | Results at a glance (each row names its model and evaluation setting) | [README](../README.md#results-at-a-glance) |
 | Presentation with details and outcomes | [`GlucoTwin_Presentation.pdf`](../docs/submission/GlucoTwin_Presentation.pdf) · [`.pptx`](../docs/submission/GlucoTwin_Presentation.pptx) |
 | Architecture diagram | [`GlucoTwin_Architecture.pdf`](../docs/submission/GlucoTwin_Architecture.pdf) |
-| Research workbook: every claim mapped to its source, with gates and verification | [`GlucoTwin_Research_Workbook.xlsx`](../docs/submission/GlucoTwin_Research_Workbook.xlsx) · [method note](../docs/submission/GlucoTwin_Research_Workbook_Methodology.md) |
+| Research workbook: every claim mapped to its source, with gates and verification | [`GlucoTwin_Research_Workbook.xlsx`](../docs/submission/GlucoTwin_Research_Workbook.xlsx) · [online (Google Sheets)](https://docs.google.com/spreadsheets/d/1u06FJSwKpWywDKrE9fGa2ZzivmY3eSLE/edit?usp=sharing) · [method note](../docs/submission/GlucoTwin_Research_Workbook_Methodology.md) |
 | Video script and recording checklist | [`demo_script.md`](../docs/demo_script.md) · [`GlucoTwin_Demo_Script.pdf`](../docs/submission/GlucoTwin_Demo_Script.pdf) |
-| Demo video (unlisted YouTube, at least 20 minutes) | Not yet recorded or uploaded; the link is added here and in [README §8](../README.md#8-demo-video) after upload |
+| Demo video (unlisted YouTube, at least 20 minutes) | [https://youtu.be/SPaCWZINta0](https://youtu.be/SPaCWZINta0) |
 | Team details | [`docs/team_details.md`](../docs/team_details.md) |
-| Source code | This repository (public link added after publication): [`apps/web`](../apps/web) · [`services/api`](../services/api) · [`ml/glucotwin`](../ml/glucotwin) |
+| Source code | [https://github.com/Avi36005/DigitalTwin-Challenge-Kryptonite](https://github.com/Avi36005/DigitalTwin-Challenge-Kryptonite): [`apps/web`](../apps/web) · [`services/api`](../services/api) · [`ml/glucotwin`](../ml/glucotwin) |
 | Run it locally | [README](../README.md#run-it-locally) |
 | License | [`LICENSE`](../LICENSE) (MIT, code only); data terms in [README §9](../README.md#9-open-source-license) |
 

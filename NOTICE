@@ -1,0 +1,7 @@
+GlucoTwin — scope of the MIT license in LICENSE
+
+This license covers the GlucoTwin source code only. It does NOT cover:
+  * the CGMacros dataset (CC BY-NC-SA 4.0, PhysioNet) or anything derived from
+    it, including trained model artifacts — see docs/data_card.md;
+  * third-party packages, which keep their own licenses.
+The software is a research prototype and is not a medical device.

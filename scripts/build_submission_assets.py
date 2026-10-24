@@ -828,7 +828,9 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      "ShanghaiT2DM (figshare, doi:10.6084/m9.figshare.21600933.v5, CC BY 4.0).",
                      "Evidence: docs/judge_guide.md · reports/evidence_manifest.md"
                      + (" · docs/submission/GlucoTwin_Research_Workbook.xlsx" if (OUT / "GlucoTwin_Research_Workbook.xlsx").exists() else "")
-                     + "."]},
+                     + ".",
+                     *([f"Research workbook (every claim → its source): {sub['links']['workbook']}"]
+                       if sub["links"].get("workbook") else [])]},
     ]
 
 
@@ -1156,7 +1158,8 @@ def team_folder(sub: dict) -> Path:
         ("Architecture diagram", "[`GlucoTwin_Architecture.pdf`](../docs/submission/GlucoTwin_Architecture.pdf)"),
         ("Research workbook: every claim mapped to its source, with gates and verification",
          "[`GlucoTwin_Research_Workbook.xlsx`](../docs/submission/GlucoTwin_Research_Workbook.xlsx) · "
-         "[method note](../docs/submission/GlucoTwin_Research_Workbook_Methodology.md)"),
+         + (f"[online (Google Sheets)]({links['workbook']}) · " if links.get("workbook") else "")
+         + "[method note](../docs/submission/GlucoTwin_Research_Workbook_Methodology.md)"),
         ("Video script and recording checklist", "[`demo_script.md`](../docs/demo_script.md) · "
                                                  "[`GlucoTwin_Demo_Script.pdf`](../docs/submission/GlucoTwin_Demo_Script.pdf)"),
         (f"Demo video (unlisted YouTube, at least {sub['video']['minimum_duration'].split(':')[0]} minutes)", video),

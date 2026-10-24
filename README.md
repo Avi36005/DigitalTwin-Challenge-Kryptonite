@@ -89,10 +89,10 @@ only when the evidence exists; details and owners: [`docs/submission_checklist.m
 | 5 | Healthcare use case | [Healthcare use case](#5-healthcare-use-case) | Ready |
 | 6 | Technical stack | [Technical stack](#6-technical-stack) | Ready |
 | 7 | AI/ML model or framework details | [AI and ML model details](#7-ai-and-ml-model-details) | Ready |
-| 8 | Demo video (unlisted YouTube, minimum 20 min) | [Demo video](#8-demo-video) | **Missing — not yet recorded or uploaded** |
+| 8 | Demo video (unlisted YouTube) | [Demo video](#8-demo-video) | Ready — [https://youtu.be/SPaCWZINta0](https://youtu.be/SPaCWZINta0) (19:21) |
 | 9 | Open-source license details | [Open-source license](#9-open-source-license) | Ready (holder to be confirmed by the team) |
 | 10 | Architecture diagram (PDF/PPT) | [Architecture diagram](#10-architecture-diagram) | Ready |
-| 11 | Presentation with details and outcomes (PDF/PPT) | [Presentation](#11-presentation) | Ready (video link added after upload) |
+| 11 | Presentation with details and outcomes (PDF/PPT) | [Presentation](#11-presentation) | Ready |
 | 12 | Files and links accessible without extra permissions | [Accessible files and links](#12-accessible-files-and-links) | **Unverified — repository not yet public** |
 
 ## 1. Team details
@@ -455,17 +455,17 @@ Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · 
 
 ## 8. Demo video
 
-* **Unlisted YouTube link: not yet available** — the recording has not been made or uploaded.
-* The challenge page requires a **minimum 20-minute video** (rechecked 14 Oct 2026); target 20:30 so neither the
-  rendered file nor YouTube's displayed duration falls below 20:00. The actual rendered and YouTube-displayed durations
-  will be recorded here after upload.
+* **Unlisted YouTube video: [https://youtu.be/SPaCWZINta0](https://youtu.be/SPaCWZINta0)** — 19:21 as displayed by YouTube (checked 24 Oct 2026).
+* The submission form asks for a 15–20 minute demo video; the challenge page states a 20-minute minimum.
+* The video was recorded with the earlier 28-slide deck; the [current deck](docs/submission/GlucoTwin_Presentation.pdf)
+  has the same content in 15 slides (old slide 14 → 11, 23 → 12, 26 → 14, 28 → 15).
 * Script with scene timings, clicks, expected on-screen values and a recording checklist:
   [`docs/demo_script.md`](docs/demo_script.md) ([PDF](docs/submission/GlucoTwin_Demo_Script.pdf)); replay sequence
   verified against the running app: [`reports/demo_sequence.md`](reports/demo_sequence.md).
 
 ## 9. Open-source license
 
-* **Code:** MIT — [`LICENSE`](LICENSE). Copyright holder entered as “Avinash Gehi and Hardik Hinduja (Team
+* **Code:** MIT — [`LICENSE`](LICENSE); scope (code only, not the data or derived model weights) in [`NOTICE`](NOTICE). Copyright holder entered as “Avinash Gehi and Hardik Hinduja (Team
   Kryptonite)”, pending the team's confirmation.
 * **Data:** CGMacros 1.0.0 — Gutierrez-Osuna R., Kerr D., Mortazavi B., Das A. *CGMacros: a scientific dataset for
   personalized nutrition and diet monitoring* (version 1.0.0). PhysioNet (2025). https://doi.org/10.13026/3z8q-x658 —
@@ -493,18 +493,19 @@ outcomes, limitations and links. Every number is generated from the experiment a
 [`scripts/build_submission_assets.py`](scripts/build_submission_assets.py). The earlier 28-slide technical deck is kept
 in [`docs/submission/backup_28slide_2026-10-24/`](docs/submission/backup_28slide_2026-10-24/).
 
-**Research workbook:** [`GlucoTwin_Research_Workbook.xlsx`](docs/submission/GlucoTwin_Research_Workbook.xlsx) maps each
+**Research workbook:** [`GlucoTwin_Research_Workbook.xlsx`](docs/submission/GlucoTwin_Research_Workbook.xlsx)
+([open online in Google Sheets](https://docs.google.com/spreadsheets/d/1u06FJSwKpWywDKrE9fGa2ZzivmY3eSLE/edit?usp=sharing)) maps each
 claim in the deck, README and narration to its source file, value and status (supported, pending, negative result),
 with the study ledger, gate calculations and verification scope; method note in
 [`GlucoTwin_Research_Workbook_Methodology.md`](docs/submission/GlucoTwin_Research_Workbook_Methodology.md).
 
 ## 12. Accessible files and links
 
-All submission links above are relative paths to files tracked in this repository; none points to a private drive,
-authenticated notebook or local-only file. Last local check: **23 October 2026** — all 128 README and team-folder links and images pass: each target exists, is
-tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** public repository visibility,
-signed-out access and the YouTube link, because the repository has not been published and the video has not been
-uploaded. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
+All submission files are relative paths to files tracked in this repository; the only external links are the unlisted
+YouTube video and the Google Sheets copy of the research workbook, both of which opened without signing in on
+24 October 2026. Last local check: **24 October 2026** — all 139 README and team-folder links and images pass: each
+target exists, is tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** signed-out access
+to the repository itself, which is checked once it is public. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
 
 **[Judge guide (5 minutes)](docs/judge_guide.md)**: each part of the brief, how to verify it and what we do not claim.
 
@@ -606,11 +607,13 @@ uv run python scripts/check_submission.py  # README links, anchors, tracked file
 scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an empty directory: setup, tests, e2e, Shanghai path
 ```
 
-**Final verification (22 October 2026, commit `f073a10`):** backend pytest 221 passed (2 skipped: the optional torch
-test and one fusion-side comparison) · ruff clean · frontend typecheck and build pass · Vitest 141 passed · Playwright
-29 journeys + 4 public-mode + 3 summary/export, all passed · evidence manifest 23 of 23 README claims match their
-artifacts · online replay reproduced 15,440 of 15,440 saved test forecasts within 0.05 mg/dL. Commands, logs and
-JUnit files: [`reports/verification/final_2026-10-22_145326Z/LEDGER.md`](reports/verification/final_2026-10-22_145326Z/LEDGER.md).
+**Final verification (24 October 2026, source `8c75de7` with the deck and workbook changes committed in `e674cd1`):**
+backend pytest 221 passed (2 skipped: the optional torch test and one fusion-side comparison) · ruff clean · frontend
+typecheck and build pass · Vitest 141 passed · Playwright 29 journeys + 4 public-mode + 3 summary/export, all passed ·
+evidence manifest 23 of 23 README claims match their artifacts · research workbook 27 of 27 checks · online replay
+reproduced 15,440 of 15,440 saved test forecasts within 0.05 mg/dL. Commands, logs and JUnit files:
+[`reports/verification/final_2026-10-24_deck/LEDGER.md`](reports/verification/final_2026-10-24_deck/LEDGER.md); the
+earlier run at `f073a10`: [`final_2026-10-22_145326Z`](reports/verification/final_2026-10-22_145326Z/LEDGER.md).
 
 Full history: [`reports/verification.md`](reports/verification.md) · integration audit:
 [`reports/integration_audit.md`](reports/integration_audit.md) · claim-by-claim check:
