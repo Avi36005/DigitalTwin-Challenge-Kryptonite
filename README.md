@@ -493,7 +493,8 @@ outcomes, limitations and links. Every number is generated from the experiment a
 [`scripts/build_submission_assets.py`](scripts/build_submission_assets.py). The earlier 28-slide technical deck is kept
 in [`docs/submission/backup_28slide_2026-10-24/`](docs/submission/backup_28slide_2026-10-24/).
 
-**Research workbook:** [`GlucoTwin_Research_Workbook.xlsx`](docs/submission/GlucoTwin_Research_Workbook.xlsx) maps each
+**Research workbook:** [`GlucoTwin_Research_Workbook.xlsx`](docs/submission/GlucoTwin_Research_Workbook.xlsx)
+([open online in Google Sheets](https://docs.google.com/spreadsheets/d/1u06FJSwKpWywDKrE9fGa2ZzivmY3eSLE/edit?usp=sharing)) maps each
 claim in the deck, README and narration to its source file, value and status (supported, pending, negative result),
 with the study ledger, gate calculations and verification scope; method note in
 [`GlucoTwin_Research_Workbook_Methodology.md`](docs/submission/GlucoTwin_Research_Workbook_Methodology.md).

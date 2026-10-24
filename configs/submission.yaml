@@ -9,6 +9,7 @@ team:
 links:
   repository: null             # direct public GitHub URL, after the team publishes (form field: max 500 characters)
   video: null                  # unlisted YouTube URL, after the team uploads the recording
+  workbook: "https://docs.google.com/spreadsheets/d/1u06FJSwKpWywDKrE9fGa2ZzivmY3eSLE/edit?usp=sharing"  # online copy of docs/submission/GlucoTwin_Research_Workbook.xlsx (Google Sheets, opens signed out; checked 24 Oct 2026)
 video:
   minimum_duration: "20:00"    # challenge page, rechecked 14 Oct 2026: "Minimum 20-minute video" (this governs)
   target_duration: "20:30"     # margin so neither the rendered file nor YouTube's display falls below 20:00

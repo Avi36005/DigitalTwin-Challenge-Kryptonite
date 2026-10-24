@@ -34,7 +34,7 @@ simulated patients.
    false alarms.
 3. **Results table** ([Results at a glance](../README.md#results-at-a-glance)): read the *Evaluated on* column first;
    each row is a different model and a different test. To trace any number in the deck, README or video to its saved
-   source, open the [research workbook](submission/GlucoTwin_Research_Workbook.xlsx) (*ClaimIndex* sheet first;
+   source, open the [research workbook](submission/GlucoTwin_Research_Workbook.xlsx) ([online copy](https://docs.google.com/spreadsheets/d/1u06FJSwKpWywDKrE9fGa2ZzivmY3eSLE/edit?usp=sharing); *ClaimIndex* sheet first;
    [method note](submission/GlucoTwin_Research_Workbook_Methodology.md)).
 4. **Safety guardrails** ([table](../README.md#safety-guardrails)): abstention, degraded-input flags, no look-ahead,
    bounded personalisation, an outcome for every warning and locked tests, each linked to its code and tests.
