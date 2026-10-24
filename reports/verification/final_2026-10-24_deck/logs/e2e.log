@@ -1,0 +1,72 @@
+
+> @glucotwin/web@0.1.0 e2e
+> playwright test --config playwright.config.ts --workers=1 --reporter=list --output=<session-scratch>/final24/pw/e2e
+
+[WebServer] INFO:     Started server process [81078]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8010 (Press CTRL+C to quit)
+
+Running 29 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/journey.spec.ts:28:1 › clinician replay journey on a synthetic participant (7.0s)
+  ✓   2 [chromium] › e2e/journey.spec.ts:114:1 › missing-data, stale and abstention states are explicit (2.7s)
+  ✓   3 [chromium] › e2e/journey.spec.ts:133:1 › recorded-data replay in the final test period shows prediction ranges with their target coverage (7.0s)
+  ✓   4 [chromium] › e2e/journey.spec.ts:168:1 › model evidence and data quality pages render recorded results (1.7s)
+  ✓   5 [chromium] › e2e/journey.spec.ts:207:1 › research evidence is separate from the serving model, and data scale is audited (1.3s)
+  ✓   6 [chromium] › e2e/journey.spec.ts:239:1 › research after the demo model is tagged, and says when it was not run here (659ms)
+  ✓   7 [chromium] › e2e/journey.spec.ts:262:3 › mobile research evidence › research after the demo model fits a phone (463ms)
+  ✓   8 [chromium] › e2e/journey.spec.ts:269:3 › mobile research evidence › tables scroll inside their region instead of clipping the page (558ms)
+  ✓   9 [chromium] › e2e/journey.spec.ts:280:1 › API failure is reported and never replaced with example data (895ms)
+  ✓  10 [chromium] › e2e/journey.spec.ts:300:3 › recording resolution (1920×1080) — demo sequence on recorded data › Participant 01: a warning is pending until its outcome is knowable (10.7s)
+OUTCOME_TEXT::Outcome |  | Observed · Every horizon has an observed reading at this replay time. |  | 30 min (for 21:05): observed reading 189 mg/dL at 21:05. Forecast error +0.0 mg/dL; population forecast error +3.0 mg/dL. | The patient correction moved this forecast 3.0 mg/dL closer to the observed value. | 60 min (for 21:35): observed reading 169 mg/dL at 21:35. Forecast error +19.1 mg/dL; population forecast error +25.8 mg/dL. | The patient correction moved this forecast 6.7 mg/dL closer to the observed value. |  | The observed reading is the sensor value recorded within 2.5 min of the target time and released by the replay clock — a measurement, not an estimate. Errors are the saved forecast minus that reading; one outcome says nothing about how often the correction helps.
+  ✓  11 [chromium] › e2e/journey.spec.ts:346:3 › recording resolution (1920×1080) — demo sequence on recorded data › Participant 01: a forecast's outcome appears only when the replay clock reaches its target time (9.8s)
+  ✓  12 [chromium] › e2e/journey.spec.ts:378:3 › recording resolution (1920×1080) — demo sequence on recorded data › Participant 12: a real sensor gap makes the forecast stale, then the twin abstains (9.3s)
+  ✓  13 [chromium] › e2e/journey.spec.ts:401:3 › mobile › the review status sits directly under the forecast numbers, above the chart (1.7s)
+  ✓  14 [chromium] › e2e/journey.spec.ts:428:3 › mobile › navigation drawer traps focus, closes on Escape and restores focus (1.5s)
+  ✓  15 [chromium] › e2e/journey.spec.ts:453:3 › mobile › landing page on a phone: brand and Open workspace stay visible, menu works (391ms)
+  ✓  16 [chromium] › e2e/journey.spec.ts:466:3 › landing page and route compatibility › landing actions lead into the workspace and evidence (774ms)
+  ✓  17 [chromium] › e2e/journey.spec.ts:482:3 › landing page and route compatibility › an old /?session= link resumes the same session without resetting its clock (1.4s)
+  ✓  18 [chromium] › e2e/journey.spec.ts:497:3 › landing page and route compatibility › old page URLs redirect with their query; an unknown session shows an error, not another participant (958ms)
+  ✓  19 [chromium] › e2e/journey.spec.ts:506:3 › landing page and route compatibility › a new page starts at its heading (545ms)
+  ✓  20 [chromium] › e2e/journey.spec.ts:520:3 › first replay experience on recorded data › Open recorded demo starts Participant 01 at the final test period (3.5s)
+  ✓  21 [chromium] › e2e/journey.spec.ts:536:3 › first replay experience on recorded data › a replay from the start of a recording offers the final test period (3.4s)
+[WebServer] 1:42:40 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:42:40 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:42:40 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:42:40 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:42:40 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:42:40 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+  ✓  22 [chromium] › e2e/journey.spec.ts:553:3 › review summary › Participant 01: a frozen review summary with its cutoff and model, printing only the report (4.7s)
+  ✓  23 [chromium] › e2e/journey.spec.ts:595:3 › review queue › replays with unreviewed warnings come first; counts stop at each replay's clock (7.9s)
+  ✓  24 [chromium] › e2e/journey.spec.ts:646:3 › review queue › fits a 390 px phone without horizontal scrolling (550ms)
+  ✓  25 [chromium] › e2e/journey.spec.ts:656:3 › keyboard, motion and tablet layout › forecast details open from the keyboard, close on Escape, return focus, and do not animate under reduced motion (2.6s)
+  ✓  26 [chromium] › e2e/journey.spec.ts:684:3 › keyboard, motion and tablet layout › tablet width: every review-queue row keeps its data state and Open link on screen (1.5s)
+STEP2::How the twin reached this forecast |  | Forecast issued Day 9 · 20:35 by lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion. Every value below was recorded with this forecast. |  | Horizon | Population forecast | Patient correction | Final estimate | For | 30 min | 192 mg/dL | −3.0 mg/dL | 189 mg/dL | Day 9 · 21:05 | 60 min | 195 mg/dL | −6.7 mg/dL | 188 mg/dL | Day 9 · 21:35 | Patient correction | Active: learned from this person's own earlier forecasts whose outcome had been observed. | 30 min: 713 observed outcomes (needs 6) · 60 min: 707 observed outcomes (needs 6) | Bounded at ±25 mg/dL; cleared after a 3 h gap between readings. Model weights are never refit. | Inputs at issue time | Glucose: latest reading 165 mg/dL observed 20:35 | Wearable activity: 5-minute summaries from the last hour were available and used. | Health record: read by this model; 8 values known (Age, Sex (male = 1), BMI, HbA1c, Fasting glucose, Fasting insulin, Triglycerides, HDL cholesterol). Context only, not model inputs: Body weight, Height, Self-identified ethnicity, Total cholesterol, LDL cholesterol (calculated), VLDL cholesterol (calculated). | Warnings so far | 33 research warnings: 15 onsets observed · 17 false alarms · 1 pending | As known at this replay time; an outcome observed later still counts as pending. | Prediction range | Target coverage 80%. Measured for this model on its final test period: 74.2% at 30 min, 74.0% at 60 min (gt-primary-2026-10-13-fusion). | An aggregate over the test period, not a guarantee for this person or this forecast. | Accuracy at this trend | Glucose rising 3.3 mg/dL per minute over the last 15 min (rising > 2 mg/dL/min). On this model's validation data at this trend: 30-min error 25.9 mg/dL (steady: 11.9); 60-min error 35.3 mg/dL (steady: 19.5). Peaks above 180 mg/dL were under-forecast by 17 mg/dL on average at 60 min. At this trend the 80% range held the outcome 40% of the time at 30 min, 46% of the time at 60 min. | Average error over many forecasts (gt-primary-2026-10-13-fusion, validation segment); descriptive, not a guarantee for this forecast.
+STEP3::Outcome |  | Observed · Every horizon has an observed reading at this replay time. |  | 30 min (for 21:05): observed reading 189 mg/dL at 21:05. Forecast error +0.0 mg/dL; population forecast error +3.0 mg/dL. | The patient correction moved this forecast 3.0 mg/dL closer to the observed value. | 60 min (for 21:35): observed reading 169 mg/dL at 21:35. Forecast error +19.1 mg/dL; population forecast error +25.8 mg/dL. | The patient correction moved this forecast 6.7 mg/dL closer to the observed value. |  | The observed reading is the sensor value recorded within 2.5 min of the target time and released by the replay clock — a measurement, not an estimate. Errors are the saved forecast minus that reading; one outcome says nothing about how often the correction helps.
+STEP4::Day 9 · 20:30 | Onset 20:45 · forecast lead 15 min |  | First warning 20:30 · last supporting forecast 20:40 |  | Fired by the 60-min forecast 173 mg/dL ≥ 170 trigger · 30-min 172 |  | Mark as reviewed
+  ✓  27 [chromium] › e2e/judge-journey.spec.ts:45:3 › judge journey (recorded data, 1920×1080) › Participant 01: inputs, forecast, outcome, warnings, review and a frozen summary (12.4s)
+STEP6::recovered at 2000-01-11T12:07:00Z | 60-minute forecast |  | 79mg/dL |  | Range 53–105 mg/dL |  | For Day 9 · 13:04 · issued 12:04 ·  | Degraded data
+  ✓  28 [chromium] › e2e/judge-journey.spec.ts:149:3 › judge journey (recorded data, 1920×1080) › Participant 12: a real sensor gap, abstention without a made-up forecast, then recovery (11.0s)
+  ✓  29 [chromium] › e2e/judge-journey.spec.ts:180:3 › judge journey (recorded data, 1920×1080) › queue: two replays are counted separately; an unknown count is never shown as zero (11.8s)
+
+  29 passed (2.1m)
+$ (cd ~/projects/Digitaltwin/apps/web && npm run e2e -- --workers=1 --reporter=list --output=<session-scratch>/final24/pw/e2e)

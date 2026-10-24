@@ -1,0 +1,2 @@
+27 passed, 0 failed → reports/verification/deck_workbook_2026-10-24/workbook_check.md
+$ (cd ~/projects/Digitaltwin && uv run --group docs python scripts/check_research_workbook.py)

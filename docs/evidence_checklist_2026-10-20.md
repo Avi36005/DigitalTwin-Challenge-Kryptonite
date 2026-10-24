@@ -91,7 +91,7 @@ naming D-043/D-044/D-045 and pointing to the three report paths. Typed-in number
 | README.md:376 | "Last local check: **19 October 2026**" | "**20 October 2026**" after the re-run |
 | README.md:481 | configs/experiments list | Add gt-2h-2026-10-20, gt-2h-clf-2026-10-20, gt-2h-ext-2026-10-20 |
 | docs/decisions.md:49–50 | "after the demo video was recorded" / "the recorded video are unchanged" | See discrepancy 5 |
-| configs/submission.yaml:10–16 | `repository`, `video`, `rendered_duration`, `youtube_displayed_duration` all null | Correct while unpublished/unrecorded. Fill only with confirmed values after upload, then rebuild slides (`scripts/build_submission_assets.py`) so slide 23 carries the links |
+| configs/submission.yaml:10–16 | `repository`, `video`, `rendered_duration`, `youtube_displayed_duration` all null | Correct while unpublished/unrecorded. Fill only with confirmed values after upload, then rebuild slides (`scripts/build_submission_assets.py`) so the closing slide carries the links |
 | docs/demo_script.md | Says demo first and 23 slides; chapter titles match judge_guide.md:28–29 | Up to date. Optional: add one sentence in Chapter 4/6 for the new Review dialog and Review summary once they ship |
 
 ## 90-second walkthrough (judges)

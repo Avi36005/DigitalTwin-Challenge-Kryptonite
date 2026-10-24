@@ -1,0 +1,5 @@
+
+> @glucotwin/web@0.1.0 typecheck
+> tsc -b --noEmit
+
+$ (cd ~/projects/Digitaltwin/apps/web && npm run typecheck)

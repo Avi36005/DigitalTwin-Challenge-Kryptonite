@@ -1,0 +1,133 @@
+{
+ "check": "online twin engine replay vs saved offline final-test predictions",
+ "model_version": "lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+ "experiment_id": "gt-primary-2026-10-13-fusion",
+ "pipeline": "lightgbm:dyn-prof-v2",
+ "personalization": "adaptive",
+ "feature_set_id": "dyn-prof-v2",
+ "transform_fingerprint": "38152f8846c88ed4",
+ "data_fingerprint": "289d296590837618",
+ "split_hash": "b31e8d8c071eb425",
+ "segment": "test",
+ "horizons_minutes": [
+  30,
+  60
+ ],
+ "participants": 14,
+ "offline_forecasts": 15440,
+ "compared": 15440,
+ "missing_online": 0,
+ "tolerance_mg_dl": 0.05,
+ "tolerance_basis": "API displays forecasts rounded to 0.1 mg/dL",
+ "max_abs_diff_mg_dl": 0.049997560197851953,
+ "over_tolerance": 0,
+ "outcome": "pass",
+ "raw_max_abs_diff_mg_dl": 0.0,
+ "raw_exact_matches": 15440,
+ "raw_basis": "unrounded online value (population + correction, float64) vs saved float64 offline prediction; informational, the outcome uses the display tolerance only",
+ "per_horizon": {
+  "30": {
+   "expected": 7720,
+   "compared": 7720,
+   "missing_online": 0,
+   "over_tolerance": 0,
+   "max_abs_diff_mg_dl": 0.049997560197851953,
+   "raw_max_abs_diff_mg_dl": 0.0,
+   "raw_exact_matches": 7720
+  },
+  "60": {
+   "expected": 7720,
+   "compared": 7720,
+   "missing_online": 0,
+   "over_tolerance": 0,
+   "max_abs_diff_mg_dl": 0.049992405213828306,
+   "raw_max_abs_diff_mg_dl": 0.0,
+   "raw_exact_matches": 7720
+  }
+ },
+ "scope": "registered serving model",
+ "identity": {
+  "source": "registry",
+  "registry": "artifacts/registry.json",
+  "registry_sha256": "04540adc4f16226c30886eecd8a6bb199bb89ab7ca08a8f88dfa3d4694b4af1c",
+  "model_dir": "artifacts/models/lightgbm.dyn-prof-v2.gt-primary-2026-10-13-fusion",
+  "model_dir_tree_sha256": "250369294d3d648159e05d9d519d6c06035ff24ec0abe19ba958efef2ca5946c",
+  "serving_json_sha256": "aeb86b96da6cd94a05df7e6d0ac782ffd012393a81ae7e08a2dcc0ba6b6dfc6c",
+  "artifact_checksum_files": {
+   "h30.lgb.txt": "44ca6d30dc5b915a1920fcee4c3be26f9d5df446c917b1465d446a178cc7f940",
+   "h60.lgb.txt": "a30954a3ccd2e14a4103680da886251f8a722a105671daf55fc4230189aca56c"
+  },
+  "experiment_dir": "artifacts/experiments/gt-primary-2026-10-13-fusion",
+  "metrics_sha256": "ec8d2e7aedb517e73fdb75284a8dea24bdb8de4b4f98257c6186d2cea56152d9",
+  "predictions_sha256": "1a5a7164fd8d17f36a4248a5a9f30f2dfee53b30b010ca62fab30df8c77b1778",
+  "adaptation": {
+   "policy_id": "shrunk-bias-v1",
+   "enabled": true,
+   "shrinkage_k": 96.0,
+   "half_life_minutes": 240.0,
+   "cap_mg_dl": 25.0,
+   "min_residuals": 6,
+   "reset_gap_minutes": 180.0,
+   "match_tolerance_minutes": 2.5,
+   "target_wait_minutes": 120.0
+  },
+  "intervals": {
+   "method": "split-conformal absolute residuals, pooled across participants, per horizon",
+   "level": 0.8,
+   "quantiles_mg_dl": {
+    "30": 16.711699710507816,
+    "60": 26.364702952325388
+   },
+   "calibrated_for": "lightgbm:dyn-prof-v2 with personalization=adaptive"
+  },
+  "alerts": {
+   "rule_version": "new-high-warning-v1",
+   "horizon_minutes": 60,
+   "threshold_margin_mg_dl": -10.0,
+   "score_kind": "forecast_margin_mg_dl",
+   "episode_merge_minutes": 30.0
+  },
+  "profile_gate": true,
+  "replay_split_hash": "b31e8d8c071eb425",
+  "replay_split_matches_model": true
+ },
+ "checked_at": "2026-10-24T08:14:38+00:00",
+ "revision": {
+  "commit": "8c75de73e7c64c6fac3a786aa3c5245a0c4dd764",
+  "dirty": true,
+  "untracked": [
+   ".claude/codex_sprint_ownership.md",
+   "docs/submission/GlucoTwin_Research_Claims.json",
+   "docs/submission/GlucoTwin_Research_Workbook.xlsx",
+   "docs/submission/GlucoTwin_Research_Workbook_Methodology.md",
+   "docs/submission/backup_28slide_2026-10-24/GlucoTwin_Presentation_28slide_technical.pdf",
+   "docs/submission/backup_28slide_2026-10-24/GlucoTwin_Presentation_28slide_technical.pptx",
+   "reports/overnight_codex/evidence_audit.md",
+   "reports/overnight_codex/patches/verification_ledger_proposed.patch",
+   "reports/overnight_codex/preservation_snapshot.json",
+   "reports/overnight_codex/qa_audit.md",
+   "reports/overnight_codex/qa_ledger_findings.json",
+   "reports/overnight_codex/qa_tooling_tests.json",
+   "reports/overnight_codex/qa_tooling_tests.log",
+   "reports/overnight_codex/qa_tooling_tests.xml",
+   "reports/overnight_codex/reproduce_ledger_findings.py",
+   "reports/overnight_codex/research_audit.md",
+   "reports/overnight_codex/research_audit_probes.py",
+   "reports/overnight_codex/ui_review_for_claude.md",
+   "reports/ui/summary_check/from_qa_worktree/p01-day9-2038-after-replay-moved.pdf",
+   "reports/ui/summary_check/from_qa_worktree/p01-day9-2038-pending-long-note.pdf",
+   "reports/ui/summary_check/from_qa_worktree/p12-day9-1050-stale.pdf",
+   "reports/ui/summary_check/from_qa_worktree/p12-day9-1145-abstained.pdf",
+   "reports/ui/summary_check/from_qa_worktree/synthetic-missing-profile-synthetic-participant-a.pdf",
+   "reports/ui/summary_check/p01-day9-2038-after-replay-moved.pdf",
+   "reports/ui/summary_check/p12-day9-1050-stale.pdf",
+   "reports/ui/summary_check/p12-day9-1145-abstained.pdf",
+   "reports/ui/summary_check/synthetic-missing-profile-synthetic-participant-a.pdf",
+   "scripts/build_research_workbook.py",
+   "scripts/check_research_workbook.py"
+  ]
+ },
+ "check_script_sha256": "2b1d5a131d7d6a84c32c3e589b539a02e91a423393100716968f44a24b9f3269",
+ "seconds": 35.5
+}
+$ (cd ~/projects/Digitaltwin && uv run python scripts/serving_parity.py --output ~/projects/Digitaltwin/reports/verification/final_2026-10-24_deck/parity/serving_parity.json --detail-output <session-scratch>/final24/parity_detail.json)

@@ -26,9 +26,12 @@ its primary gate), so these recorded values stand. If a different model is ever 
 re-recorded from the app (re-run the judge journey and `scripts/demo_sequence.py`); never narrate one model's numbers
 over another model's screen. Research numbers come only from locked, verified summaries.
 
-**Deck.** [`docs/submission/GlucoTwin_Presentation.pdf`](submission/GlucoTwin_Presentation.pdf), 28 slides at this
-writing; the video shows slides 1–4, 7, 14, 19–24 and 26–28. The rest stay in the PDF for the judges. If the deck is
-regenerated, recheck the slide numbers in the table below.
+**Deck.** [`docs/submission/GlucoTwin_Presentation.pdf`](submission/GlucoTwin_Presentation.pdf), 15 slides
+(trimmed on 24 Oct; the earlier 28-slide technical deck is kept in
+[`submission/backup_28slide_2026-10-24/`](submission/backup_28slide_2026-10-24/)). Slide numbers below refer to the
+15-slide deck: 1–4 opening, 7 architecture, 11 results, 12 foundation-model study, 14 limits, 15 close. A video
+recorded before 24 Oct shows the 28-slide numbering (old 14 → 11, 23 → 12, 26 → 14, 28 → 15); the content is the same.
+If the deck is regenerated, recheck the slide numbers in the table below.
 
 ## Main cut and extension
 
@@ -38,10 +41,10 @@ regenerated, recheck the slide numbers in the table below.
 | 02:00–05:30 | **App** | 2 · A real patient's inputs, sources and quality · 3 · Forecast components and bounded personalisation | Participant 01, Day 9 · 20:38 |
 | 05:30–06:15 | Slide | 4 · Architecture of what was just shown | Slide 7 |
 | 06:15–10:00 | **App** | 5 · Pinned forecast and its outcome · 6 · Warnings with outcomes and a review · 7 · A real sensor gap: stale, abstain, recover | Participant 01 21:38; Participant 12 |
-| 10:00–10:45 | Slide | 8 · Results, each with its model, cohort and comparator | Slide 14 |
+| 10:00–10:45 | Slide | 8 · Results, each with its model, cohort and comparator | Slide 11 |
 | 10:45–14:15 | **App** | 9 · Model evidence · 10 · Replay consistency: rewind and parity · 11 · Research studies and their evidence | Model evidence, Participant 12 |
-| 14:15–15:00 | Slides | 12 · Closing: strengths, limits, next validation step | Slides 26, 27 |
-| 15:00–20:30 | **App-led** | 13 · Synthetic edge cases · 14 · A false alarm and the review queue · 15 · Hard regime: rising glucose · 16 · Research cutaway · 17 · Reproduce it, close | Synthetic C/E, Participant 01, Review queue, slides 19–24, 28 |
+| 14:15–15:00 | Slides | 12 · Closing: strengths, limits, next validation step | Slides 13, 14 |
+| 15:00–20:30 | **App-led** | 13 · Synthetic edge cases · 14 · A false alarm and the review queue · 15 · Hard regime: rising glucose · 16 · Research cutaway · 17 · Reproduce it, close | Synthetic C/E, Participant 01, Review queue, slides 11–12, 15 |
 
 App time in the first fifteen minutes: 3:30 + 3:45 + 3:30 = **10:45 of 15:00 (about 72 %)**. Scenes 13–17 extend the
 video past the 20-minute minimum with app-led material. YouTube chapters: paste the scene start times above into the
@@ -65,16 +68,16 @@ saved file the number comes from. † = serving-model value recorded from the ap
 | 5 | 06:15–07:15 | Same replay | **View forecast details** → **Esc** → **Step 1 h** → **View forecast details** | Outcome: 30 min error +0.0, 60 min error +19.1 (population +25.8) † | App screen; `reports/ui/journey/03-forecast-outcome.png` |
 | 6 | 07:15–08:45 | **Warnings**, **Review summary** | **Mark as reviewed** + note → **Save review** → **Review summary** → **Step 5 min** | **61 of 64** onsets warned; **1.49** false alarms per observed patient-day (40 false alarms); **48.4 %** of all onsets warned ≥ 30 min ahead | `metrics.json` (events, test, adaptive, −10); `reports/warning_utility.md` |
 | 7 | 08:45–10:00 | **New replay** → Participant 12 | Seek 10:27 → 10:52 → 11:32 → 11:47 → **Step 5 min** ×4 | *Stale*, *Not available*, “Unavailable is not the same as low risk”, *Degraded data* | App screen; `reports/ui/journey/06-gap-abstention.png` |
-| 8 | 10:00–10:45 | Slide 14 | — | **12.96 / 20.26** vs **14.84 / 23.23**; held out **13.88 / 22.30** vs **15.34 / 24.47**; Shanghai **10.90 / 19.31** vs **12.14 / 20.44** | `metrics.json`; `reports/nested_benchmark_report.md`; `reports/evidence_manifest.md` |
+| 8 | 10:00–10:45 | Slide 11 | — | **12.96 / 20.26** vs **14.84 / 23.23**; held out **13.88 / 22.30** vs **15.34 / 24.47**; Shanghai **10.90 / 19.31** vs **12.14 / 20.44** | `metrics.json`; `reports/nested_benchmark_report.md`; `reports/evidence_manifest.md` |
 | 9 | 10:45–12:00 | `/app/evidence` | Scroll summary → disclosures → **All safety guardrails** | ≈ **644 h**, **64** onsets; MAE 13.0 / 20.3 vs 14.8 / 23.2; four selection disclosures | `metrics.json` (cohort.test) |
 | 10 | 12:00–13:00 | Participant 12 replay | Seek **back** to Day 9 · 10:27 | New revision; **15,440 / 15,440** forecasts matched within 0.05 mg/dL | `reports/serving_parity.md` |
 | 11 | 13:00–14:15 | `/app/evidence` → research view | Scroll; point at *Shown / Not shown / Negative result* | D-053: −**1.19** at 60 min, **11 of 14** people, high-target +**1.07** > 1.0 limit → not adopted | `reports/constrained_study.md` |
-| 12 | 14:15–15:00 | Slides 26, 27 | — | Limits: 14 people, one US site, ranges under-cover, > 1 false alarm per observed day | `docs/model_card.md` |
+| 12 | 14:15–15:00 | Slides 13, 14 | — | Limits: 14 people, one US site, ranges under-cover, > 1 false alarm per observed day | `docs/model_card.md` |
 | 13 | 15:00–16:15 | **New replay** → Synthetic E, then Synthetic C | **Step 5 min**; seek 09:30 → 10:00 | Abstention reason; late-logged meal (**synthetic**, fictional) | `configs/synthetic.yaml` |
 | 14 | 16:15–17:15 | Participant 01 → `/app/review-queue` | Seek 09:24 → **Step 1 h** ×2 → **Review queue** → **Open** | A false alarm kept and labelled; queue order of work, not risk | App screen; `reports/ui/20-review-queue.png` |
 | 15 | 17:15–18:15 | Participant 01 Day 9 · 20:38 → `/app/data-quality` | Point at *Accuracy at this trend* | **35.3** vs **19.5** mg/dL (validation); peaks under-forecast (−16.9 at 60 min above 180) | `reports/error_by_trend.md` |
-| 16 | 18:15–19:15 | Slides 19–24 | — | 2 h: **30.6 vs 35.9**, median lead 15 min; D-053 1.07 vs 1.0; D-054 **22.92** vs **24.47** and **22.50**; Shanghai external | `reports/two_hour_benchmark.md`; `reports/warning_utility.md`; `reports/foundation_baseline.md`; `reports/two_hour_external.md` |
-| 17 | 19:15–20:30 | README → slide 28 | *Run it locally*, *Verification*; hold slide 28 for 5 s | Tests and parity; MIT licence; dataset licences | `reports/verification.md` |
+| 16 | 18:15–19:15 | Slides 11–12 | — | 2 h: **30.6 vs 35.9**, median lead 15 min; D-053 1.07 vs 1.0; D-054 **22.92** vs **24.47** and **22.50**; Shanghai external | `reports/two_hour_benchmark.md`; `reports/warning_utility.md`; `reports/foundation_baseline.md`; `reports/two_hour_external.md` |
+| 17 | 19:15–20:30 | README → slide 15 | *Run it locally*, *Verification*; hold slide 15 for 5 s | Tests and parity; MIT licence; dataset licences | `reports/verification.md` |
 
 **Total planned: 20:30** (17 scenes; minimum 20:00). App on screen in the first fifteen minutes: 10:45 (about 72 %).
 
@@ -254,7 +257,7 @@ time), the note; after the step the copy is unchanged and says the replay has mo
 > wall-clock time of the review — and the note. When the replay moves on to 21:43, this copy does not change; it only
 > says the replay has moved since.”
 
-**Metrics to show:** 61 of 64 · 1.49 per observed patient-day · 48.4 % ≥ 30 min ahead (`metrics.json`, `reports/warning_utility.md`; also on slide 18).
+**Metrics to show:** 61 of 64 · 1.49 per observed patient-day · 48.4 % ≥ 30 min ahead (`metrics.json`, `reports/warning_utility.md`; also on slide 13).
 **Transition:** “Real data also has holes. Here is a real one.”
 **Fallback:** if **Save review** is disabled, check that the note field has text; if the summary fails to open, show the
 reviewed badge on the warning instead.
@@ -279,19 +282,19 @@ mg/dL at 60 min, range 53–105 †, labelled *Degraded data*.
 > forecasts again, labelled *Degraded data* with its reason. Recovery is shown as it is, not as a clean success.”
 
 **Metrics to show:** none — states only (*Stale*, *Not available*, *Degraded data*).
-**Transition (to slide 14):** “So how good is it — and on whom was each number measured?”
+**Transition (to slide 11):** “So how good is it — and on whom was each number measured?”
 **Fallback:** if seeking lands a minute off, step 5 minutes until the stated time; narrate the screen.
 
-## Scene 8 — Results, each with its model, cohort and comparator (10:00–10:45) · slide 14
+## Scene 8 — Results, each with its model, cohort and comparator (10:00–10:45) · slide 11
 
-> *[Slide 14]* “Three kinds of evidence, never blended. The serving model, on later recordings of the same fourteen
+> *[Slide 11]* “Three kinds of evidence, never blended. The serving model, on later recordings of the same fourteen
 > people: average error 12.96 and 20.26 milligrams at thirty and sixty minutes, against 14.84 and 23.23 for carrying
 > the last reading forward †. With each person held out entirely, a CGM-only procedure: 13.88 and 22.30, against 15.34
 > and 24.47. Our newest study came close — 22.00 against 23.20 for the refitted recipe — but missed its peak limit. On ninety-eight independent people
 > from Shanghai, a separate CGM-only model: 10.90 and 19.31, against 12.14 and 20.44. Different models, different
 > tests.”
 
-**Metrics to show:** slide 14 — three rows, each with its cohort label (`reports/evidence_manifest.md`).
+**Metrics to show:** slide 11 — three groups, each with its cohort label (`reports/evidence_manifest.md`).
 **Transition:** back to the browser: “All of this is inside the app, read from the saved files.”
 
 ## Scene 9 — Model evidence (10:45–12:00) · App
@@ -340,13 +343,13 @@ the disclosures notice; the guardrail list with the file that enforces each.
 [screenshot](../reports/ui/21-research-after-demo-model.png)).
 **Clicks:** scroll the research list; point at each experiment's tag (*Shown*, *Not shown*, *Negative result*).
 **Expected on screen:** each experiment with who it was evaluated on, when it was opened, and a tag per finding.
-The two newest studies (D-053, D-054) are not in this in-app list; they are on slides 22–23 and in the README. Say
+The two newest studies (D-053, D-054) are not in this in-app list; D-053 is a row on slide 11 and D-054 is slide 12; both are in the README. Say
 the first sentence as written: it names where they are. The last sentences are said over this screen and shown again on
-slides 22–23 in Scene 16.
+slides 11–12 in Scene 16.
 
 > “This screen shows our earlier research studies and their evidence, read from their saved files, with who each was
 > evaluated on and a tag for each finding: shown, not shown, or a negative result. Our two newest studies are documented
-> in the README and on slides 22 and 23. We declared each study before its own run. Later studies
+> in the README and on our slides. We declared each study before its own run. Later studies
 > reused previously inspected participants, so those results are internal validation. Our joint-selection study lowered
 > the average sixty-minute error but made peaks above 180 worse and raised false alarms, so it failed our own gates. The
 > zero-shot foundation model beat persistence on every one of the fourteen people, but not our refitted recipe. And our
@@ -356,21 +359,21 @@ slides 22–23 in Scene 16.
 > not adopt it. The model you have been watching is unchanged.”
 
 **Metrics to show:** −1.19 · 11 of 14 · +1.07 vs limit 1.0 (`reports/constrained_study.md`).
-**Transition (to slide 26):** “So where does that leave us?”
+**Transition (to slide 13):** “So where does that leave us?”
 **Fallback:** if the research view is unavailable on this installation, it says “Not run on this installation”; switch
-to slide 21 and read the same findings.
+to slide 11 and read the same findings.
 
-## Scene 12 — Closing: strengths, limits and the next validation step (14:15–15:00) · slides 26, 27
+## Scene 12 — Closing: strengths, limits and the next validation step (14:15–15:00) · slides 13, 14
 
-> *[Slide 26]* “What works end to end: a replayed twin that forecasts, warns, shows whether each forecast was right,
+> *[Slide 13]* “What works end to end: a replayed twin that forecasts, warns, shows whether each forecast was right,
 > records a review, and abstains when data is missing. The limits are real: fourteen people from one US site, no Indian
 > participants, blinded sensors, unknown medication, under-covering ranges, more than one false alarm per observed day.
 > Nothing here is clinical validation.
 >
-> *[Slide 27]* Next: a consented Indian cohort with real-time sensors, medications and meal times; evaluation on new
+> *[Slide 14]* Next: a consented Indian cohort with real-time sensors, medications and meal times; evaluation on new
 > people and sites; a warning budget agreed with clinicians; and a usability and data-protection review.”
 
-**Metrics to show:** slide 26 limits — 14 people, one US site, ranges 74 % against 80 %, 1.49 false alarms per observed day (`docs/model_card.md`, `metrics.json`).
+**Metrics to show:** slide 13 outcomes (12.96 / 20.26 vs 14.84 / 23.23; 61/64; 48.4 %) and slide 14 limits — 14 people, one US site, ranges 74 % against 80 %, 1.49 false alarms per observed day (`docs/model_card.md`, `metrics.json`).
 **Transition:** “In the remaining minutes, a few more cases from the app.”
 
 ---
@@ -426,44 +429,45 @@ quality: sources, model-input limits, coverage.
 **Metrics to show:** 35.3 vs 19.5 mg/dL, 46 % range held while rising; −16.9 mg/dL mean error above 180 at 60 min (`reports/error_by_trend.md`, validation segment).
 **Fallback:** if the trend block is absent for this forecast, step 5 minutes to a rising reading.
 
-## Scene 16 — Extension: research cutaway (18:15–19:15) · slides 19–24
+## Scene 16 — Extension: research cutaway (18:15–19:15) · slides 11–12
 
-> *[Slide 19]* “Because the serving model was tested on people it had seen, we also held each person out entirely.”
+> *[Slide 11]* “Because the serving model was tested on people it had seen, we also held each person out entirely.”
 >
-> *[Slide 20]* “Two hours ahead, error was 30.6 against 35.9 for persistence, better for all fourteen people — but the
+> “Two hours ahead, error was 30.6 against 35.9 for persistence, better for all fourteen people — but the
 > median warning lead was fifteen minutes: a two-hour forecast, not two hours of notice.”
 >
-> *[Slide 21]* “Pooled calibration brought research ranges close to eighty percent. Blending, retraining, tuning and
+> “Pooled calibration brought research ranges close to eighty percent. Blending, retraining, tuning and
 > joint selection each failed our declared bars.”
 >
-> *[Slide 22]* “The peak-aware study was a near miss: better on average, warnings and ranges within limits, but 1.07
+> “The peak-aware study was a near miss: better on average, warnings and ranges within limits, but 1.07
 > worse above 180 against a limit of 1.0 — so it stays research.”
 >
-> *[Slide 23]* “A zero-shot foundation model, on glucose alone, beat persistence for all fourteen people at sixty
+> *[Slide 12]* “A zero-shot foundation model, on glucose alone, beat persistence for all fourteen people at sixty
 > minutes — 22.92 against 24.47 — but not our refitted recipe at 22.50.”
 >
-> *[Slide 24]* “And on ninety-eight independent people from Shanghai, a separate CGM-only model beat persistence at
+> *[Slide 11, external row]* “And on ninety-eight independent people from Shanghai, a separate CGM-only model beat persistence at
 > thirty minutes and at two hours. That cohort has now been opened twice, for different horizons, and nothing was chosen
 > on it.”
 
 **Metrics to show:** 30.6 vs 35.9 and 15 min (`reports/two_hour_benchmark.md`, `reports/warning_utility.md`); 1.07 vs 1.0 (`reports/constrained_study.md`); 22.92 vs 24.47 and 22.50 (`reports/foundation_baseline.md`); Shanghai (`reports/two_hour_external.md`).
-**Fallback:** if short of time, read only slides 20, 23 and 24.
+Two-hour, range and D-048–D-052 findings are not on a slide in the 15-slide deck; they are in README §7 and the research workbook — narrate them over slide 11.
+**Fallback:** if short of time, read only the slide 12 and external-row lines.
 
-## Scene 17 — Extension: reproduce it, and close (19:15–20:30) · README, slide 28
+## Scene 17 — Extension: reproduce it, and close (19:15–20:30) · README, slide 15
 
-**Clicks:** browser tab with the repository README → *Run it locally* and *Verification*; then slide 28.
+**Clicks:** browser tab with the repository README → *Run it locally* and *Verification*; then slide 15.
 
 > “Everything you saw is reproducible. The synthetic demonstration runs from three commands with no download; the
 > recorded-data results need the public CGMacros download and three more. Backend, frontend and browser tests run from
 > one command each, and every number in this video traces to a saved experiment file. The code is MIT-licensed; each
 > dataset keeps its own licence and is downloaded by each user.
 >
-> *[Slide 28]* We are Team Kryptonite from VESIT. GlucoTwin does not tell anyone what to do. It shows what may happen
+> *[Slide 15]* We are Team Kryptonite from VESIT. GlucoTwin does not tell anyone what to do. It shows what may happen
 > next, records who looked, and then shows whether it was right. Forecast. Review. Verify. Thank you for watching.”
 
-**Metrics to show:** test counts and parity from `reports/verification.md`; licences on slide 28.
+**Metrics to show:** test counts and parity from `reports/verification.md`; licences on slide 15.
 
-Hold slide 28 for five seconds of silence before stopping the recording, so trimming cannot drop the video below 20:00.
+Hold slide 15 for five seconds of silence before stopping the recording, so trimming cannot drop the video below 20:00.
 
 ---
 

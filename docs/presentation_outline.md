@@ -18,27 +18,15 @@ specification by `scripts/build_submission_assets.py`, which reads every number 
 | 7 | Architecture | Architecture diagram: inputs → causal features → fusion LightGBM → bounded patient update → ranges and warnings → clinician review and ledger; research candidates in a dashed box, never served unless every release gate passes |
 | 8 | Models and personalization | Fusion (38 dynamic + 8 profile inputs in one model), baselines, LightGBM/CatBoost, adaptation, conformal prediction ranges (target coverage 80 %), warning score |
 | 9 | Why this learner | Validation-only candidate table + declared rule; eligibility restricted to profile + wearable models (declared after the test segment had been inspected); what the rule picks without the constraint |
-| 10 | Fusion: what the profile adds, and what it does not show | Brief's fusion requirement; within-cohort profile effect vs dynamic-only; no reliable benefit on people held out entirely (nested experiment); profile as identity code with 14 people; warning trade-off vs the earlier model; the claim we make and the one we do not |
-| 11 | Clinician workflow | Screenshot: recorded-data replay in the final test period (later recordings of the same participants) |
-| 12 | Demonstration | Screenshot: forecast details drawer |
-| 13 | Safety guardrails built into the twin | Abstention (history, sparse hour, no new reading; Stale after 15 min), Degraded flags, fusion profile gate, availability-time inputs, bounded personal correction (matured residuals, 6, ±25 mg/dL, 3-h reset), warning outcomes and episode merge, ranges with measured coverage, no clinical claims, locked evaluation and 15,440/15,440 parity — same list as the README's Safety guardrails table |
-| 14 | Results at a glance | One table, three labelled groups never blended: serving model (later recordings of the 14 known people), participant-held-out research (D-032, D-053 and D-054, each from its saved summary) and the external CGM-only check (D-045, the cohort's second opening); serving range coverage stated |
-| 15 | Forecast accuracy | *Serving model* section label. Test MAE chart + paired differences vs persistence; later recordings of the same 14 people, not new patients |
-| 16 | Personalization | *Serving model.* Forest plot of paired differences; frozen-state control; cold start |
-| 17 | Every participant | *Serving model.* Per-participant chart (14/14 at 30 min, 13/14 at 60 min) |
-| 18 | Early warning and uncertainty | *Serving model.* Detected onsets, false alarms per observed patient-day, qualified forecast lead vs a threshold rule; range coverage vs target, overall and per participant; meal sensitivity |
-| 19 | Research: people held out entirely | *Participant-held-out research.* `gt-nested-2026-10-12-v1` from its `report.json`: v2 recipe and Ridge candidate kept separate; high-glucose trade-off; warning burden; not promoted |
-| 20 | Research: warning two hours ahead | *Participant-held-out research.* `gt-2h-2026-10-20` (D-043) from `two_hour_summary.json`: 120-minute error vs persistence, 120- vs 60-minute warnings, profile ablation |
-| 21 | Research: what we fixed, and what we could not | *Participant-held-out research.* D-046 re-analysis and the D-048/D-049/D-051/D-052 negative results, each from its saved summary |
-| 22 | Research: peak-aware selection (D-053), a near miss | From `artifacts/research/gt-constrained-2026-10-21/summary.json`: S vs refitted R0 at 60/30 min, primary gate not met (error above 180 +1.07 vs limit +1.0), warning and range guardrails passed; not adopted |
-| 23 | Research: zero-shot foundation baseline (D-054) | From `artifacts/research/gt-foundation-2026-10-21/summary.json`: vs persistence and vs the refitted serving recipe on identical origins; F1 residual descriptive; not fine-tuned, not served |
-| 24 | External check | *External cohort, CGM only.* ShanghaiT2DM: D-032 (first opening, 30/60 min) and D-045 (first 120-minute assessment, second opening); not the serving fusion model |
-| 25 | Project outcomes | What was built, the provenance finding, measured outcomes, the corrected re-run and the fusion constraint, reproducibility |
-| 26 | Limitations | Cohort, population, blinded CGM, medication, profile as identity code, thresholds, intervals, retrospective; zero-shot foundation baseline only |
-| 27 | Next steps | Evidence needed before use with Indian patients; AI-READI under the declared successor protocol; optional foundation-model fine-tuning |
-| 28 | Team, links, reproducibility and licenses | Team; repository and video links (added after publication/upload); quick start; data citation; experiment ID |
+| 10 | Safety guardrails built into the twin | Abstention and Stale/Degraded states, availability-time inputs and the fusion profile gate, bounded patient correction (observed outcomes, 6, ±25 mg/dL, 3-h reset), warning outcomes, ranges with measured coverage, locked tests and 15,440/15,440 parity |
+| 11 | Results at a glance | One table, three labelled groups never blended: serving model (later recordings of the 14 known people), participant-held-out research (D-032, D-053, D-054, each from its saved summary) and the external CGM-only check (D-045); serving range coverage stated |
+| 12 | Research: zero-shot foundation baseline (D-054) | From `artifacts/research/gt-foundation-2026-10-21/summary.json`: vs persistence and vs the refitted serving recipe on identical origins; not fine-tuned, not served |
+| 13 | Project outcomes | What was built, the provenance finding, serving MAE vs persistence and per-person counts, warnings (61/64, false alarms per observed patient-day, 48.4 % ≥ 30 min ahead), reproducibility |
+| 14 | Limitations | Cohort and site, blinded CGM, medication and meal timing, profile as identity code, under-covering ranges, retrospective only; next step |
+| 15 | Team, links, reproducibility and licenses | Team; repository and video links (added after publication/upload); quick start; data licences; evidence pointers incl. the research workbook |
 
-The deck follows the prompt's twelve-topic structure (problem, use case, twin definition, data, availability/leakage,
-architecture, models, clinician workflow, demonstration, evaluation, limitations, next steps) with one evidence slide
-on learner selection, one on what the profile fusion does and does not show, three evaluation slides and a project-outcomes slide (the form asks for a presentation with
-“project details and outcomes”).
+Trimmed on 24 Oct 2026 from 28 to 15 slides to cut theory; slides 1–5 are byte-identical to the earlier deck. The
+28-slide technical deck (fusion analysis, screenshots, per-participant and personalization charts, the full research
+series and next steps) is kept as backup in
+[`submission/backup_28slide_2026-10-24/`](submission/backup_28slide_2026-10-24/); its numbers are in README §7 and the
+[research workbook](submission/GlucoTwin_Research_Workbook.xlsx).
