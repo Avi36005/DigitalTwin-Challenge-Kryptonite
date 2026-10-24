@@ -465,7 +465,7 @@ Full results: [`reports/evaluation_report.md`](reports/evaluation_report.md) · 
 
 ## 9. Open-source license
 
-* **Code:** MIT — [`LICENSE`](LICENSE). Copyright holder entered as “Avinash Gehi and Hardik Hinduja (Team
+* **Code:** MIT — [`LICENSE`](LICENSE); scope (code only, not the data or derived model weights) in [`NOTICE`](NOTICE). Copyright holder entered as “Avinash Gehi and Hardik Hinduja (Team
   Kryptonite)”, pending the team's confirmation.
 * **Data:** CGMacros 1.0.0 — Gutierrez-Osuna R., Kerr D., Mortazavi B., Das A. *CGMacros: a scientific dataset for
   personalized nutrition and diet monitoring* (version 1.0.0). PhysioNet (2025). https://doi.org/10.13026/3z8q-x658 —
