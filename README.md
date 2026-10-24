@@ -501,11 +501,11 @@ with the study ledger, gate calculations and verification scope; method note in
 
 ## 12. Accessible files and links
 
-All submission links above are relative paths to files tracked in this repository; none points to a private drive,
-authenticated notebook or local-only file. Last local check: **23 October 2026** — all 128 README and team-folder links and images pass: each target exists, is
-tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** public repository visibility,
-signed-out access and the YouTube link, because the repository has not been published and the video has not been
-uploaded. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
+All submission files are relative paths to files tracked in this repository; the only external links are the unlisted
+YouTube video and the Google Sheets copy of the research workbook, both of which opened without signing in on
+24 October 2026. Last local check: **24 October 2026** — all 138 README and team-folder links and images pass: each
+target exists, is tracked by Git and opens (PDF pages and PPTX slides counted). **Not yet verified:** signed-out access
+to the repository itself, which is checked once it is public. Results per link: [`docs/submission_access_audit.md`](docs/submission_access_audit.md).
 
 **[Judge guide (5 minutes)](docs/judge_guide.md)**: each part of the brief, how to verify it and what we do not claim.
 
@@ -607,11 +607,13 @@ uv run python scripts/check_submission.py  # README links, anchors, tracked file
 scripts/clean_copy_check.sh /tmp/gt-clean  # Git-publishable files only, in an empty directory: setup, tests, e2e, Shanghai path
 ```
 
-**Final verification (22 October 2026, commit `f073a10`):** backend pytest 221 passed (2 skipped: the optional torch
-test and one fusion-side comparison) · ruff clean · frontend typecheck and build pass · Vitest 141 passed · Playwright
-29 journeys + 4 public-mode + 3 summary/export, all passed · evidence manifest 23 of 23 README claims match their
-artifacts · online replay reproduced 15,440 of 15,440 saved test forecasts within 0.05 mg/dL. Commands, logs and
-JUnit files: [`reports/verification/final_2026-10-22_145326Z/LEDGER.md`](reports/verification/final_2026-10-22_145326Z/LEDGER.md).
+**Final verification (24 October 2026, source `8c75de7` with the deck and workbook changes committed in `e674cd1`):**
+backend pytest 221 passed (2 skipped: the optional torch test and one fusion-side comparison) · ruff clean · frontend
+typecheck and build pass · Vitest 141 passed · Playwright 29 journeys + 4 public-mode + 3 summary/export, all passed ·
+evidence manifest 23 of 23 README claims match their artifacts · research workbook 27 of 27 checks · online replay
+reproduced 15,440 of 15,440 saved test forecasts within 0.05 mg/dL. Commands, logs and JUnit files:
+[`reports/verification/final_2026-10-24_deck/LEDGER.md`](reports/verification/final_2026-10-24_deck/LEDGER.md); the
+earlier run at `f073a10`: [`final_2026-10-22_145326Z`](reports/verification/final_2026-10-22_145326Z/LEDGER.md).
 
 Full history: [`reports/verification.md`](reports/verification.md) · integration audit:
 [`reports/integration_audit.md`](reports/integration_audit.md) · claim-by-claim check:
