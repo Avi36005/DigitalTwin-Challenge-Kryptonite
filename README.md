@@ -487,9 +487,16 @@ replay semantics: [`docs/replay.md`](docs/replay.md).
 ## 11. Presentation
 
 **[`docs/submission/GlucoTwin_Presentation.pdf`](docs/submission/GlucoTwin_Presentation.pdf)** ·
-editable [`GlucoTwin_Presentation.pptx`](docs/submission/GlucoTwin_Presentation.pptx) — problem, use case, data,
-architecture, models, measured outcomes, limitations and next steps. Every number is generated from the experiment
-artifact by [`scripts/build_submission_assets.py`](scripts/build_submission_assets.py).
+editable [`GlucoTwin_Presentation.pptx`](docs/submission/GlucoTwin_Presentation.pptx) — 15 slides: problem, use case,
+data, availability controls, architecture, models, learner selection, guardrails, results, the foundation-model study,
+outcomes, limitations and links. Every number is generated from the experiment artifacts by
+[`scripts/build_submission_assets.py`](scripts/build_submission_assets.py). The earlier 28-slide technical deck is kept
+in [`docs/submission/backup_28slide_2026-10-24/`](docs/submission/backup_28slide_2026-10-24/).
+
+**Research workbook:** [`GlucoTwin_Research_Workbook.xlsx`](docs/submission/GlucoTwin_Research_Workbook.xlsx) maps each
+claim in the deck, README and narration to its source file, value and status (supported, pending, negative result),
+with the study ledger, gate calculations and verification scope; method note in
+[`GlucoTwin_Research_Workbook_Methodology.md`](docs/submission/GlucoTwin_Research_Workbook_Methodology.md).
 
 ## 12. Accessible files and links
 

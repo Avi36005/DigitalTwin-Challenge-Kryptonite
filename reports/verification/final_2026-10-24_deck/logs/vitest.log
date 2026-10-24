@@ -1,0 +1,64 @@
+
+> @glucotwin/web@0.1.0 test
+> vitest run --reporter=default --reporter=junit --outputFile.junit=~/projects/Digitaltwin/reports/verification/final_2026-10-24_deck/junit/vitest.xml
+
+
+ RUN  v5.0.3 ~/projects/Digitaltwin/apps/web
+
+ ✓ src/components/evidence/ResearchAfterDemo.test.tsx (5 tests) 265ms
+ ✓ src/components/twin/ForecastDetail.test.tsx (8 tests) 422ms
+stderr | src/state/replay.test.tsx > revision-keyed caches > rejects a late response that belongs to an older revision of the session
+An update to Probe inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/twin/Panels.test.tsx (24 tests) 488ms
+ ✓ src/components/review/ReviewSummary.test.tsx (5 tests) 676ms
+   ✓ ReviewSummary (5)
+     ✓ freezes the report: a playing replay does not change the open copy 306ms
+stderr | src/state/replay.test.tsx > replay controls > recovers visibly from a failed control command and allows retry
+The current testing environment is not configured to support act(...)
+
+ ✓ src/state/replay.test.tsx (3 tests) 565ms
+   ✓ replay controls (1)
+     ✓ recovers visibly from a failed control command and allows retry 459ms
+ ✓ src/pages/ReviewQueuePage.test.tsx (9 tests) 939ms
+   ✓ review queue page (9)
+     ✓ says there is nothing to review when no replay exists, and offers to start one 393ms
+ ✓ src/components/twin/WarningReview.test.tsx (9 tests) 1500ms
+   ✓ warning review (9)
+     ✓ saves the typed note through the acknowledgement call and closes 375ms
+ ✓ src/lib/routes.test.tsx (7 tests) 1516ms
+   ✓ router redirects (3)
+     ✓ replaces /?session=<id> with /app?session=<id> (no extra history entry) 896ms
+     ✓ renders the landing page at / even when the API is unreachable 326ms
+ ✓ src/state/deployment.test.tsx (12 tests) 819ms
+ ✓ src/lib/evidence.test.ts (10 tests) 11ms
+ ✓ src/components/review/snapshot.test.ts (10 tests) 14ms
+ ✓ src/components/twin/TwinExplanation.test.tsx (3 tests) 292ms
+ ✓ src/lib/queue.test.ts (12 tests) 9ms
+ ✓ src/lib/outcome.test.ts (5 tests) 9ms
+ ✓ src/lib/explain.test.ts (6 tests) 8ms
+ ✓ src/lib/chart.test.ts (5 tests) 9ms
+ ✓ src/lib/trendAccuracy.test.ts (3 tests) 7ms
+ ✓ src/lib/researchSummaries.test.ts (2 tests) 4ms
+ ✓ src/lib/snapshot.test.ts (3 tests) 3ms
+
+ Test Files  19 passed (19)
+      Tests  141 passed (141)
+   Start at  13:12:26
+   Duration  5.74s (environment 56%, tests 17%, import 12%, setup 8%, transform 8%, worker 1%)
+
+Environment  jsdom was created 19 times · 24.73s total, 56% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+JUNIT report written to ~/projects/Digitaltwin/reports/verification/final_2026-10-24_deck/junit/vitest.xml
+$ (cd ~/projects/Digitaltwin/apps/web && npm test -- --reporter=default --reporter=junit --outputFile.junit=~/projects/Digitaltwin/reports/verification/final_2026-10-24_deck/junit/vitest.xml)

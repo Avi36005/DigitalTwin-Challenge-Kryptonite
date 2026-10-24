@@ -388,22 +388,19 @@ def foundation_slide() -> dict | None:
     if not f:
         return None
     h, ci, rm = f["h"], f["ci"], f["rm"]
-    vp, vr, f1 = h["60"]["FM_vs_persistence"], h["60"]["FM_vs_R0saved_final"], h["60"]["F1_final_vs_R0refit_final"]
+    vp, vr = h["60"]["FM_vs_persistence"], h["60"]["FM_vs_R0saved_final"]
     return {"kind": "bullets", "section": "RESEARCH · 14 previously inspected people · internal comparison · CGM only · not served",
             "title": "Research: a zero-shot foundation-model baseline (D-054)",
             "bullets": [
-                f"What: {rm['checkpoint']} (pinned revision, {rm['parameters'] / 1e6:.1f} M parameters, {rm['license']}), "
-                "zero-shot on CGM only: each forecast origin is its own series of past readings; median forecast fixed in advance. "
-                "Not fine-tuned, not a fusion model, not served. Its public pretraining data may include CGM recordings.",
-                f"Against carrying the last reading forward, on identical origins: {ci(h['30']['FM_vs_persistence']['diff_macro'])} "
-                f"mg/dL at 30 min and {ci(vp['diff_macro'])} at 60 min (macro MAE {f['fm']['60']:.2f} vs {f['per']['60']:.2f}; "
-                f"lower for {vp['diff_macro']['people_better']} of {vp['diff_macro']['people']} people).",
-                f"Against the serving recipe refitted with each person held out (saved from D-052): {ci(vr['diff_macro'])} mg/dL "
-                f"at 60 min ({vr['macro']['FM']:.2f} vs {vr['macro']['R0']:.2f}) — not better, and clearly worse on readings above 180.",
-                f"Declared secondary: the foundation forecast plus a freshly fitted LightGBM residual on the served inputs, "
-                f"{ci(f1['diff_macro'])} mg/dL at 60 min against the same-code refit. Descriptive only; not a release candidate.",
-                "Declared before any participant forecast; the 14 people were inspected in earlier experiments, so this is an "
-                "internal comparison, not independent confirmation."]}
+                f"{rm['checkpoint']} ({rm['parameters'] / 1e6:.1f} M parameters, {rm['license']}), zero-shot on CGM only. "
+                "Not fine-tuned, not a fusion model, not served.",
+                f"Vs carrying the last reading forward: {ci(h['30']['FM_vs_persistence']['diff_macro'])} mg/dL at 30 min, "
+                f"{ci(vp['diff_macro'])} at 60 min — lower for {vp['diff_macro']['people_better']} of "
+                f"{vp['diff_macro']['people']} people.",
+                f"Vs our serving recipe refitted per held-out person: {ci(vr['diff_macro'])} mg/dL at 60 min "
+                f"({vr['macro']['FM']:.2f} vs {vr['macro']['R0']:.2f}) — not better; worse above 180 mg/dL.",
+                "Same 14 previously inspected people: an internal comparison. Its pretraining data may include public CGM "
+                "recordings."]}
 
 
 def results_overview(m: dict) -> dict:
@@ -448,10 +445,9 @@ def results_overview(m: dict) -> dict:
                      f"{e['persistence_mae']['30']:.2f} / {e['persistence_mae']['60']:.2f}"])
     iv = pd.DataFrame(m["intervals"])
     ivs = iv[(iv["label"] == sl) & (iv["personalization"] == sp) & (iv["split"] == "test")].set_index("horizon")
-    note = ("Mean absolute error in mg/dL, averaged equally over participants: an average error, not an accuracy "
-            "percentage. Each group is a different model and a different test — do not compare across groups. "
-            f"Serving ranges (target 80 %) covered {ivs.loc[30, 'coverage'] * 100:.1f} % / {ivs.loc[60, 'coverage'] * 100:.1f} %: "
-            "under-coverage. Research rows are read from each study's locked summary.")
+    note = ("Mean absolute error in mg/dL (lower is better), averaged over participants. Each group is a different model "
+            "and test — do not compare across groups. "
+            f"Serving ranges (target 80 %) covered {ivs.loc[30, 'coverage'] * 100:.1f} % / {ivs.loc[60, 'coverage'] * 100:.1f} %.")
     return {"kind": "results", "title": "Results at a glance: three kinds of evidence, kept apart", "table": rows,
             "note": note}
 
@@ -665,19 +661,13 @@ def guardrails_slide() -> dict:
     """Safety guardrails enforced in code (same list as the README's Safety guardrails table)."""
     return {"kind": "bullets", "title": "Safety guardrails built into the twin",
             "bullets": [
-                "Abstains instead of guessing: no forecast with under 60 min of history, a sparse last hour or no new reading; "
-                "after 15 min without one the last forecast is marked Stale. Weak inputs (gaps, sensor-limit readings, missing "
-                "wearable data) are flagged Degraded, with the reason.",
-                "The fusion model abstains when a health-record value is missing or not yet available; no input is used before "
-                "the time it became available (native CGM readings only).",
-                "Personal correction bounded: learns only from forecasts whose outcome was observed, needs 6, capped at ±25 mg/dL, "
-                "resets after a 3-hour gap.",
-                "Every warning is a labelled research warning: Outcome pending until it can be judged, then matched to an onset, "
-                "counted as a false alarm or marked unknown; firings within 30 min merge into one episode.",
-                "Uncertainty and limits shown: 80 % prediction ranges with measured coverage; not a medical device, no treatment "
-                "advice, replay only.",
-                "Evaluation cannot be quietly re-run: opened tests are locked; research runs cannot change the demo model; the app "
-                "reproduced all 15,440 saved test forecasts within 0.05 mg/dL."]}
+                "Abstains instead of guessing: no forecast with under 60 min of history or no new reading; marked Stale after "
+                "15 min; weak inputs flagged Degraded, with the reason.",
+                "No input is used before it was available; the fusion model abstains when a health-record value is missing.",
+                "Patient correction: only from observed outcomes, needs 6, capped at ±25 mg/dL, reset after a 3-hour gap.",
+                "Warnings stay Outcome pending until they can be judged, then match an onset or count as a false alarm.",
+                "80 % prediction ranges shown with measured coverage; not a medical device, no treatment advice.",
+                "Opened tests are locked; the app reproduced all 15,440 saved test forecasts within 0.05 mg/dL."]}
 
 
 def fusion_slide(m: dict, ff: dict, mae, c) -> dict:
@@ -733,18 +723,14 @@ def slides(m: dict, sub: dict) -> list[dict]:
         return f"{r['mean_diff_mae']:+.2f} mg/dL [{r['ci95'][0]:.2f}, {r['ci95'][1]:.2f}]"
 
     sl, sp, sfam, sfs = serving_ids(m)
-    sname = FAMILY.get(sfam, sfam)
     ev = pd.DataFrame(m["events"])
     e = ev[(ev["model"] == f"{sl} ({'adaptive' if sp == 'adaptive' else 'population'})") & (ev["split"] == "test") & (ev["horizon"] == 60)].iloc[0]
-    ep = ev[(ev["model"] == "persistence") & (ev["split"] == "test") & (ev["horizon"] == 60)].iloc[0]
     corrected = "qualified_lead_median" in ev.columns and e.get("qualified_lead_median") is not None
     corrects = m.get("corrects_experiment_id")
     iv = pd.DataFrame(m["intervals"])
     ivs = iv[(iv["label"] == sl) & (iv["personalization"] == sp) & (iv["split"] == "test")]
-    lo = pd.DataFrame(m["lopo"]).groupby("horizon")[["lopo_population_mae", "lopo_adaptive_mae"]].mean()
     sens = pd.DataFrame(m["sensitivity"])
     sens = sens[sens["split"] == "test"].set_index("horizon")
-    seg = m["cohort"]["by_segment"]
     cand = pd.DataFrame(m["selection"]["candidates"]).sort_values("selection_score")
     serving_rows = t[t["selected"]]
     ss = serving_rows.set_index("horizon")
@@ -790,108 +776,59 @@ def slides(m: dict, sub: dict) -> list[dict]:
                      "Undocumented columns reported, not interpreted; documented error codes excluded; dates shifted; timezone unknown → synthetic clock, no time-of-day features.",
                      "Synthetic fictional participants exercise edge cases (gaps, late meal logs, short history) with no download."]},
         {"kind": "bullets_below", "title": "Information availability and leakage controls", "image": str(FIGS / "fig_split.png"),
-         "bullets": ["Every record carries observed_at and available_at; a forecast at t uses only records with both ≤ t.",
-                     "Meals excluded from the primary model (logging time unknown); tested separately as an optimistic sensitivity.",
-                     ("Protocol frozen before fitting; model, adaptation, intervals and alert threshold chosen on validation; test evaluated once."
+         "bullets": ["A forecast at time t uses only records observed and available by t.",
+                     "Meals left out of the main model (logging time unknown); tested separately.",
+                     ("Protocol frozen before fitting; every choice made on validation; test evaluated once."
                       if not corrects else
-                      f"Protocol frozen before fitting; model, adaptation, intervals and alert threshold chosen on validation. Results shown ({m['experiment_id']}) re-run {base}'s protocol with one change, declared after its test segment had been inspected: the serving model must read the baseline profile and the wearable streams."
+                      f"Protocol frozen before fitting; choices made on validation. The fusion re-run ({m['experiment_id']}) was declared after {base}'s test had been inspected."
                       if disc and base else
-                      f"Protocol frozen before fitting; model, adaptation, intervals and alert threshold chosen on validation. Results shown are a corrected re-run ({m['experiment_id']}) of {corrects} after two code fixes — same protocol, same test segment, already inspected."),
-                     "Adaptation uses a residual only after its target reading was available; missing future data is censored, never negative."]},
+                      f"Protocol frozen before fitting; choices made on validation. Results are a corrected re-run ({m['experiment_id']}) of {corrects}."),
+                     "The patient correction learns only from forecasts whose outcome was already observed."]},
         {"kind": "architecture", "title": "System architecture: two data streams, one twin", "spec": arch_spec(m),
          "image": str(FIGS / "fig_architecture_slide.png")},
         {"kind": "bullets", "title": "Models and personalization",
-         "bullets": [*([f"Fusion: the serving model reads {ff['n_dyn']} dynamic features (CGM history, wearable heart rate and activity) and {ff['n_prof']} static baseline profile values (age, sex, BMI, HbA1c, fasting glucose and insulin, triglycerides, HDL) in one model."] if ff["n_prof"] else []),
-                     "Baselines: persistence, bounded linear trend, ridge regression.",
-                     "Direct per-horizon gradient-boosted trees: LightGBM (starting point) and CatBoost (challenger), equal 12-trial seeded searches, identical inputs and origins.",
-                     "Patient adaptation (same policy for both families): shrunk, bounded, decaying mean of matured residuals vs the frozen population forecast; weights never refit.",
-                     "Prediction ranges: split-conformal, target coverage 80 %, calibrated on the calibration segment for the exact serving pipeline.",
-                     "Warning: max forecast within 60 min − 180 mg/dL — an uncalibrated score, never shown as a probability."]},
+         "bullets": [*([f"Fusion: {ff['n_dyn']} dynamic features (CGM, heart rate, activity) + {ff['n_prof']} baseline profile values (age, sex, BMI, HbA1c, labs) in one model."] if ff["n_prof"] else []),
+                     "Baselines: persistence, linear trend, ridge. Learners: LightGBM and CatBoost, same search budget.",
+                     "Patient correction: a bounded mean of this person's observed errors; model weights never refit.",
+                     "80 % prediction ranges (split-conformal), calibrated for the exact serving pipeline.",
+                     "Warning score: highest forecast in the next 60 min minus 180 mg/dL — not a probability."]},
         {"kind": "table", "title": "Why this learner: validation-only selection", "table": sel_table,
-         "note": (f"Declared rule: lowest mean per-participant MAE over both horizons; candidates within 0.5 mg/dL tie → simpler family, then smaller feature set. "
-                  f"Eligible for serving: {', '.join(eligible)} only (profile + wearable), a constraint added on {ff['declared_on']} after the test segment had been inspected, to meet the fusion requirement. "
-                  f"Selected: {m['selection']['selected_label']} with patient adaptation. Without the constraint the same rule picks {bm['selection']['selected_label']} (the earlier model, {base})."
+         "note": (f"Rule: lowest mean per-participant validation MAE over both horizons; within 0.5 mg/dL → simpler model. "
+                  f"Only {', '.join(eligible)} (profile + wearable) was eligible, to meet the fusion requirement — a constraint added on {ff['declared_on']}, after the test segment had been inspected. "
+                  f"Selected: {m['selection']['selected_label']} with patient correction. Without the constraint the rule picks {bm['selection']['selected_label']} ({base})."
                   if disc and bm else
-                  f"Declared rule: lowest mean per-participant MAE over both horizons; candidates within 0.5 mg/dL tie → simpler family, then smaller feature set. "
-                  f"Selected: {m['selection']['selected_label']} with patient adaptation (adopted on validation). "
-                  f"Best validation score: {cand.iloc[0]['label']} ({cand.iloc[0]['selection_score']:.2f}). The declared tie-break chose the simpler configuration; we did not switch after seeing test results.")},
-        *([fusion_slide(m, ff, mae, c)] if disc and bm else []),
-        {"kind": "image", "title": "Clinician workflow: the twin workspace", "image": str(UI / "03-forecast-with-interval-recorded.png"),
-         "caption": "Recorded-data replay in the final test period (later recordings of participants the model was trained on): current glucose, 30/60-minute forecasts with prediction ranges (target coverage 80 %), saved earlier forecasts, research warnings with outcomes, review status and the live safety guardrails."},
-        {"kind": "image", "title": "Demonstration: evidence behind a forecast", "image": str(UI / "04-forecast-evidence-dialog.png"),
-         "caption": "Each forecast is immutable and inspectable: information cutoff, model version, evaluation segment, population forecast vs patient correction, factual explanations."},
+                  f"Rule: lowest mean per-participant validation MAE over both horizons; within 0.5 mg/dL → simpler model. "
+                  f"Selected: {m['selection']['selected_label']} with patient correction; we did not switch after seeing test results.")},
         guardrails_slide(),
         results_overview(m),
-        {"kind": "image", "section": SEC_SERVING, "title": "Measured evaluation: forecast accuracy (later days)", "image": str(FIGS / "fig_mae_test.png"),
-         "caption": f"Later recordings of the same {n_pt} participants the model was trained on — not new patients. "
-                    f"Serving − persistence: {c('serving minus persistence', 30)} at 30 min, {c('serving minus persistence', 60)} at 60 min. "
-                    f"Test origins {seg['test']['origins']:,} (≈ {seg['test']['covered_hours']:.0f} h); forecasts issued for {ss.loc[30, 'coverage'] * 100:.1f} % of origins with a target."},
-        {"kind": "image", "section": SEC_SERVING, "title": "Measured evaluation: does personalization help?", "image": str(FIGS / "fig_paired_differences.png"),
-         "caption": f"Adaptation ({sname}): {c(f'{sl}: adaptive minus population', 30)} at 30 min, {c(f'{sl}: adaptive minus population', 60)} at 60 min — small; "
-                    f"population {mae(sl, 'off', 30):.2f} / {mae(sl, 'off', 60):.2f}, frozen state {mae(sl, 'frozen_state', 30):.2f} / {mae(sl, 'frozen_state', 60):.2f}, adaptive {mae(sl, 'adaptive', 30):.2f} / {mae(sl, 'adaptive', 60):.2f} mg/dL. "
-                    f"New-participant cold start: {lo.loc[30, 'lopo_population_mae']:.2f}/{lo.loc[60, 'lopo_population_mae']:.2f} → {lo.loc[30, 'lopo_adaptive_mae']:.2f}/{lo.loc[60, 'lopo_adaptive_mae']:.2f} mg/dL with adaptation."},
-        {"kind": "image", "section": SEC_SERVING, "title": "Measured evaluation: every participant", "image": str(FIGS / "fig_per_participant.png"),
-         "caption": "Per-participant test MAE, persistence vs the serving pipeline. Gains are uneven: large for some participants, none for a few at 60 minutes. Fourteen people cannot establish population-level performance."},
-        {"kind": "bullets", "section": SEC_SERVING, "title": "Measured evaluation: early warning and uncertainty",
-         "bullets": [f"60-min warning (test, margin threshold {e['threshold']:+.0f} mg/dL chosen on validation by F1): {int(e['detected_onsets'])}/{int(e['true_onsets'])} new onsets detected, precision {e['precision']:.2f}, "
-                     f"{int(e['false_alarm_episodes'])} false alarms ("
-                     + (f"{e['false_alarms_per_observed_patient_day']:.2f} per observed patient-day; " if corrected else "")
-                     + f"{e['false_alarms_per_patient_day']:.2f} per eligible day)"
-                     + (f"; forecast lead median {e['qualified_lead_median']:.0f} min among detected onsets (episode start {e['lead_time_median']:.0f} min)." if corrected else f", median lead {e['lead_time_median']:.0f} min.")
-                     + (f" Detection is not notice: {demo_notice30()} of all onsets were warned at least 30 min ahead." if demo_notice30() else ""),
-                     f"Same procedure on persistence (fires at glucose ≥ {180 + ep['threshold']:.0f}): {int(ep['detected_onsets'])}/{int(ep['true_onsets'])} detected, {int(ep['false_alarm_episodes'])} false alarms ("
-                     + (f"{ep['false_alarms_per_observed_patient_day']:.2f} per observed patient-day; " if corrected else "")
-                     + f"{ep['false_alarms_per_patient_day']:.2f} per eligible day).",
-                     f"Prediction ranges (target coverage 80 %) covered {ivs[ivs['horizon'] == 30]['coverage'].iloc[0] * 100:.1f} % (30 min) and {ivs[ivs['horizon'] == 60]['coverage'].iloc[0] * 100:.1f} % (60 min) on test, "
-                     f"{ivs[ivs['horizon'] == 30]['per_patient_min'].iloc[0] * 100:.0f}–{ivs[ivs['horizon'] == 30]['per_patient_max'].iloc[0] * 100:.0f} % and "
-                     f"{ivs[ivs['horizon'] == 60]['per_patient_min'].iloc[0] * 100:.0f}–{ivs[ivs['horizon'] == 60]['per_patient_max'].iloc[0] * 100:.0f} % per participant — under-covered; no guarantee claimed.",
-                     f"Optimistic meal logging: {sens.loc[60, 'mae']:.2f} vs {sens.loc[60, 'serving_population_mae']:.2f} mg/dL at 60 min — timely meal data would likely help most."]},
-        *([research_slide()] if research_slide() else []),
-        *([two_hour_slide()] if two_hour_slide() else []),
-        *([reanalysis_slide()] if reanalysis_slide() else []),
-        pending_slide(),
         *([foundation_slide()] if foundation_slide() else []),
-        *([external_slide()] if external_slide() else []),
         {"kind": "bullets", "title": "Project outcomes",
-         "bullets": ["Built: a working personalized glucose twin — replay API with a backend-owned clock, immutable forecasts, research warnings with outcomes — and a clinician workspace (landing page, Overview, Participants, Replay sessions, Model evidence, Data quality).",
-                     "Found and corrected a data-provenance problem: the published 1-minute CGM values are interpolated; only native 5-minute readings are used.",
-                     f"{'Measured on later recordings of the same participants (retrospective)' if disc else 'Measured on later recordings of the same participants (corrected re-run)' if corrects else 'Measured once on later recordings of the same participants'}: {better(30)}/{n_pt} participants improved over persistence at 30 min and {better(60)}/{n_pt} at 60 min; "
-                     f"MAE {ss.loc[30, 'mae']:.2f} / {ss.loc[60, 'mae']:.2f} mg/dL vs {mae('persistence:cgm-only-v1', 'off', 30):.2f} / {mae('persistence:cgm-only-v1', 'off', 60):.2f}.",
-                     f"Personalization: small gains ({c(f'{sl}: adaptive minus population', 30).split(' [')[0]} and {c(f'{sl}: adaptive minus population', 60).split(' [')[0]}). "
-                     f"Warnings: {int(e['detected_onsets'])}/{int(e['true_onsets'])} onsets detected with {int(e['false_alarm_episodes'])} false alarms"
-                     + (f" ({e['false_alarms_per_observed_patient_day']:.2f} per observed patient-day)" if corrected else "")
-                     + (f"; {demo_notice30()} of all onsets warned at least 30 min ahead" if demo_notice30() else "")
-                     + " — the F1 threshold rule ignores review workload.",
-                     (f"Corrected after an independent review (activity-window defect, online warning double-credit; {corrects} preserved), then re-run with the fusion "
-                      f"constraint ({m['experiment_id']}); the dynamic-only model of {base} stays registered for rollback." if disc and base else
-                      "Corrected after an independent review: an activity-window feature defect and an online warning double-credit were fixed and the protocol re-run "
-                      f"({m['experiment_id']}); the original {corrects} results are preserved." if corrects else
-                      "Every result regenerates from saved artifacts."),
-                     "Reproducible: synthetic mode needs no download; recorded-data results regenerate from versioned configs; a fresh copy passes the automated backend, frontend and browser tests."]},
+         "bullets": ["Built: a working glucose twin — replay API, immutable forecasts, warnings with outcomes — and a clinician workspace.",
+                     "Found: the published 1-minute CGM values are interpolated; we use only native 5-minute readings.",
+                     f"Later recordings of the same {n_pt} people: MAE {ss.loc[30, 'mae']:.2f} / {ss.loc[60, 'mae']:.2f} mg/dL vs persistence "
+                     f"{mae('persistence:cgm-only-v1', 'off', 30):.2f} / {mae('persistence:cgm-only-v1', 'off', 60):.2f}; "
+                     f"better for {better(30)}/{n_pt} people at 30 min and {better(60)}/{n_pt} at 60 min.",
+                     f"Warnings: {int(e['detected_onsets'])}/{int(e['true_onsets'])} onsets detected"
+                     + (f", {e['false_alarms_per_observed_patient_day']:.2f} false alarms per observed patient-day" if corrected else "")
+                     + (f"; {demo_notice30()} of all onsets warned ≥ 30 min ahead." if demo_notice30() else "."),
+                     "Reproducible: synthetic mode needs no download; results regenerate from versioned configs."]},
         {"kind": "bullets", "title": "Limitations",
-         "bullets": ["14 participants from one US site; overlapping windows are not independent patients.",
-                     "No Indian participants — nothing here establishes performance for patients in India.",
-                     "Blinded research CGMs replayed with assumed zero latency; native timestamps known to the minute.",
-                     "Medication and insulin use unknown; meal logging time undocumented.",
-                     *(["Profile fusion: profile values are constant per person, so with 14 people they can act as an identity code; no benefit was shown on people held out entirely."] if disc else []),
-                     "Prediction ranges under-cover; the warning score is uncalibrated and its threshold rule (F1) ignores review workload; 180 mg/dL is a research threshold, not triage.",
-                     "Retrospective replay only: no clinician workflow, outcome or safety study. The foundation-model baseline was zero-shot only; fine-tuning was not run.",
-                     PROTOCOL_NOTE]},
-        {"kind": "bullets", "title": "Next steps: evidence needed for Indian patients",
-         "bullets": ["Prospective, consented Indian cohort with unblinded CGMs, recorded transmission latency, medications and meal logging times.",
-                     "Re-evaluate held-out participants (cold start) and per-site calibration; report subgroup performance.",
-                     "AI-READI five-minute CGM and wearable data (access not yet requested; steps listed) for a larger new-person evaluation under the declared protocol gt-nested-2026-10-12-v2.",
-                     "Clinician usability study of the review workflow; regulatory and data-protection review (DPDP Act).",
-                     "Optional: fine-tune a time-series foundation model inside each training boundary and compare it under the same protocol (zero-shot only so far, D-054)."]},
+         "bullets": ["14 participants from one US site; no Indian participants.",
+                     "Blinded CGMs replayed with assumed zero latency; medication and meal timing unknown.",
+                     *(["Profile values are constant per person; no benefit shown for people held out entirely."] if disc else []),
+                     f"Ranges under-cover ({ivs[ivs['horizon'] == 30]['coverage'].iloc[0] * 100:.1f} % / {ivs[ivs['horizon'] == 60]['coverage'].iloc[0] * 100:.1f} % vs 80 % target); "
+                     "the warning threshold ignores review workload.",
+                     "Retrospective replay only — no clinical, workflow or safety study.",
+                     "Next: a prospective, consented Indian cohort and a full-fusion evaluation on new people."]},
         {"kind": "bullets", "title": "Team, links, reproducibility and licenses",
          "bullets": [f"{team}. {inst}.",
                      f"Code: {repo} — MIT license (code only). Quick start: make setup · make synthetic · make dev.",
-                     f"Demo video (at least {sub['video']['minimum_duration'].split(':')[0]} minutes): {video}. Architecture: docs/submission/GlucoTwin_Architecture.pdf.",
-                     "Data: CGMacros 1.0.0, Gutierrez-Osuna, Kerr, Mortazavi, Das (2025), PhysioNet, doi:10.13026/3z8q-x658, CC BY-NC-SA 4.0; "
-                     "ShanghaiT2DM, Zhao, Zhu, Wang, Rao (2022), figshare, doi:10.6084/m9.figshare.21600933.v5, CC BY 4.0.",
-                     f"Serving results: experiment {m['experiment_id']}, reports/evaluation_report.md. Research (not served): "
-                     "README §7, docs/judge_guide.md, reports/constrained_study.md, reports/foundation_baseline.md, reports/two_hour_external.md. "
-                     "Every selected claim: reports/evidence_manifest.md."]},
+                     f"Demo video: {video}.",
+                     "Data: CGMacros 1.0.0 (PhysioNet, doi:10.13026/3z8q-x658, CC BY-NC-SA 4.0); "
+                     "ShanghaiT2DM (figshare, doi:10.6084/m9.figshare.21600933.v5, CC BY 4.0).",
+                     "Evidence: docs/judge_guide.md · reports/evidence_manifest.md"
+                     + (" · docs/submission/GlucoTwin_Research_Workbook.xlsx" if (OUT / "GlucoTwin_Research_Workbook.xlsx").exists() else "")
+                     + "."]},
     ]
 
 
@@ -1217,6 +1154,9 @@ def team_folder(sub: dict) -> Path:
         ("Presentation with details and outcomes", "[`GlucoTwin_Presentation.pdf`](../docs/submission/GlucoTwin_Presentation.pdf) · "
                                                    "[`.pptx`](../docs/submission/GlucoTwin_Presentation.pptx)"),
         ("Architecture diagram", "[`GlucoTwin_Architecture.pdf`](../docs/submission/GlucoTwin_Architecture.pdf)"),
+        ("Research workbook: every claim mapped to its source, with gates and verification",
+         "[`GlucoTwin_Research_Workbook.xlsx`](../docs/submission/GlucoTwin_Research_Workbook.xlsx) · "
+         "[method note](../docs/submission/GlucoTwin_Research_Workbook_Methodology.md)"),
         ("Video script and recording checklist", "[`demo_script.md`](../docs/demo_script.md) · "
                                                  "[`GlucoTwin_Demo_Script.pdf`](../docs/submission/GlucoTwin_Demo_Script.pdf)"),
         (f"Demo video (unlisted YouTube, at least {sub['video']['minimum_duration'].split(':')[0]} minutes)", video),

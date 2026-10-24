@@ -1,0 +1,2 @@
+All checks passed!
+$ (cd ~/projects/Digitaltwin && uv run ruff check --extend-exclude reports/overnight_codex .)

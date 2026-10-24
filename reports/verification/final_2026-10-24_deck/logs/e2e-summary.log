@@ -1,0 +1,53 @@
+[WebServer] INFO:     Started server process [82063]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8030 (Press CTRL+C to quit)
+
+Running 3 tests using 1 worker
+
+[WebServer] 1:43:48 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:43:48 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:43:50 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:43:50 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+  ✓  1 [chromium] › e2e-summary/review-summary-export.spec.ts:49:1 › Participant 01, Day 9 20:38: a pending warning with a long review note; the copy stays frozen (7.3s)
+[WebServer] 1:43:55 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:43:55 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:44:00 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:44:00 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+  ✓  2 [chromium] › e2e-summary/review-summary-export.spec.ts:76:1 › Participant 12: stale glucose before the gap closes, then abstention (10.1s)
+[WebServer] 1:44:02 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+[WebServer] 1:44:02 PM [vite] (client) [console.warn] The width(0) and height(0) of chart should be greater than 0,
+[WebServer]        please check the style of container, or the props width(100%) and height(100%),
+[WebServer]        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+[WebServer]        height and width.
+  ✓  3 [chromium] › e2e-summary/review-summary-export.spec.ts:91:1 › synthetic participant with a missing health-record value (1.7s)
+
+  3 passed (21.7s)
+$ (cd ~/projects/Digitaltwin/apps/web && npx playwright test --config playwright.summary.config.ts --workers=1 --reporter=list --output=<session-scratch>/final24/pw/summary)

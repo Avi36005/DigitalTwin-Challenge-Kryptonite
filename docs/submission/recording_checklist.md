@@ -20,12 +20,12 @@ From [`docs/demo_script.md`](../demo_script.md); keep the two in step. Read alou
 | 02:00–05:30 | App | 2–3 · Inputs, sources, quality; forecast components and bounded personalisation | Participant 01, Day 9 · 20:38 |
 | 05:30–06:15 | Slide | 4 · Architecture cutaway | Slide 7 |
 | 06:15–10:00 | App | 5–7 · Pinned outcome, warnings and review, sensor gap (stale, abstain, recover) | Participant 01, Participant 12 |
-| 10:00–10:45 | Slide | 8 · Results cutaway | Slide 14 |
+| 10:00–10:45 | Slide | 8 · Results cutaway | Slide 11 |
 | 10:45–14:15 | App | 9–11 · Model evidence, rewind and parity, research studies | Model evidence, Participant 12 |
-| 14:15–15:00 | Slides | 12 · Closing | Slides 26, 27 |
-| 15:00–20:30 | App-led | 13–17 · Synthetic edge cases, false alarm and queue, rising glucose, research cutaway, reproduce | Synthetic C/E, Participant 01, queue, slides 19–24, 28 |
+| 14:15–15:00 | Slides | 12 · Closing | Slides 13, 14 |
+| 15:00–20:30 | App-led | 13–17 · Synthetic edge cases, false alarm and queue, rising glucose, research cutaway, reproduce | Synthetic C/E, Participant 01, queue, slides 11–12, 15 |
 
-Hold slide 28 for five seconds at the end so trimming cannot drop the video below 20:00.
+Hold slide 15 for five seconds at the end so trimming cannot drop the video below 20:00.
 
 ## After recording (team only)
 
@@ -33,7 +33,7 @@ Hold slide 28 for five seconds at the end so trimming cannot drop the video belo
    authorisation); YouTube's displayed duration must also be ≥ 20:00, and the link must play signed out.
 6. Watch the export once end to end: no personal data, notifications or unrelated windows on screen.
 7. Record the URL and both durations in `configs/submission.yaml` and README §8, then rerun
-   `uv run --group docs python scripts/build_submission_assets.py` so slide 28 shows the link.
+   `uv run --group docs python scripts/build_submission_assets.py` so slide 15 shows the link.
 8. Repository link: only after the team makes the repository public, check it signed out and enter it in
    `configs/submission.yaml` (`links.repository`, max 500 characters on the form). Until then it stays pending.
 9. Team folder `Kryptonite_VESIT/` (challenge format `Team Name_College Name`) is in the repository root.
